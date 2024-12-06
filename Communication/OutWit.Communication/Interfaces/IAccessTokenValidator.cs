@@ -8,6 +8,8 @@ namespace OutWit.Communication.Interfaces
 {
     public interface IAccessTokenValidator
     {
-        public bool IsTokenValid(string token);
+        public bool IsRequestTokenValid(string token);
+
+        public bool IsAuthorizationTokenValid(string token);
     }
 }

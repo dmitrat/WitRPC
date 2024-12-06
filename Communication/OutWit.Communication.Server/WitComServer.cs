@@ -107,7 +107,7 @@ namespace OutWit.Communication.Server
 
             try
             {
-                connection.IsAuthorized = TokenValidator.IsTokenValid(request.Token);
+                connection.IsAuthorized = TokenValidator.IsAuthorizationTokenValid(request.Token);
 
                 var response = new WitComResponseAuthorization
                 {
@@ -142,9 +142,17 @@ namespace OutWit.Communication.Server
         protected WitComMessage ProcessMessage(Guid client, WitComMessage message)
         {
             var request = message.Data.GetRequest(Serializer, Converter);
-            var response = RequestProcessor.Process(request);
 
-            return message.With(x => x.Data = Serializer.Serialize(response));
+            WitComResponse? response = null;
+            if(request == null)
+                response = WitComResponse.BadRequest("Request is empty");
+
+            else if(!TokenValidator.IsRequestTokenValid(request.Token))
+                response = WitComResponse.UnauthorizedRequest("Tokes is not valid");
+            else 
+                response = RequestProcessor.Process(request);
+
+            return message.With(x => x.Data = Serializer.Serialize(response!));
         }
 
         private WitComMessage Encrypt(Guid client, WitComMessage message)

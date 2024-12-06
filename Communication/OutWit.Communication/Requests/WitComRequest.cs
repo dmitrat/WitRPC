@@ -4,7 +4,6 @@ using MessagePack;
 using OutWit.Common.Abstract;
 using OutWit.Common.Collections;
 using OutWit.Common.Values;
-using OutWit.Communication.Converters;
 using OutWit.Communication.Model;
 
 namespace OutWit.Communication.Requests
@@ -17,6 +16,7 @@ namespace OutWit.Communication.Requests
 
         public WitComRequest()
         {
+            Token = "";
             MethodName = "";
             Parameters = Array.Empty<object>();
             ParameterTypes = Array.Empty<Type>();
@@ -43,7 +43,8 @@ namespace OutWit.Communication.Requests
             if (!(modelBase is WitComRequest request))
                 return false;
 
-            return MethodName.Is(request.MethodName) &&
+            return Token.Is(request.Token) &&
+                   MethodName.Is(request.MethodName) &&
                    Parameters.Is(request.Parameters) &&
                    ParameterTypes.Is(request.ParameterTypes) &&
                    ParameterTypesByName.Is(request.ParameterTypesByName) &&
@@ -55,6 +56,7 @@ namespace OutWit.Communication.Requests
         {
             return new WitComRequest
             {
+                Token = Token,
                 MethodName = MethodName,
                 Parameters = Parameters,
                 ParameterTypes = ParameterTypes,
@@ -70,25 +72,29 @@ namespace OutWit.Communication.Requests
 
         [Key(0)]
         [DataMember]
-        public string MethodName { get; set; }
+        public string Token { get; set; }
 
         [Key(1)]
         [DataMember]
-        public object[] Parameters { get; set; }
+        public string MethodName { get; set; }
 
         [Key(2)]
         [DataMember]
-        public IReadOnlyList<Type> ParameterTypes { get; set; }
+        public object[] Parameters { get; set; }
 
         [Key(3)]
         [DataMember]
-        public IReadOnlyList<ParameterType> ParameterTypesByName { get; set; }
+        public IReadOnlyList<Type> ParameterTypes { get; set; }
 
         [Key(4)]
         [DataMember]
-        public IReadOnlyList<Type> GenericArguments { get; set; }
+        public IReadOnlyList<ParameterType> ParameterTypesByName { get; set; }
 
         [Key(5)]
+        [DataMember]
+        public IReadOnlyList<Type> GenericArguments { get; set; }
+
+        [Key(6)]
         [DataMember]
         public IReadOnlyList<ParameterType> GenericArgumentsByName { get; set; }
 

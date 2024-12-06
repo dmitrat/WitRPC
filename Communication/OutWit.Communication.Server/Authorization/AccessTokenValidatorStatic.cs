@@ -16,7 +16,12 @@ namespace OutWit.Communication.Server.Authorization
 
         #region IAccessTokenProvider
 
-        public bool IsTokenValid(string token)
+        public bool IsRequestTokenValid(string token)
+        {
+            return token == AccessToken;
+        }
+
+        public bool IsAuthorizationTokenValid(string token)
         {
             return token == AccessToken;
         }

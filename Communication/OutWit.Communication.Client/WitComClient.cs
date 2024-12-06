@@ -146,6 +146,8 @@ namespace OutWit.Communication.Client
             if(request == null)
                 return WitComResponse.BadRequest($"Empty request");
 
+            request.Token = TokenProvider.GetToken();
+
             var messageRequest = new WitComMessage
             {
                 Id = Guid.NewGuid(),

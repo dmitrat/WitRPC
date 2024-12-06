@@ -21,7 +21,7 @@ namespace OutWit.Communication.Utils
                 if (response == null)
                     return WitComResponse.InternalServerError("Failed to deserialize response");
 
-                return WitComResponse.Success(response.Data);
+                return response;
             }
             catch (Exception e)
             {

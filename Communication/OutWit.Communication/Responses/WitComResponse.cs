@@ -104,6 +104,21 @@ namespace OutWit.Communication.Responses
             return new WitComResponse(CommunicationStatus.InternalServerError, null, errorMessage, innerException.Message);
         }
 
+        public static WitComResponse UnauthorizedRequest()
+        {
+            return new WitComResponse(CommunicationStatus.Unauthorized, null, null, null);
+        }
+
+        public static WitComResponse UnauthorizedRequest(string errorMessage)
+        {
+            return new WitComResponse(CommunicationStatus.Unauthorized, null, errorMessage, null);
+        }
+
+        public static WitComResponse UnauthorizedRequest(string errorMessage, Exception innerException)
+        {
+            return new WitComResponse(CommunicationStatus.Unauthorized, null, errorMessage, innerException.Message);
+        }
+
         #endregion
 
         #region Properties

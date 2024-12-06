@@ -15,6 +15,7 @@ namespace OutWit.Communication.Tests.Requests
         public void ConstructorTest()
         {
             var request = new WitComRequest();
+            Assert.That(request.Token, Is.Empty);
             Assert.That(request.MethodName, Is.Empty);
             Assert.That(request.Parameters, Is.Empty);
             Assert.That(request.ParameterTypes, Is.Empty);
@@ -24,6 +25,7 @@ namespace OutWit.Communication.Tests.Requests
 
             request = new WitComRequest
             {
+                Token = "0",
                 MethodName = "1",
                 Parameters = new object[] { 2, "3" },
                 ParameterTypes = new[] { typeof(int), typeof(string) },
@@ -32,6 +34,7 @@ namespace OutWit.Communication.Tests.Requests
                 GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) }
             };
 
+            Assert.That(request.Token, Is.EqualTo("0"));
             Assert.That(request.MethodName, Is.EqualTo("1"));
             Assert.That(request.Parameters.Is(2, "3"), Is.EqualTo(true));
             Assert.That(request.ParameterTypes.Is(typeof(int), typeof(string)), Is.EqualTo(true));
@@ -45,6 +48,7 @@ namespace OutWit.Communication.Tests.Requests
         {
             var request = new WitComRequest
             {
+                Token = "0",
                 MethodName = "1",
                 Parameters = new object[] { 2, "3" },
                 ParameterTypes = new[] { typeof(int), typeof(string) },
@@ -55,6 +59,7 @@ namespace OutWit.Communication.Tests.Requests
 
             Assert.That(request.Is(request.Clone()), Is.True);
 
+            Assert.That(request.Is(request.With(x => x.Token = "1")), Is.False);
             Assert.That(request.Is(request.With(x => x.MethodName = "2")), Is.False);
             Assert.That(request.Is(request.With(x => x.Parameters = new object[] { 3, "3" })), Is.False);
             Assert.That(request.Is(request.With(x => x.ParameterTypes = new[] { typeof(double), typeof(string) })), Is.False);
@@ -68,6 +73,7 @@ namespace OutWit.Communication.Tests.Requests
         {
             var request1 = new WitComRequest
             {
+                Token = "0",
                 MethodName = "1",
                 Parameters = new object[] { 2, "3" },
                 ParameterTypes = new[] { typeof(int), typeof(string) },
@@ -80,6 +86,7 @@ namespace OutWit.Communication.Tests.Requests
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
 
+            Assert.That(request2.Token, Is.EqualTo("0"));
             Assert.That(request2.MethodName, Is.EqualTo("1"));
             Assert.That(request2.Parameters.Is(2, "3"), Is.EqualTo(true));
             Assert.That(request2.ParameterTypes.Is(typeof(int), typeof(string)), Is.EqualTo(true));
@@ -93,6 +100,7 @@ namespace OutWit.Communication.Tests.Requests
         {
             var request1 = new WitComRequest
             {
+                Token = "0",
                 MethodName = "1",
                 Parameters = new object[] { 2.0, "3" },
                 ParameterTypes = new[] { typeof(int), typeof(string) },
@@ -119,6 +127,7 @@ namespace OutWit.Communication.Tests.Requests
         {
             var request1 = new WitComRequest
             {
+                Token = "0",
                 MethodName = "1",
                 Parameters = new object[] { 2, "3" },
                 ParameterTypes = new[] { typeof(int), typeof(string) },
@@ -142,6 +151,7 @@ namespace OutWit.Communication.Tests.Requests
         {
             var request1 = new WitComRequest
             {
+                Token = "0",
                 MethodName = "1",
                 Parameters = new object[] { 2.0, "3" },
                 ParameterTypes = new[] { typeof(int), typeof(string) },
