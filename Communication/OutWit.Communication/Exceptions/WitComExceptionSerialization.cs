@@ -6,21 +6,21 @@ using System.Threading.Tasks;
 
 namespace OutWit.Communication.Exceptions
 {
-    public class CommunicationException : Exception
+    public class WitComExceptionSerialization : WitComException
     {
-        public CommunicationException() 
+        public WitComExceptionSerialization() 
             : this(null, null)
         {
 
         }
 
-        public CommunicationException(string message) 
+        public WitComExceptionSerialization(string message) 
             : this(message, null)
         {
 
         }
 
-        public CommunicationException(string? message, Exception? innerException)
+        public WitComExceptionSerialization(string? message, Exception? innerException)
             : base(message, innerException)
         {
 

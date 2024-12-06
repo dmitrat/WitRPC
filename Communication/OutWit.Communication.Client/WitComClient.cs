@@ -194,7 +194,7 @@ namespace OutWit.Communication.Client
                 return null;
 
             if (Response.Id != message.Id)
-                throw new CommunicationException($"Received response inconsistent");
+                throw new WitComException($"Received response inconsistent");
 
             return Response;
         }
@@ -229,10 +229,10 @@ namespace OutWit.Communication.Client
                 return;
 
             if (message.Type == WitComMessageType.Initialization && IsInitialized)
-                throw new CommunicationException($"Wrong initialization request");
+                throw new WitComException($"Wrong initialization request");
 
             if (message.Type == WitComMessageType.Authorization && IsAuthorized)
-                throw new CommunicationException($"Wrong authorization request");
+                throw new WitComException($"Wrong authorization request");
 
             if (message.Type == WitComMessageType.Callback)
                 CallbackReceived(Decrypt(message).Data.GetRequest(Serializer, Converter));

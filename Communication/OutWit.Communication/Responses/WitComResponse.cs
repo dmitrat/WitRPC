@@ -55,14 +55,14 @@ namespace OutWit.Communication.Responses
             return Status == CommunicationStatus.Ok;
         }
 
-        public ExceptionFault CreateFaultException()
+        public WitComExceptionFault CreateFaultException()
         {
             if (Status <= CommunicationStatus.Ok)
             {
                 throw new InvalidOperationException("The response doesn't contain any error");
             }
 
-            return new ExceptionFault(Status, ErrorMessage, new Exception(ErrorDetails));
+            return new WitComExceptionFault(Status, ErrorMessage, new Exception(ErrorDetails));
         }
 
         #endregion

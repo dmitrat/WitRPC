@@ -27,10 +27,10 @@ namespace OutWit.Communication.Server.WebSocket
             Options = options;
 
             if (string.IsNullOrEmpty(Options.Url))
-                throw new CommunicationException($"Url cannot be null");
+                throw new WitComException($"Url cannot be null");
 
             if (Options.Certificate == null)
-                throw new CommunicationException($"Certificate cannot be null");
+                throw new WitComException($"Certificate cannot be null");
 
 
             Listener = new TcpListener(IPAddress.Any, 5001);

@@ -31,11 +31,11 @@ namespace OutWit.Communication.Client.Pipes
         private void InitPipe()
         {
             if (string.IsNullOrEmpty(Options.ServerName))
-                throw new TransportException($"Failed to create pipe: server name is empty. " +
+                throw new WitComExceptionTransport($"Failed to create pipe: server name is empty. " +
                                              $"Use \".\" as server name for local communication");
 
             if (string.IsNullOrEmpty(Options.PipeName))
-                throw new TransportException($"Failed to create pipe: pipe name is empty");
+                throw new WitComExceptionTransport($"Failed to create pipe: pipe name is empty");
 
             Stream = new NamedPipeClientStream(Options.ServerName, Options.PipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
             Reader = new BinaryReader(Stream);

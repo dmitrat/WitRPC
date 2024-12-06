@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Runtime.Serialization;
+using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Requests;
 using OutWit.Communication.Responses;
@@ -49,7 +50,7 @@ namespace OutWit.Communication.Utils
                     else if (request.ParameterTypesByName.Count > 0)
                         parameterType = (Type)request.ParameterTypesByName[i]!;
                     else
-                        throw new SerializationException("Cannot deserialize request: parameter types missing");
+                        throw new WitComExceptionSerialization("Cannot deserialize request: parameter types missing");
 
                     if (valueConverter.TryConvert(parameter, parameterType, out object? value) && value != null)
                         request.Parameters[i] = value;

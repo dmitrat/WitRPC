@@ -33,7 +33,7 @@ namespace OutWit.Communication.Server.Pipes
         private void InitPipe()
         {
             if (string.IsNullOrEmpty(Options.PipeName))
-                throw new TransportException($"Failed to create pipe: pipe name is empty");
+                throw new WitComExceptionTransport($"Failed to create pipe: pipe name is empty");
 
             Stream = new NamedPipeServerStream(Options.PipeName, PipeDirection.InOut,
                 Options.MaxNumberOfClients, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);

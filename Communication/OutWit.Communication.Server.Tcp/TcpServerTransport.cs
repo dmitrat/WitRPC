@@ -34,7 +34,7 @@ namespace OutWit.Communication.Server.Tcp
             try
             {
                 if (Client == null)
-                    throw new TransportException($"Failed to init tcp client");
+                    throw new WitComExceptionTransport($"Failed to init tcp client");
 
                 Stream = Client.GetStream();
                 Reader = new BinaryReader(Stream);

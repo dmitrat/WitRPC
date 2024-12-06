@@ -24,7 +24,7 @@ namespace OutWit.Communication.Server.Tcp
             Options = options;
 
             if (Options.Port == null)
-                throw new CommunicationException($"Port cannot be null");
+                throw new WitComException($"Port cannot be null");
             
 
             Listener = new TcpListener(IPAddress.Any, Options.Port.Value);

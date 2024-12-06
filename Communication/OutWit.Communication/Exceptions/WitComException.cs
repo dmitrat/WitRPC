@@ -6,21 +6,21 @@ using System.Threading.Tasks;
 
 namespace OutWit.Communication.Exceptions
 {
-    public class EncryptionException : Exception
+    public class WitComException : Exception
     {
-        public EncryptionException() 
+        public WitComException() 
             : this(null, null)
         {
 
         }
 
-        public EncryptionException(string message) 
+        public WitComException(string message) 
             : this(message, null)
         {
 
         }
 
-        public EncryptionException(string? message, Exception? innerException)
+        public WitComException(string? message, Exception? innerException)
             : base(message, innerException)
         {
 

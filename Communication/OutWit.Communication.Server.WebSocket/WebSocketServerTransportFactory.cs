@@ -23,7 +23,7 @@ namespace OutWit.Communication.Server.WebSocket
             Options = options;
 
             if (string.IsNullOrEmpty(Options.Url))
-                throw new CommunicationException($"Url cannot be null");
+                throw new WitComException($"Url cannot be null");
             
 
             Listener = new HttpListener();

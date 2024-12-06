@@ -52,10 +52,10 @@ namespace OutWit.Communication.Server
         private WitComMessage ProcessInitialization(Guid client, WitComMessage message)
         {
             if (!m_connections.TryGetValue(client, out ConnectionInfo? connection))
-                throw new CommunicationException($"Unexpected recipient id: {client}");
+                throw new WitComException($"Unexpected recipient id: {client}");
 
             if (connection.IsInitialized)
-                throw new CommunicationException($"Wrong initialization request");
+                throw new WitComException($"Wrong initialization request");
 
             if (message.Data == null)
                 return message.With(x=>x.Data = null);
@@ -91,10 +91,10 @@ namespace OutWit.Communication.Server
         private WitComMessage ProcessAuthorization(Guid client, WitComMessage message)
         {
             if (!m_connections.TryGetValue(client, out ConnectionInfo? connection))
-                throw new CommunicationException($"Unexpected recipient id: {client}");
+                throw new WitComException($"Unexpected recipient id: {client}");
 
             if (connection.IsAuthorized)
-                throw new CommunicationException($"Wrong authorization request");
+                throw new WitComException($"Wrong authorization request");
 
             if (message.Data == null)
                 return message.With(x => x.Data = null);
@@ -150,7 +150,7 @@ namespace OutWit.Communication.Server
         private WitComMessage Encrypt(Guid client, WitComMessage message)
         {
             if (!m_connections.TryGetValue(client, out ConnectionInfo? connection))
-                throw new CommunicationException($"Unexpected recipient id: {client}");
+                throw new WitComException($"Unexpected recipient id: {client}");
 
             if (message.Type == WitComMessageType.Initialization || message.Data == null)
                 return message;
@@ -161,7 +161,7 @@ namespace OutWit.Communication.Server
         private WitComMessage Decrypt(Guid client, WitComMessage message)
         {
             if (!m_connections.TryGetValue(client, out ConnectionInfo? connection))
-                throw new CommunicationException($"Unexpected recipient id: {client}");
+                throw new WitComException($"Unexpected recipient id: {client}");
 
             if (message.Type == WitComMessageType.Initialization || message.Data == null)
                 return message;
