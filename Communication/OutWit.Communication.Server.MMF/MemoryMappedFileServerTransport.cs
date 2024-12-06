@@ -1,10 +1,11 @@
-﻿using OutWit.Communication.Exceptions;
+﻿using System.IO.MemoryMappedFiles;
+using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
 using System.IO.Pipes;
 
-namespace OutWit.Communication.Server.Pipes
+namespace OutWit.Communication.Server.MMF
 {
-    public class NamedPipeServerTransport : ITransportServer
+    public class MemoryMappedFileServerTransport : ITransportServer
     {
         #region Events
 
@@ -16,13 +17,13 @@ namespace OutWit.Communication.Server.Pipes
 
         #region Constructors
 
-        public NamedPipeServerTransport(NamedPipeServerTransportOptions options)
+        public MemoryMappedFileServerTransport(MemoryMappedFileServerTransportOptions options)
         {
             Id = Guid.NewGuid();
 
             Options = options;
 
-            InitPipe();
+            InitChannel();
 
         }
 
@@ -30,15 +31,22 @@ namespace OutWit.Communication.Server.Pipes
 
         #region Initialization
 
-        private void InitPipe()
+        private void InitChannel()
         {
-            if (string.IsNullOrEmpty(Options.PipeName))
-                throw new WitComExceptionTransport($"Failed to create pipe: pipe name is empty");
+            if (string.IsNullOrEmpty(Options.Name))
+                throw new WitComExceptionTransport($"Failed to create memory mapped file: name is empty");
 
-            Stream = new NamedPipeServerStream(Options.PipeName, PipeDirection.InOut,
-                Options.MaxNumberOfClients, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+            if (Options.Size <= 0)
+                throw new WitComExceptionTransport($"Failed to create memory mapped file: size is zero");
+
+            File = MemoryMappedFile.CreateNew(Options.Name, Options.Size, MemoryMappedFileAccess.ReadWrite);
+            Stream = File.CreateViewStream(0, 0);
             Reader = new BinaryReader(Stream);
             Writer = new BinaryWriter(Stream);
+
+            WaitForDataFromClient = new EventWaitHandle(false, EventResetMode.AutoReset, $"Global\\{Options.Name}_client");
+            WaitForDataFromServer = new EventWaitHandle(false, EventResetMode.AutoReset, $"Global\\{Options.Name}_server");
+
             IsListening = true;
         }
 
@@ -50,8 +58,6 @@ namespace OutWit.Communication.Server.Pipes
         {
             try
             {
-                await Stream!.WaitForConnectionAsync(token);
-
                 Task.Run(ListenForIncomingData);
 
                 return true;
@@ -72,8 +78,13 @@ namespace OutWit.Communication.Server.Pipes
             {
                 await Task.Run(() =>
                 {
+                    Stream?.Seek(0, SeekOrigin.Begin);
+
                     Writer.Write(data.Length);
                     Writer.Write(data);
+                    Writer.Flush();
+
+                    WaitForDataFromServer?.Set();
                 });
             }
             catch (IOException e)
@@ -94,8 +105,13 @@ namespace OutWit.Communication.Server.Pipes
 
             try
             {
-                while (IsListening && Stream.IsConnected)
+                while (IsListening && Stream != null)
                 {
+                    WaitForDataFromClient?.WaitOne();
+                    if (!IsListening)
+                        return;
+
+                    Stream?.Seek(0, SeekOrigin.Begin);
                     int dataLength = Reader.ReadInt32();
                     if (dataLength > 0)
                     {
@@ -104,7 +120,7 @@ namespace OutWit.Communication.Server.Pipes
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 Dispose();
             }
@@ -121,6 +137,7 @@ namespace OutWit.Communication.Server.Pipes
             Reader?.Dispose();
             Writer?.Dispose();
             Stream?.Dispose();
+            File?.Dispose();
 
             Disconnected(Id);
         }
@@ -130,16 +147,22 @@ namespace OutWit.Communication.Server.Pipes
         #region Properties
 
         public Guid Id { get; }
+        
+        public bool CanReinitialize { get; } = true;
 
-        public bool CanReinitialize { get; } = false;
+        private MemoryMappedFileServerTransportOptions Options { get; }
 
-        private NamedPipeServerTransportOptions Options { get; }
+        private MemoryMappedFile? File { get; set; }
 
-        private NamedPipeServerStream? Stream { get; set; }
+        private MemoryMappedViewStream? Stream { get; set; }
 
         private BinaryReader? Reader { get; set; }
 
         private BinaryWriter? Writer { get; set; }
+
+        private EventWaitHandle? WaitForDataFromClient { get; set; }
+
+        private EventWaitHandle? WaitForDataFromServer { get; set; }
 
         private bool IsListening { get; set; }
 

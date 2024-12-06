@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
@@ -24,10 +24,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\OutWit.Communication.Client.MMF\OutWit.Communication.Client.MMF.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Client.Pipes\OutWit.Communication.Client.Pipes.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Client.Tcp\OutWit.Communication.Client.Tcp.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Client.WebSocket\OutWit.Communication.Client.WebSocket.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Client\OutWit.Communication.Client.csproj" />
+    <ProjectReference Include="..\OutWit.Communication.Server.MMF\OutWit.Communication.Server.MMF.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Server.Pipes\OutWit.Communication.Server.Pipes.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Server.Tcp\OutWit.Communication.Server.Tcp.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Server.WebSocket\OutWit.Communication.Server.WebSocket.csproj" />

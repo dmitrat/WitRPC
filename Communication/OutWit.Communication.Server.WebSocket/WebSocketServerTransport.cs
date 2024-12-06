@@ -143,6 +143,8 @@ namespace OutWit.Communication.Server.WebSocket
 
         public Guid Id { get; }
 
+        public bool CanReinitialize { get; } = false;
+
         private WebSocketServerTransportOptions Options { get; }
 
         private System.Net.WebSockets.WebSocket? Client { get; }

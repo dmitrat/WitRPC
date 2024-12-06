@@ -10,5 +10,6 @@ namespace OutWit.Communication.Interfaces
     {
         Task<bool> InitializeConnectionAsync(CancellationToken token);
 
+        bool CanReinitialize { get; }
     }
 }

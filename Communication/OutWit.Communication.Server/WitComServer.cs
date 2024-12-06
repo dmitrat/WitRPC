@@ -34,8 +34,6 @@ namespace OutWit.Communication.Server
             WaitForCallback = new AutoResetEvent(true);
 
             InitEvents();
-
-            TransportFactory.StartWaitingForConnection();
         }
 
         #endregion
@@ -53,6 +51,9 @@ namespace OutWit.Communication.Server
         {
             if (!m_connections.TryGetValue(client, out ConnectionInfo? connection))
                 throw new WitComException($"Unexpected recipient id: {client}");
+
+            if(connection.IsInitialized && connection.CanReinitialize)
+                connection.Reinitialize();
 
             if (connection.IsInitialized)
                 throw new WitComException($"Wrong initialization request");

@@ -122,6 +122,8 @@ namespace OutWit.Communication.Server.Tcp
 
         public Guid Id { get; }
 
+        public bool CanReinitialize { get; } = false;
+
         private TcpServerTransportOptions Options { get; }
 
         private TcpClient? Client { get; }

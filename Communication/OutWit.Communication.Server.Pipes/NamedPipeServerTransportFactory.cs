@@ -76,7 +76,7 @@ namespace OutWit.Communication.Server.Pipes
 
         #endregion
 
-        #region Proeprties
+        #region Properties
 
         private NamedPipeServerTransportOptions Options { get; }
 

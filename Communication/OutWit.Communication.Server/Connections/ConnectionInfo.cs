@@ -18,6 +18,19 @@ namespace OutWit.Communication.Server.Connections
 
         #endregion
 
+        #region Functions
+
+        public void Reinitialize()
+        {
+            if(!CanReinitialize)
+                return;
+
+            IsInitialized = false;
+            IsAuthorized = false;
+        }
+
+        #endregion
+
         #region Properties
 
         public ITransportServer Transport { get; }
@@ -28,6 +41,7 @@ namespace OutWit.Communication.Server.Connections
 
         public bool IsAuthorized { get; set; }
 
+        public bool CanReinitialize => Transport.CanReinitialize;
 
         public Guid Id => Transport.Id;
 
