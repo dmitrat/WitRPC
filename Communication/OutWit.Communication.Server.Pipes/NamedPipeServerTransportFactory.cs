@@ -10,8 +10,6 @@ namespace OutWit.Communication.Server.Pipes
 
         public event TransportFactoryEventHandler NewClientConnected = delegate { };
 
-        private readonly ConcurrentDictionary<Guid, ITransportServer> m_connections = new ();
-
         #endregion
 
         #region Constructors
@@ -19,7 +17,7 @@ namespace OutWit.Communication.Server.Pipes
         public NamedPipeServerTransportFactory(NamedPipeServerTransportOptions options)
         {
             Options = options;
-            WaitForConnectionSlot = new AutoResetEvent(true);
+            WaitForConnectionSlot = new Semaphore(Options.MaxNumberOfClients, Options.MaxNumberOfClients);
         }
 
         #endregion
@@ -34,23 +32,15 @@ namespace OutWit.Communication.Server.Pipes
             {
                 while (!CancellationTokenSource.Token.IsCancellationRequested)
                 {
-                    WaitForConnectionSlot.WaitOne();
+                    WaitForConnectionSlot?.WaitOne();
 
                     var transport = new NamedPipeServerTransport(Options);
 
                     if (await transport.InitializeConnectionAsync(CancellationTokenSource.Token))
                     {
-                        m_connections.TryAdd(transport.Id, transport);
-
                         transport.Disconnected += OnTransportDisconnected;
-
                         NewClientConnected(transport);
                     }
-
-                    if (m_connections.Count >= Options.MaxNumberOfClients)
-                        WaitForConnectionSlot.Reset();
-                    else
-                        WaitForConnectionSlot.Set();
                     
                 }
             });
@@ -67,11 +57,7 @@ namespace OutWit.Communication.Server.Pipes
 
         private void OnTransportDisconnected(Guid sender)
         {
-            if (m_connections.ContainsKey(sender))
-                m_connections.TryRemove(sender, out ITransportServer? transport);
-
-            if (m_connections.Count < Options.MaxNumberOfClients)
-                WaitForConnectionSlot.Set();
+            WaitForConnectionSlot?.Release();
         }
 
         #endregion
@@ -80,7 +66,7 @@ namespace OutWit.Communication.Server.Pipes
 
         private NamedPipeServerTransportOptions Options { get; }
 
-        private AutoResetEvent WaitForConnectionSlot { get; set; }
+        private Semaphore? WaitForConnectionSlot { get; set; }
 
         private CancellationTokenSource? CancellationTokenSource { get; set; }
 
