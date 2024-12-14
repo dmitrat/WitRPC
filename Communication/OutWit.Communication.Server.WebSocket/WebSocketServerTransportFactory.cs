@@ -44,6 +44,10 @@ namespace OutWit.Communication.Server.WebSocket
                 while (!CancellationTokenSource.Token.IsCancellationRequested)
                 {
                     var httpContext = await Listener.GetContextAsync();
+
+                    if(CancellationTokenSource.Token.IsCancellationRequested)
+                        return;
+
                     if (!httpContext.Request.IsWebSocketRequest)
                     {
                         httpContext.Response.StatusCode = 400;
