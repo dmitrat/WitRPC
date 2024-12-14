@@ -133,12 +133,19 @@ namespace OutWit.Communication.Client
 
         public async Task<bool> ReconnectAsync(TimeSpan timeout, CancellationToken cancellationToken)
         {
-            return await Transport.ReconnectAsync(timeout, cancellationToken);
+            await Disconnect();
+
+            Thread.Sleep(500);
+
+            return await ConnectAsync(timeout, cancellationToken);
         }
 
         public async Task Disconnect()
         {
             await Transport.Disconnect();
+
+            IsInitialized = false;
+            IsAuthorized = false;
         }
 
         public async Task<WitComResponse> SendRequest(WitComRequest? request)

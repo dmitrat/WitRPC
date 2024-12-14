@@ -51,12 +51,7 @@ namespace OutWit.Communication.Tests.Mock
 
         private IRequestProcessor Processor { get; }
 
-
         public IValueConverter Converter { get; set; }
-
-        public bool IsInitialized { get; } = true;
-
-        public bool IsAuthorized { get; } = true;
 
         #endregion
     }

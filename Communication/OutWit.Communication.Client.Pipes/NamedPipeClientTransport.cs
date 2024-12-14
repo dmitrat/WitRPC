@@ -20,8 +20,6 @@ namespace OutWit.Communication.Client.Pipes
         public NamedPipeClientTransport(NamedPipeClientTransportOptions options)
         {
             Options = options;
-
-            InitPipe();
         }
 
         #endregion
@@ -50,6 +48,8 @@ namespace OutWit.Communication.Client.Pipes
 
         public async Task<bool> ConnectAsync(TimeSpan timeout, CancellationToken cancellationToken)
         {
+            InitPipe();
+
             if (Stream == null)
                 return false;
 
@@ -73,20 +73,6 @@ namespace OutWit.Communication.Client.Pipes
         public async Task<bool> ConnectAsync(CancellationToken cancellationToken)
         {
             return await ConnectAsync(TimeSpan.Zero, cancellationToken);
-        }
-
-
-        public async Task<bool> ReconnectAsync(TimeSpan timeout, CancellationToken cancellationToken)
-        {
-            Dispose();
-            InitPipe();
-
-            return await ConnectAsync(timeout, cancellationToken);
-        }
-
-        public async Task<bool> ReconnectAsync(CancellationToken cancellationToken)
-        {
-            return await ReconnectAsync(TimeSpan.Zero, cancellationToken);
         }
 
         public async Task SendBytesAsync(byte[] data)

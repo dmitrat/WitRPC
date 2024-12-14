@@ -13,11 +13,6 @@ namespace OutWit.Communication.Interfaces
         Task<bool> ConnectAsync(CancellationToken cancellationToken);
 
 
-        Task<bool> ReconnectAsync(TimeSpan timeout, CancellationToken cancellationToken);
-
-        Task<bool> ReconnectAsync(CancellationToken cancellationToken);
-
-
         Task Disconnect();
     }
 }

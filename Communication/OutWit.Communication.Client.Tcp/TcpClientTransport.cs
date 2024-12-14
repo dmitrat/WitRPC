@@ -59,19 +59,6 @@ namespace OutWit.Communication.Client.Tcp
             return await ConnectAsync(TimeSpan.Zero, cancellationToken);
         }
 
-
-        public async Task<bool> ReconnectAsync(TimeSpan timeout, CancellationToken cancellationToken)
-        {
-            Dispose();
-
-            return await ConnectAsync(timeout, cancellationToken);
-        }
-
-        public async Task<bool> ReconnectAsync(CancellationToken cancellationToken)
-        {
-            return await ReconnectAsync(TimeSpan.Zero, cancellationToken);
-        }
-
         public async Task SendBytesAsync(byte[] data)
         {
             if (Writer == null || Reader == null)

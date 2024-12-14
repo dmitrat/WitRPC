@@ -35,6 +35,112 @@ namespace OutWit.Communication.Tests.Communication.Basic
         }
 
         [Test]
+        public async Task ConnectDisconnectTest()
+        {
+            var server = GetServer(1);
+            server.StartWaitingForConnection();
+
+            var client = GetClient();
+
+            Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(client.IsInitialized, Is.True);
+            Assert.That(client.IsAuthorized, Is.True);
+
+            await client.Disconnect();
+            Assert.That(client.IsInitialized, Is.False);
+            Assert.That(client.IsAuthorized, Is.False);
+
+            Thread.Sleep(500);
+
+            Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(client.IsInitialized, Is.True);
+            Assert.That(client.IsAuthorized, Is.True);
+
+            var request = new WitComRequest
+            {
+                MethodName = "Test"
+            };
+
+            WitComResponse? response = await client.SendRequest(request);
+            Assert.That(response, Is.Not.Null);
+            Assert.That(response.Status, Is.EqualTo(CommunicationStatus.Ok));
+            Assert.That(response.Data, Is.EqualTo("Test"));
+        }
+
+        [Test]
+        public async Task ReconnectTest()
+        {
+            var server = GetServer(1);
+            server.StartWaitingForConnection();
+
+            var client = GetClient();
+
+            Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(client.IsInitialized, Is.True);
+            Assert.That(client.IsAuthorized, Is.True);
+
+            Assert.That(await client.ReconnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(client.IsInitialized, Is.True);
+            Assert.That(client.IsAuthorized, Is.True);
+
+            var request = new WitComRequest
+            {
+                MethodName = "Test"
+            };
+
+            WitComResponse? response = await client.SendRequest(request);
+            Assert.That(response, Is.Not.Null);
+            Assert.That(response.Status, Is.EqualTo(CommunicationStatus.Ok));
+            Assert.That(response.Data, Is.EqualTo("Test"));
+        }
+
+        [Test]
+        public async Task StartStopWaitingForConnectionTest()
+        {
+            var server = GetServer(5);
+            server.StartWaitingForConnection();
+
+            var client1 = GetClient();
+
+            Assert.That(await client1.ConnectAsync(TimeSpan.FromSeconds(1), CancellationToken.None), Is.True);
+            Assert.That(client1.IsInitialized, Is.True);
+            Assert.That(client1.IsAuthorized, Is.True);
+
+            server.StopWaitingForConnection();
+
+            Thread.Sleep(500);
+
+            var client2 = GetClient();
+
+            Assert.That(await client2.ConnectAsync(TimeSpan.FromSeconds(1), CancellationToken.None), Is.False);
+            Assert.That(client2.IsInitialized, Is.False);
+            Assert.That(client2.IsAuthorized, Is.False);
+
+            server.StartWaitingForConnection();
+
+            var client3 = GetClient();
+
+            Assert.That(await client3.ConnectAsync(TimeSpan.FromSeconds(1), CancellationToken.None), Is.True);
+            Assert.That(client3.IsInitialized, Is.True);
+            Assert.That(client3.IsAuthorized, Is.True);
+
+            var request = new WitComRequest
+            {
+                MethodName = "Test"
+            };
+
+            WitComResponse? response = await client3.SendRequest(request);
+            Assert.That(response, Is.Not.Null);
+            Assert.That(response.Status, Is.EqualTo(CommunicationStatus.Ok));
+            Assert.That(response.Data, Is.EqualTo("Test"));
+
+            response = await client1.SendRequest(request);
+            Assert.That(response, Is.Not.Null);
+            Assert.That(response.Status, Is.EqualTo(CommunicationStatus.Ok));
+            Assert.That(response.Data, Is.EqualTo("Test"));
+        }
+
+        [Test]
         public async Task TooManyClientsSingleClientAllowedConnectionTest()
         {
             var server = GetServer(1);

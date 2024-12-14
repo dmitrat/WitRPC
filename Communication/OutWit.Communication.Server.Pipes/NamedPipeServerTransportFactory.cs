@@ -41,7 +41,8 @@ namespace OutWit.Communication.Server.Pipes
                         transport.Disconnected += OnTransportDisconnected;
                         NewClientConnected(transport);
                     }
-                    
+                    else
+                        transport.Dispose();
                 }
             });
         }
