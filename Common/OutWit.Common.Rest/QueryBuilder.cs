@@ -47,32 +47,100 @@ namespace OutWit.Common.Rest
             return this;
         }
 
-        public QueryBuilder AddParameter(string name, bool? value)
+        public QueryBuilder AddParameter<TValue>(string name, IEnumerable<TValue> values)
         {
-            return AddParameter(name, value, Extensions.ToBoolString);
+            var parameters = new List<string>();
+            foreach (var value in values)
+            {
+                var parameter = value.Convert();
+                if (string.IsNullOrEmpty(parameter))
+                    continue;
+
+                parameters.Add(parameter);
+            }
+
+            if (parameters.Count == 0)
+                return this;
+
+            AddParameter(name, parameters.ToArray());
+
+            return this;
+        }
+
+        public QueryBuilder AddParameter<TValue>(string name, IEnumerable<TValue> values, string format)
+        {
+            var parameters = new List<string>();
+            foreach (var value in values)
+            {
+                var parameter = value.Convert(format);
+                if (string.IsNullOrEmpty(parameter))
+                    continue;
+
+                parameters.Add(parameter);
+            }
+
+            if (parameters.Count == 0)
+                return this;
+
+            AddParameter(name, parameters.ToArray());
+
+            return this;
         }
 
         public QueryBuilder AddParameter<TValue>(string name, TValue? value)
-            where TValue : struct, Enum
         {
-            return AddParameter(name, value, Extensions.ToEnumString);
+            if (value == null)
+                return this;
+
+            var parameter = value.Convert();
+            if (string.IsNullOrEmpty(parameter))
+                return this;
+
+            AddParameter(name, parameter);
+
+            return this;
         }
 
-        public QueryBuilder AddParameter<TValue>(string name, TValue value)
-            where TValue : struct, Enum
+        public QueryBuilder AddParameter<TValue>(string name, TValue? value, string format)
         {
-            return AddParameter(name, value.ToEnumString());
+            if (value == null)
+                return this;
+
+            var parameter = value.Convert(format);
+            if (string.IsNullOrEmpty(parameter))
+                return this;
+
+            AddParameter(name, parameter);
+
+            return this;
         }
 
-        public QueryBuilder AddParameter<TValue>(string name, IEnumerable<TValue>? values)
-            where TValue : struct, Enum
+        public QueryBuilder AddParameter(string name, object? value)
         {
-            return AddParameter(name, values, Extensions.ToEnumString);
+            if (value == null)
+                return this;
+
+            var parameter = value.Convert();
+            if (string.IsNullOrEmpty(parameter))
+                return this;
+
+            AddParameter(name, parameter);
+
+            return this;
         }
 
-        public QueryBuilder AddParameter(string name, DateTime? value, string format)
+        public QueryBuilder AddParameter(string name, object? value, string format)
         {
-            return AddParameter(name, value, time => time.ToDateTimeString(format));
+            if (value == null)
+                return this;
+
+            var parameter = value.Convert(format);
+            if (string.IsNullOrEmpty(parameter))
+                return this;
+
+            AddParameter(name, parameter);
+
+            return this;
         }
 
         public QueryBuilder AddParameter(string name, params string[] values)
@@ -82,35 +150,7 @@ namespace OutWit.Common.Rest
                 : this;
         }
 
-        public QueryBuilder AddParameter(string name, long? value)
-        {
-            return AddParameter(name, value, Extensions.ToIntegerString);
-        }
-            
-
-        public QueryBuilder AddParameter(string name, double? value)
-        {
-            return AddParameter(name, value, Extensions.ToDoubleString);
-        }
-
-        private QueryBuilder AddParameter<TValue>(string name, TValue? value, Func<TValue, string> converter)
-            where TValue : struct
-        {
-            return value.HasValue
-                ? AddParameter(name, converter(value.Value))
-                : this;
-        }
-
-        private QueryBuilder AddParameter<TValue>(string name, IEnumerable<TValue>? values, Func<TValue, string> converter)
-            where TValue : struct
-        {
-            return values is not null
-                ? AddParameter(name, string.Join(LIST_SEPARATOR, values.Select(converter)))
-                : this;
-        }
-
         #endregion
-
 
         #region Properties
 

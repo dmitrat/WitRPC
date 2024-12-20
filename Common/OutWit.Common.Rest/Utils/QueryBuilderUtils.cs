@@ -13,46 +13,13 @@ using OutWit.Common.Rest.Interfaces;
 
 namespace OutWit.Common.Rest.Utils
 {
-    public static class Extensions
+    public static class QueryBuilderUtils
     {
         #region Constants
 
         private const char DOUBLE_QUOTES = '"';
 
         private const string JSON_MEDIA_TYPE = "application/json";
-
-        #endregion
-
-        #region Query
-
-        public static string ToEnumString<T>(this T me)
-            where T : Enum
-        {
-            return JsonConvert.SerializeObject(me, new StringEnumConverter()).Trim(DOUBLE_QUOTES);
-        }
-
-        public static string ToBoolString(this bool me)
-        {
-            return me.ToString(CultureInfo.InvariantCulture).ToLower();
-        }
-
-        public static string ToDateTimeString(this DateTime me, string format)
-        {
-            if (me.Kind == DateTimeKind.Unspecified)
-                me = DateTime.SpecifyKind(me, DateTimeKind.Utc);
-
-            return me.ToString(format, CultureInfo.InvariantCulture);
-        }
-
-        public static string ToIntegerString(this long me)
-        {
-            return me.ToString("D", CultureInfo.InvariantCulture);
-        }
-
-        public static string ToDoubleString(this double me)
-        {
-            return me.ToString("F9", CultureInfo.InvariantCulture);
-        }
 
         #endregion
 
