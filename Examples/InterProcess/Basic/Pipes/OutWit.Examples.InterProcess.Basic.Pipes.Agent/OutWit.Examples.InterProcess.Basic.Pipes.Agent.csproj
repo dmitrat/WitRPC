@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>BasicPipesAgent</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OutWit.Common.MVVM" Version="1.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\Communication\OutWit.Communication.Server.Pipes\OutWit.Communication.Server.Pipes.csproj" />
+    <ProjectReference Include="..\..\..\..\..\InterProcess\OutWit.InterProcess.Agent\OutWit.InterProcess.Agent.csproj" />
+    <ProjectReference Include="..\..\..\..\OutWit.Examples.Services\OutWit.Examples.Services.csproj" />
+  </ItemGroup>
+
+</Project>
