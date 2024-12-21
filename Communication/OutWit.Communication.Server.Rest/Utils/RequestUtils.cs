@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
-using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Requests;
 using OutWit.Communication.Server.Rest.Exceptions;
@@ -83,10 +78,10 @@ namespace OutWit.Communication.Server.Rest.Utils
         {
             var token = request.GetAuthorizationToken();
 
-            if (string.IsNullOrEmpty(token))
+            if (string.IsNullOrEmpty(token) && !tokenValidator.IsRequestTokenValid(""))
                 throw new WitComExceptionRest("Authorization header is empty");
 
-            if (!tokenValidator.IsRequestTokenValid(token))
+            if (!string.IsNullOrEmpty(token) && !tokenValidator.IsRequestTokenValid(token))
                 throw new WitComExceptionRest("Authorization failed, token is not valid");
         }
 

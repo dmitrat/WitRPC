@@ -112,10 +112,6 @@ namespace OutWit.Communication.Server.Rest.Processors
 
         #endregion
 
-        #region Static
-
-        #endregion
-
         #region Properties
 
         private TService Service { get; }
