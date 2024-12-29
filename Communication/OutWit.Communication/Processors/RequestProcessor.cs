@@ -33,7 +33,7 @@ namespace OutWit.Communication.Processors
 
         private void InitEvents()
         {
-            foreach (EventInfo info in typeof(TService).GetEvents())
+            foreach (EventInfo info in typeof(TService).GetAllEvents())
                 info.AddEventHandler(Service,  info.CreateUniversalHandler(this, HandleEvent));
         }
 

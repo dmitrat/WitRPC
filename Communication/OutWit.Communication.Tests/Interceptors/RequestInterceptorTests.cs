@@ -1,5 +1,6 @@
 ﻿using System;
 using Castle.DynamicProxy;
+using OutWit.Common.Aspects.Utils;
 using OutWit.Communication.Interceptors;
 using OutWit.Communication.Tests.Mock;
 using OutWit.Communication.Tests.Mock.Interfaces;
@@ -21,6 +22,10 @@ namespace OutWit.Communication.Tests.Interceptors
 
             IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
 
+
+            Assert.That(serviceProxy.StringProperty, Is.EqualTo("TestString"));
+            Assert.That(serviceProxy.DoubleProperty, Is.EqualTo(1.2));
+
             Assert.That(serviceProxy.RequestData("text"), Is.EqualTo("text"));
             Assert.That(serviceProxy.GenericSimple(12, "34", 5.6), Is.EqualTo(5.6));
             Assert.That(serviceProxy.GenericComplex(12, "34", new ComplexNumber<int, double>(56, 6.7)).Is(new ComplexNumber<int, double>(56, 6.7)), Is.EqualTo(true));
@@ -37,6 +42,31 @@ namespace OutWit.Communication.Tests.Interceptors
                 new ComplexNumber<int, double>(89, 10.11),
                 new ComplexNumber<int, double>(123, 14.15),
             }).Is(new ComplexNumber<string, int>("bb", 56)), Is.EqualTo(true));
+        }
+
+        [Test]
+        public void PropertyChangedCallbackTest()
+        {
+            var service = new MockService();
+            var client = new MockClient<IService>(service);
+
+            var proxyGenerator = new ProxyGenerator();
+            var interceptor = new RequestInterceptor(client, true);
+
+            IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
+            int callbackCount = 0;
+            serviceProxy.PropertyChanged += (s,e) =>
+            {
+                if(e.IsProperty((IService ser)=>ser.DoubleProperty))
+                    callbackCount++;
+            };
+
+            Assert.That(serviceProxy.DoubleProperty, Is.EqualTo(1.2));
+
+            serviceProxy.DoubleProperty = 3.4;
+            Assert.That(serviceProxy.DoubleProperty, Is.EqualTo(3.4));
+            Assert.That(callbackCount, Is.EqualTo(1));
+
         }
 
         [Test]

@@ -6,6 +6,20 @@ namespace OutWit.Communication.Utils
 {
     public static class EventUtils
     {
+        public static IEnumerable<EventInfo> GetAllEvents(this Type type)
+        {
+            var events = new HashSet<EventInfo>(type.GetEvents());
+
+            foreach (var baseInterface in type.GetInterfaces())
+                events.UnionWith(baseInterface.GetAllEvents());
+
+            if (type.BaseType != null)
+                events.UnionWith(type.BaseType.GetAllEvents());
+
+            return events;
+        }
+
+
         public static Delegate CreateUniversalHandler<TSender>(this EventInfo me, TSender sender, UniversalEventHandler<TSender> handler)
             where TSender: class
         {

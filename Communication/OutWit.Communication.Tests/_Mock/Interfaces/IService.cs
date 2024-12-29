@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,7 +8,7 @@ using OutWit.Communication.Tests.Mock.Model;
 
 namespace OutWit.Communication.Tests.Mock.Interfaces
 {
-    public interface IService
+    public interface IService: INotifyPropertyChanged
     {
         public event ServiceProgressEventHandler Progress;
 
@@ -31,6 +32,11 @@ namespace OutWit.Communication.Tests.Mock.Interfaces
         public ComplexNumber<T1, T2> GenericComplexArray<T1, T2>(int number, string text, List<ComplexNumber<T1, T2>> value);
 
         public ComplexNumber<T2, T3> GenericComplexMulti<T1, T2, T3, T4>(ComplexNumber<T1, T2> num, string text, List<ComplexNumber<T3, T4>> value);
+
+
+        public string StringProperty { get; }
+
+        public double DoubleProperty { get; set; }
     }
 
     public delegate void ServiceProgressEventHandler(int progress);

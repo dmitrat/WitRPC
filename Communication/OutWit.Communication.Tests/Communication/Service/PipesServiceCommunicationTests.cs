@@ -15,6 +15,7 @@ using OutWit.Communication.Tests.Mock.Interfaces;
 using Castle.DynamicProxy;
 using OutWit.Communication.Interceptors;
 using OutWit.Communication.Tests.Mock.Model;
+using OutWit.Common.Aspects.Utils;
 
 namespace OutWit.Communication.Tests.Communication.Service
 {
@@ -38,6 +39,9 @@ namespace OutWit.Communication.Tests.Communication.Service
 
             var service = GetService(client);
 
+            Assert.That(service.StringProperty, Is.EqualTo("TestString"));
+            Assert.That(service.DoubleProperty, Is.EqualTo(1.2));
+
             Assert.That(service.RequestData("text"), Is.EqualTo("text"));
             Assert.That(service.GenericSimple(12, "34", 5.6), Is.EqualTo(5.6));
             Assert.That(service.GenericComplex(12, "34", new ComplexNumber<int, double>(56, 6.7)).Is(new ComplexNumber<int, double>(56, 6.7)), Is.EqualTo(true));
@@ -54,6 +58,37 @@ namespace OutWit.Communication.Tests.Communication.Service
                 new ComplexNumber<int, double>(89, 10.11),
                 new ComplexNumber<int, double>(123, 14.15),
             }).Is(new ComplexNumber<string, int>("bb", 56)), Is.EqualTo(true));
+        }
+
+        [Test]
+        public async Task PropertyChangedCallbackTest()
+        {
+            var server = GetServer(1);
+            server.StartWaitingForConnection();
+
+            var client = GetClient();
+
+            Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(client.IsInitialized, Is.True);
+            Assert.That(client.IsAuthorized, Is.True);
+
+            var service = GetService(client);
+
+            int callbackCount = 0;
+            service.PropertyChanged += (s, e) =>
+            {
+                if (e.IsProperty((IService ser) => ser.DoubleProperty))
+                    callbackCount++;
+            };
+
+            Assert.That(service.DoubleProperty, Is.EqualTo(1.2));
+
+            service.DoubleProperty = 3.4;
+
+            Thread.Sleep(200);
+            Assert.That(service.DoubleProperty, Is.EqualTo(3.4));
+            Assert.That(callbackCount, Is.EqualTo(1));
+
         }
 
         [Test]

@@ -1,15 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OutWit.Common.Aspects;
+using OutWit.Common.Aspects.Utils;
 using OutWit.Communication.Tests.Mock.Interfaces;
 using OutWit.Communication.Tests.Mock.Model;
+using OutWit.Communication.Utils;
 
 namespace OutWit.Communication.Tests.Mock
 {
     public class MockService : IService
     {
+
+        public event PropertyChangedEventHandler? PropertyChanged = delegate { };
+
         public event ServiceProgressEventHandler Progress = delegate { };
 
         public event ServiceStringEventHandler Error = delegate { };
@@ -18,6 +25,12 @@ namespace OutWit.Communication.Tests.Mock
 
 
         public event EventHandler<ComplexNumber<int, string>> GeneralEvent = delegate { };
+
+        public MockService()
+        {
+            StringProperty = "TestString";
+            DoubleProperty = 1.2;
+        }
 
 
         public string RequestData(string message)
@@ -65,9 +78,16 @@ namespace OutWit.Communication.Tests.Mock
             return new ComplexNumber<T2, T3>(num.B, value.First().A);
         }
 
+
         public void ReportError(string error)
         {
             Error(error);
         }
+
+        public string StringProperty { get; }
+
+        [Notify]
+        public double DoubleProperty { get; set; }
+
     }
 }

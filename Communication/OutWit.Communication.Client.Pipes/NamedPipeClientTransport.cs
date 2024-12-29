@@ -82,11 +82,11 @@ namespace OutWit.Communication.Client.Pipes
 
             try
             {
-                await Task.Run(() =>
-                {
+                //await Task.Run(() =>
+                //{
                     Writer.Write(data.Length);
                     Writer.Write(data);
-                });
+                //});
             }
             catch (IOException e)
             {
