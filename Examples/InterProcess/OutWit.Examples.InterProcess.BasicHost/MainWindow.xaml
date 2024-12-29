@@ -1,0 +1,109 @@
+﻿<Window x:Class="OutWit.Examples.InterProcess.BasicHost.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OutWit.Examples.InterProcess.BasicHost"
+        xmlns:models="clr-namespace:OutWit.Examples.InterProcess.BasicHost.Models"
+        mc:Ignorable="d" Title="Basic Pipes Host" Height="450" Width="800">
+    <Grid IsSharedSizeScope="True">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="3*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Background="LightBlue">
+                <TextBlock Text="AGENTS" FontWeight="Bold" HorizontalAlignment="Center"/>
+            </Border>
+
+            <ListBox Grid.Row="1" ItemsSource="{Binding AgentsVm.Agents}" SelectedItem="{Binding AgentsVm.SelectedAgent, Mode=TwoWay}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="{x:Type models:AgentInfo}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Label"/>
+                                <ColumnDefinition Width="5"/>
+                                <ColumnDefinition Width="*" SharedSizeGroup="Value"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Id"/>
+                            <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding AgentId}"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Type"/>
+                            <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding Transport}"/>
+
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+
+            </ListBox>
+
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Content="Run Agent" Command="{Binding AgentsVm.AddAgentCmd}"/>
+                <Button Grid.Column="2" Content="Remove Agent" Command="{Binding AgentsVm.RemoveAgentCmd}"/>
+
+            </Grid>
+
+        </Grid>
+
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Background="LightBlue">
+                <TextBlock Text="{Binding AgentsVm.SelectedAgent, StringFormat=AGENT: {0}}" FontWeight="Bold" HorizontalAlignment="Center"/>
+            </Border>
+
+            <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="25"/>
+                    <RowDefinition Height="40"/>
+                    <RowDefinition Height="25"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <ProgressBar Grid.Row="1" Minimum="0" Maximum="100" Value="{Binding AgentsVm.SelectedAgent.Progress, Mode=OneWay}" Margin="10 0 10 0"/>
+
+                <Grid Grid.Row="3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="1" Content="Start Processing" 
+                            Command="{Binding AgentsVm.StartProcessingCmd}"/>
+                    <Button Grid.Column="3" Content="Interrupt Processing" 
+                            Command="{Binding AgentsVm.InterruptProcessingCmd}"/>
+
+                </Grid>
+
+            </Grid>
+
+        </Grid>
+
+    </Grid>
+</Window>

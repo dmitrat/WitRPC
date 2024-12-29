@@ -76,16 +76,14 @@ namespace OutWit.Communication.Server.MMF
 
             try
             {
-                await Task.Run(() =>
-                {
-                    Stream?.Seek(0, SeekOrigin.Begin);
+                Stream?.Seek(0, SeekOrigin.Begin);
 
-                    Writer.Write(data.Length);
-                    Writer.Write(data);
-                    Writer.Flush();
+                Writer.Write(data.Length);
+                Writer.Write(data);
+                Writer.Flush();
 
-                    WaitForDataFromServer?.Set();
-                });
+                WaitForDataFromServer?.Set();
+
             }
             catch (IOException e)
             {

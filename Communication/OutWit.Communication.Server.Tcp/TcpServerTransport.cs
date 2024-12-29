@@ -60,11 +60,9 @@ namespace OutWit.Communication.Server.Tcp
 
             try
             {
-                await Task.Run(() =>
-                {
-                    Writer.Write(data.Length);
-                    Writer.Write(data);
-                });
+                Writer.Write(data.Length);
+                Writer.Write(data);
+
             }
             catch (IOException e)
             {

@@ -101,16 +101,13 @@ namespace OutWit.Communication.Client.MMF
 
             try
             {
-                await Task.Run(() =>
-                {
-                    Stream?.Seek(0, SeekOrigin.Begin);
+                Stream?.Seek(0, SeekOrigin.Begin);
 
-                    Writer.Write(data.Length);
-                    Writer.Write(data);
-                    Writer?.Flush();
+                Writer.Write(data.Length);
+                Writer.Write(data);
+                Writer?.Flush();
 
-                    WaitForDataFromClient?.Set();
-                });
+                WaitForDataFromClient?.Set();
             }
             catch (IOException ex)
             {

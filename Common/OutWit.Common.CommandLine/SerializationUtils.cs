@@ -11,7 +11,7 @@ namespace OutWit.Common.CommandLine
         public static string SerializeCommandLine<T>(this T me)
         {
             var arguments = new List<string>();
-            foreach (var property in typeof(T).GetProperties())
+            foreach (var property in me.GetType().GetProperties())
             {
                 var optionAttribute = property.GetCustomAttribute<OptionAttribute>();
                 if (optionAttribute == null)

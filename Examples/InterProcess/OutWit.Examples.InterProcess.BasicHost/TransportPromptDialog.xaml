@@ -1,0 +1,43 @@
+﻿<Window x:Class="OutWit.Examples.InterProcess.BasicHost.TransportPromptDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OutWit.Examples.InterProcess.BasicHost"
+        mc:Ignorable="d" Title="SELECT AGENT TRANSPORT:" Height="100" Width="300"
+        WindowStyle="ToolWindow" x:Name="Local">
+
+    <Grid IsSharedSizeScope="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ComboBox Grid.Row="1" ItemsSource="{Binding ItemsSource, ElementName=Local}"
+                  SelectedItem="{Binding SelectedTransport, ElementName=Local, Mode=TwoWay}"/>
+
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Button"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto" SharedSizeGroup="Button"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="1" Content="OK" 
+                    Command="{Binding OkCmd, ElementName=Local}"/>
+
+            <Button Grid.Column="3" Content="CANCEL"
+                    Command="{Binding CancelCmd, ElementName=Local}"/>
+
+
+        </Grid>
+
+
+    </Grid>
+
+</Window>

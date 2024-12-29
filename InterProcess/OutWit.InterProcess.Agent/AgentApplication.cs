@@ -36,6 +36,7 @@ namespace OutWit.InterProcess.Agent
             try
             {
                 process = Process.GetProcessById(Parameters.ParentProcessId);
+                process.EnableRaisingEvents = true;
             }
             catch (Exception e)
             {

@@ -26,6 +26,12 @@ namespace OutWit.InterProcess.Model
             ShutdownOnParentProcessExited = shutdownOnParentProcessExited;
         }
 
+
+        public AgentStartupParameters(string address, TimeSpan timeout, bool shutdownOnParentProcessExited = true)
+            : this(address, Process.GetCurrentProcess().Id, timeout, shutdownOnParentProcessExited)
+        {
+        }
+
         public AgentStartupParameters(TimeSpan timeout, bool shutdownOnParentProcessExited = true)
         : this(RandomUtils.RandomString(), Process.GetCurrentProcess().Id, timeout, shutdownOnParentProcessExited)
         {

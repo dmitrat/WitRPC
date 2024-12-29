@@ -1,4 +1,6 @@
-﻿using OutWit.Examples.Contracts;
+﻿using System.ComponentModel;
+using OutWit.Common.Aspects;
+using OutWit.Examples.Contracts;
 
 namespace OutWit.Examples.Services
 {
@@ -12,6 +14,17 @@ namespace OutWit.Examples.Services
 
         public event ExampleServiceProcessingEventHandler ProcessingCompleted = delegate { };
 
+        public event PropertyChangedEventHandler? PropertyChanged = delegate { };
+
+        #endregion
+
+        #region Constructors
+
+        public ExampleService()
+        {
+            IsProcessingStarted = false;
+        }
+
         #endregion
 
         #region IExampleService
@@ -20,6 +33,8 @@ namespace OutWit.Examples.Services
         {
             if(CancellationTokenSource != null)
                 return false;
+
+            IsProcessingStarted = true;
 
             CancellationTokenSource = new CancellationTokenSource();
 
@@ -31,11 +46,6 @@ namespace OutWit.Examples.Services
         public void StopProcessing()
         {
             CancellationTokenSource?.Cancel(false);
-        }
-
-        public bool IsProcessingStarted()
-        {
-            return CancellationTokenSource != null;
         }
 
         #endregion
@@ -60,15 +70,20 @@ namespace OutWit.Examples.Services
 
             ProcessingCompleted(status);
             CancellationTokenSource = null;
+            IsProcessingStarted = false;
         }
 
 
         #endregion
 
         #region Properties
+        
+        [Notify]
+        public bool IsProcessingStarted { get; private set; }
 
         private CancellationTokenSource? CancellationTokenSource { get; set; }
 
         #endregion
+
     }
 }

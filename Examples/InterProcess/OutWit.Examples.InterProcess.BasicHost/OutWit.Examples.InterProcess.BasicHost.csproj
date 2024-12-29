@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="OutWit.Common.MVVM" Version="1.0.1" />
+	</ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Communication\OutWit.Communication.Client.MMF\OutWit.Communication.Client.MMF.csproj" />
+    <ProjectReference Include="..\..\..\Communication\OutWit.Communication.Client.Pipes\OutWit.Communication.Client.Pipes.csproj" />
+    <ProjectReference Include="..\..\..\Communication\OutWit.Communication.Client.Tcp\OutWit.Communication.Client.Tcp.csproj" />
+    <ProjectReference Include="..\..\..\Communication\OutWit.Communication.Client.WebSocket\OutWit.Communication.Client.WebSocket.csproj" />
+    <ProjectReference Include="..\..\..\InterProcess\OutWit.InterProcess.Host\OutWit.InterProcess.Host.csproj" />
+    <ProjectReference Include="..\..\OutWit.Examples.Contracts\OutWit.Examples.Contracts.csproj" />
+    <ProjectReference Include="..\OutWit.Examples.InterProcess.Shared\OutWit.Examples.InterProcess.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="TransportPromptDialog.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="echo D|xcopy &quot;$(SolutionDir)@Agents\$(Configuration)\BasicAgent\&quot; &quot;$(TargetDir)@Agent\&quot; /Y/S" />
+  </Target>
+
+</Project>

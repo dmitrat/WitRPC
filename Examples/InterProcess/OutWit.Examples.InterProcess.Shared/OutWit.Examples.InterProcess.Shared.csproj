@@ -7,11 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OutWit.Common.Aspects" Version="1.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\OutWit.Examples.Contracts\OutWit.Examples.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\InterProcess\OutWit.InterProcess\OutWit.InterProcess.csproj" />
   </ItemGroup>
 
 </Project>
