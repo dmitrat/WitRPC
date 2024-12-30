@@ -1,5 +1,6 @@
 ﻿using System;
 using Castle.DynamicProxy;
+using Microsoft.Extensions.Logging;
 using OutWit.Communication.Client.Authorization;
 using OutWit.Communication.Client.Encryption;
 using OutWit.Communication.Converters;
@@ -21,7 +22,7 @@ namespace OutWit.Communication.Client
                 throw new WitComException("Transport cannot be empty");
 
             return new WitComClient(options.Transport, options.Encryptor, options.TokenProvider, options.Serializer,
-                options.Converter);
+                options.Converter, options.Logger, options.Timeout);
         }
 
         public static TService GetService<TService>(this WitComClient me, bool strongAssemblyMatch = true)
@@ -104,6 +105,27 @@ namespace OutWit.Communication.Client
         {
             me.Converter = new ValueConverterMessagePack();
             me.Serializer = new MessageSerializerMessagePack();
+            return me;
+        }
+
+        #endregion
+
+        #region Logger
+
+        public static WitComClientBuilderOptions WithLogger(this WitComClientBuilderOptions me, ILogger logger)
+        {
+            me.Logger = logger;
+            return me;
+        }
+
+        #endregion
+
+
+        #region Timeout
+
+        public static WitComClientBuilderOptions WithTimeout(this WitComClientBuilderOptions me, TimeSpan timeout)
+        {
+            me.Timeout = timeout;
             return me;
         }
 

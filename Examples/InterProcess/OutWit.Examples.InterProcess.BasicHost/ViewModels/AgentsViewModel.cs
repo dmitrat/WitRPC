@@ -5,18 +5,17 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
+using Castle.Components.DictionaryAdapter.Xml;
+using Microsoft.Extensions.Logging;
 using OutWit.Common.Aspects;
 using OutWit.Common.Aspects.Utils;
-using OutWit.Common.CommandLine;
+using OutWit.Common.Logging;
 using OutWit.Common.MVVM.Commands;
 using OutWit.Common.MVVM.ViewModels;
-using OutWit.Common.Random;
 using OutWit.Communication.Client;
-using OutWit.Communication.Client.Pipes.Utils;
 using OutWit.Examples.InterProcess.BasicHost.Models;
 using OutWit.Examples.InterProcess.BasicHost.Utils;
 using OutWit.Examples.InterProcess.Shared;
-using OutWit.Examples.InterProcess.Shared.Utils;
 using OutWit.InterProcess.Host.Utils;
 
 namespace OutWit.Examples.InterProcess.BasicHost.ViewModels
@@ -48,6 +47,7 @@ namespace OutWit.Examples.InterProcess.BasicHost.ViewModels
         private void InitDefaults()
         {
             Agents = new ObservableCollection<AgentInfo>();
+            Logger = new SimpleLogger("agent", LogLevel.Debug);
         }
 
         private void InitEvents()
@@ -101,11 +101,16 @@ namespace OutWit.Examples.InterProcess.BasicHost.ViewModels
                 options.WithEncryption();
                 options.WithJson();
                 options.WithAccessToken(ACCESS_TOKEN);
+                options.WithLogger(Logger);
+                options.WithTimeout(TimeSpan.FromSeconds(1));
             });
 
-            var result = await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None);
-            if(!result)
+            var result = await client.ConnectAsync(TimeSpan.FromSeconds(5), CancellationToken.None);
+            if (!result)
+            {
+                process.Kill();
                 return;
+            }
 
             var agent = new AgentInfo(process, client, dialog.SelectedTransport);
             Agents?.Add(agent);
@@ -118,8 +123,18 @@ namespace OutWit.Examples.InterProcess.BasicHost.ViewModels
             if(SelectedAgent == null)
                 return;
 
-            SelectedAgent.Dispose();
-            Agents?.Remove(SelectedAgent);
+            try
+            {
+                SelectedAgent.Dispose();
+                Agents?.Remove(SelectedAgent);
+            }
+            catch (Exception e)
+            {
+                
+
+            }
+
+            
         }
 
         private void StartProcessing()
@@ -127,7 +142,9 @@ namespace OutWit.Examples.InterProcess.BasicHost.ViewModels
             if (SelectedAgent == null)
                 return;
 
-            SelectedAgent.Service.StartProcessing();
+
+            if(!SelectedAgent.IsProcessingStarted)
+                SelectedAgent.StartProcessing();
         }
 
         private void InterruptProcessing()
@@ -135,7 +152,8 @@ namespace OutWit.Examples.InterProcess.BasicHost.ViewModels
             if (SelectedAgent == null)
                 return;
 
-            SelectedAgent.Service.StopProcessing();
+            if (SelectedAgent.IsProcessingStarted)
+                SelectedAgent.InterruptProcessing();
         }
 
 
@@ -161,6 +179,9 @@ namespace OutWit.Examples.InterProcess.BasicHost.ViewModels
 
         [Notify]
         public AgentInfo? SelectedAgent { get; set; }
+
+        [Notify]
+        public SimpleLogger Logger { get; set; }
 
         #endregion
 

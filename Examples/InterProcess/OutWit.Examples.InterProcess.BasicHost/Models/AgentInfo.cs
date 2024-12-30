@@ -64,6 +64,35 @@ namespace OutWit.Examples.InterProcess.BasicHost.Models
             return AgentId.ToString();
         }
 
+        public void StartProcessing()
+        {
+            try
+            {
+                Service.StartProcessing();
+                IsProcessingStarted = true;
+            }
+            catch (Exception e)
+            {
+
+
+                int hh = 0;
+            }
+        }
+
+        public void InterruptProcessing()
+        {
+            try
+            {
+                Service.StopProcessing();
+                IsProcessingStarted = false;
+            }
+            catch (Exception e)
+            {
+
+                int hh = 0;
+            }
+        }
+
         #endregion
 
         #region Event Handlers
@@ -76,6 +105,7 @@ namespace OutWit.Examples.InterProcess.BasicHost.Models
                 CanInterruptProcess = false;
                 Progress = 0;
                 ProcessingStatus = status;
+                IsProcessingStarted = false;
             });
         }
 
@@ -102,7 +132,18 @@ namespace OutWit.Examples.InterProcess.BasicHost.Models
 
         public void Dispose()
         {
-            Client.Disconnect().Wait();
+            try
+            {
+                Service.StopProcessing();
+                Client.Disconnect().Wait(TimeSpan.FromSeconds(1));
+            }
+            catch (Exception e)
+            {
+                
+
+
+            }
+           
             Process.Kill();
         }
 

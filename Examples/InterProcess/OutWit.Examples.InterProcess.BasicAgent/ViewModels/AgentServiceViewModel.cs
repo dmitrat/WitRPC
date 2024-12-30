@@ -44,6 +44,7 @@ namespace OutWit.Examples.InterProcess.BasicAgent.ViewModels
                 options.WithEncryption();
                 options.WithJson();
                 options.WithAccessToken(ACCESS_TOKEN);
+                options.WithTimeout(TimeSpan.FromSeconds(1));
             });
             Server.StartWaitingForConnection();
 

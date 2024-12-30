@@ -9,6 +9,7 @@
   </PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="OutWit.Common.Logging" Version="1.0.1" />
 		<PackageReference Include="OutWit.Common.MVVM" Version="1.0.1" />
 	</ItemGroup>
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 using OutWit.Common.Utils;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
@@ -22,7 +23,8 @@ namespace OutWit.Communication.Server
         #region Constructors
 
         public WitComServer(ITransportServerFactory transportFactory, IEncryptorServerFactory encryptorFactory,
-            IAccessTokenValidator tokenValidator, IMessageSerializer serializer, IValueConverter valueConverter, IRequestProcessor requestProcessor)
+            IAccessTokenValidator tokenValidator, IMessageSerializer serializer, IValueConverter valueConverter, IRequestProcessor requestProcessor,
+            ILogger? logger, TimeSpan? timeout)
         {
             TransportFactory = transportFactory;
             EncryptorFactory = encryptorFactory;
@@ -30,6 +32,8 @@ namespace OutWit.Communication.Server
             Converter = valueConverter;
             TokenValidator = tokenValidator;
             RequestProcessor = requestProcessor;
+            Logger = logger;
+            Timeout = timeout;
 
             WaitForCallback = new AutoResetEvent(true);
 
@@ -50,13 +54,19 @@ namespace OutWit.Communication.Server
         private WitComMessage ProcessInitialization(Guid client, WitComMessage message)
         {
             if (!m_connections.TryGetValue(client, out ConnectionInfo? connection))
+            {
+                Logger?.LogError($"Unexpected recipient id");
                 throw new WitComException($"Unexpected recipient id: {client}");
+            }
 
             if(connection.IsInitialized && connection.CanReinitialize)
                 connection.Reinitialize();
 
             if (connection.IsInitialized)
+            {
+                Logger?.LogError($"Wrong initialization request");
                 throw new WitComException($"Wrong initialization request");
+            }
 
             if (message.Data == null)
                 return message.With(x=>x.Data = null);
@@ -85,6 +95,7 @@ namespace OutWit.Communication.Server
             }
             catch (Exception e)
             {
+                Logger?.LogError(e, $"Error during initialization");
                 return message.With(x => x.Data = null);
             }
         }
@@ -92,10 +103,16 @@ namespace OutWit.Communication.Server
         private WitComMessage ProcessAuthorization(Guid client, WitComMessage message)
         {
             if (!m_connections.TryGetValue(client, out ConnectionInfo? connection))
+            {
+                Logger?.LogError($"Unexpected recipient id");
                 throw new WitComException($"Unexpected recipient id: {client}");
+            }
 
             if (connection.IsAuthorized)
+            {
+                Logger?.LogError($"Wrong authorization request");
                 throw new WitComException($"Wrong authorization request");
+            }
 
             if (message.Data == null)
                 return message.With(x => x.Data = null);
@@ -122,6 +139,7 @@ namespace OutWit.Communication.Server
             }
             catch (Exception e)
             {
+                Logger?.LogError(e, $"Error during authorization");
                 return message.With(x => x.Data = null);
             }
         }
@@ -145,11 +163,17 @@ namespace OutWit.Communication.Server
             var request = message.Data.GetRequest(Serializer, Converter);
 
             WitComResponse? response = null;
-            if(request == null)
+            if (request == null)
+            {
+                Logger?.LogError($"Request is empty");
                 response = WitComResponse.BadRequest("Request is empty");
+            }
 
-            else if(!TokenValidator.IsRequestTokenValid(request.Token))
+            else if (!TokenValidator.IsRequestTokenValid(request.Token))
+            {
+                Logger?.LogError($"Tokes is not valid");
                 response = WitComResponse.UnauthorizedRequest("Tokes is not valid");
+            }
             else 
                 response = RequestProcessor.Process(request);
 
@@ -159,7 +183,10 @@ namespace OutWit.Communication.Server
         private WitComMessage Encrypt(Guid client, WitComMessage message)
         {
             if (!m_connections.TryGetValue(client, out ConnectionInfo? connection))
+            {
+                Logger?.LogError($"Unexpected recipient id");
                 throw new WitComException($"Unexpected recipient id: {client}");
+            }
 
             if (message.Type == WitComMessageType.Initialization || message.Data == null)
                 return message;
@@ -170,7 +197,10 @@ namespace OutWit.Communication.Server
         private WitComMessage Decrypt(Guid client, WitComMessage message)
         {
             if (!m_connections.TryGetValue(client, out ConnectionInfo? connection))
+            {
+                Logger?.LogError($"Unexpected recipient id");
                 throw new WitComException($"Unexpected recipient id: {client}");
+            }
 
             if (message.Type == WitComMessageType.Initialization || message.Data == null)
                 return message;
@@ -244,7 +274,10 @@ namespace OutWit.Communication.Server
             {
                 WaitForCallback.WaitOne();
 
-                SendCallbackAsync(Serializer.Serialize(request)).Wait();
+                if(Timeout != null && Timeout != TimeSpan.Zero)
+                    SendCallbackAsync(Serializer.Serialize(request)).Wait(Timeout.Value);
+                else
+                    SendCallbackAsync(Serializer.Serialize(request)).Wait();
 
                 WaitForCallback.Set();
             });
@@ -281,6 +314,10 @@ namespace OutWit.Communication.Server
         private IAccessTokenValidator TokenValidator { get; }
 
         private AutoResetEvent WaitForCallback{ get; }
+
+        private ILogger? Logger { get; }
+
+        private TimeSpan? Timeout { get; }
 
         #endregion
     }

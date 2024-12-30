@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OutWit.Communication.Client.Authorization;
 using OutWit.Communication.Client.Encryption;
 using OutWit.Communication.Converters;
@@ -21,6 +22,9 @@ namespace OutWit.Communication.Client
             Converter = new ValueConverterJson();
             Encryptor = new EncryptorClientPlain();
             TokenProvider = new AccessTokenProviderPlain();
+
+            Logger = null;
+            Timeout = null;
         }
 
         #endregion
@@ -36,6 +40,10 @@ namespace OutWit.Communication.Client
         public IEncryptorClient Encryptor { get; set; }
 
         public IAccessTokenProvider TokenProvider { get; set; }
+
+        public ILogger? Logger { get; set; }
+
+        public TimeSpan? Timeout { get; set; }
 
         #endregion
     }

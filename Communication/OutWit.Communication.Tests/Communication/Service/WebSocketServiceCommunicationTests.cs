@@ -248,7 +248,7 @@ namespace OutWit.Communication.Tests.Communication.Service
                 new AccessTokenValidatorStatic(AUTHORIZATION_TOKEN),
                 new MessageSerializerJson(),
                 new ValueConverterJson(),
-                new RequestProcessor<IService>(service));
+                new RequestProcessor<IService>(service), null, null);
         }
 
         private WitComClient GetClient([CallerMemberName] string callerMember = "")
@@ -262,7 +262,7 @@ namespace OutWit.Communication.Tests.Communication.Service
                 new EncryptorClientGeneral(),
                 new AccessTokenProviderStatic(AUTHORIZATION_TOKEN),
                 new MessageSerializerJson(),
-                new ValueConverterJson());
+                new ValueConverterJson(), null, null);
         }
     }
 }

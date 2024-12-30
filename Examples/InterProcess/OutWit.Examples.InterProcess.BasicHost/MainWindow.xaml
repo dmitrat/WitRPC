@@ -56,8 +56,8 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Button Grid.Column="0" Content="Run Agent" Command="{Binding AgentsVm.AddAgentCmd}"/>
-                <Button Grid.Column="2" Content="Remove Agent" Command="{Binding AgentsVm.RemoveAgentCmd}"/>
+                <Button Grid.Column="0" Content="Run Agent" Padding="10" Command="{Binding AgentsVm.AddAgentCmd}"/>
+                <Button Grid.Column="2" Content="Remove Agent" Padding="10" Command="{Binding AgentsVm.RemoveAgentCmd}"/>
 
             </Grid>
 
@@ -94,12 +94,14 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <Button Grid.Column="1" Content="Start Processing" 
+                    <Button Grid.Column="1" Content="Start Processing" Padding="10"
                             Command="{Binding AgentsVm.StartProcessingCmd}"/>
-                    <Button Grid.Column="3" Content="Interrupt Processing" 
+                    <Button Grid.Column="3" Content="Interrupt Processing"  Padding="10"
                             Command="{Binding AgentsVm.InterruptProcessingCmd}"/>
 
                 </Grid>
+
+                <ListBox Grid.Row="4" ItemsSource="{Binding AgentsVm.Logger}"/>
 
             </Grid>
 

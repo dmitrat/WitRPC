@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Extensions.Logging;
 using OutWit.Communication.Converters;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Serializers;
@@ -17,6 +18,9 @@ namespace OutWit.Communication.Server
             Converter = new ValueConverterJson();
             EncryptorFactory = new EncryptorServerFactory<EncryptorServerPlain>();
             TokenValidator = new AccessTokenValidatorPlain();
+
+            Logger = null;
+            Timeout = null;
         }
 
         #endregion
@@ -35,6 +39,10 @@ namespace OutWit.Communication.Server
         public IValueConverter Converter { get; set; }
 
         public IAccessTokenValidator TokenValidator { get; set; }
+
+        public ILogger? Logger { get; set; }
+
+        public TimeSpan? Timeout { get; set; }
 
         #endregion
     }

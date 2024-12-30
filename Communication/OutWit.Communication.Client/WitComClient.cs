@@ -1,4 +1,5 @@
-﻿using OutWit.Common.Utils;
+﻿using Microsoft.Extensions.Logging;
+using OutWit.Common.Utils;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Messages;
@@ -19,13 +20,16 @@ namespace OutWit.Communication.Client
         #region Constructors
 
         public WitComClient(ITransportClient transport, IEncryptorClient encryptor, IAccessTokenProvider tokenProvider, 
-            IMessageSerializer serializer, IValueConverter valueConverter)
+            IMessageSerializer serializer, IValueConverter valueConverter, ILogger? logger, TimeSpan? timeout)
         {
             Transport = transport;
             Serializer = serializer;
             Encryptor = encryptor;
             TokenProvider = tokenProvider;
             Converter = valueConverter;
+            Logger = logger;
+
+            Timeout = timeout;
 
             WaitForResponse = new AutoResetEvent(true);
             WaitForRequest = new AutoResetEvent(true);
@@ -51,6 +55,8 @@ namespace OutWit.Communication.Client
             if (IsInitialized)
                 return true;
 
+            Logger?.LogDebug("Starting initialization");
+
             WitComMessage requestMessage = new ()
             {
                 Id = Guid.NewGuid(),
@@ -69,10 +75,18 @@ namespace OutWit.Communication.Client
             WitComResponseInitialization? response =
                 Serializer.Deserialize<WitComResponseInitialization>(dataDecrypted);
 
-            if(response == null || response.SymmetricKey == null || response.Vector == null) 
+            if (response == null || response.SymmetricKey == null || response.Vector == null)
+            {
+                Logger?.LogError("Failed to initialize");
                 return false;
+            }
 
             IsInitialized = Encryptor.ResetAes(response.SymmetricKey, response.Vector);
+
+            if(IsInitialized)
+                Logger?.LogDebug("Initialization completed");
+            else
+                Logger?.LogError("Failed to initialize");
 
             return IsInitialized;
         }
@@ -81,6 +95,8 @@ namespace OutWit.Communication.Client
         {
             if (IsAuthorized)
                 return true;
+
+            Logger?.LogDebug("Starting authorization");
 
             WitComMessage requestMessage = new()
             {
@@ -94,15 +110,26 @@ namespace OutWit.Communication.Client
 
             WitComMessage? responseMessage = await SendMessageAsync(requestMessage);
             if (responseMessage == null || responseMessage.Data == null)
+            {
+                Logger?.LogError("Failed to authorize");
                 return false;
+            }
 
             WitComResponseAuthorization? response =
                 Serializer.Deserialize<WitComResponseAuthorization>(responseMessage.Data);
 
             if (response == null)
+            {
+                Logger?.LogError("Failed to authorize");
                 return false;
+            }
 
             IsAuthorized = response.IsAuthorized;
+
+            if(IsAuthorized)
+                Logger?.LogDebug($"Authorization completed");
+            else
+                Logger?.LogError($"Failed to authorize, {response.Message}");
 
             return IsAuthorized;
         }
@@ -150,8 +177,11 @@ namespace OutWit.Communication.Client
 
         public async Task<WitComResponse> SendRequest(WitComRequest? request)
         {
-            if(request == null)
+            if (request == null)
+            {
+                Logger?.LogError("Failed to send request: empty request");
                 return WitComResponse.BadRequest($"Empty request");
+            }
 
             request.Token = TokenProvider.GetToken();
 
@@ -170,23 +200,25 @@ namespace OutWit.Communication.Client
             }
             catch (Exception e)
             {
+                Logger?.LogError(e, "Failed to receive response");
                 return WitComResponse.InternalServerError("Failed to receive response", e);
-
             }
 
             try
             {
-
                 return (messageResponse?.Data).GetResponse(Serializer);
             }
             catch (Exception e)
             {
+                Logger?.LogError(e, "Failed to parse response");
                 return WitComResponse.InternalServerError("Failed to parse response", e);
             }
         }
 
         private async Task<WitComMessage?> SendMessageAsync(WitComMessage message, TimeSpan? timeout = null)
         {
+            timeout ??= Timeout;
+
             WaitForRequest.WaitOne();
             WaitForRequest.Reset();
 
@@ -200,10 +232,17 @@ namespace OutWit.Communication.Client
                 : WaitForResponse.WaitOne();
 
             if (!result || Response == null)
+            {
+                Logger?.LogError("Response timeout");
+                WaitForRequest.Set();
                 return null;
+            }
 
             if (Response.Id != message.Id)
+            {
+                Logger?.LogError("Received response inconsistent");
                 throw new WitComException($"Received response inconsistent");
+            }
 
             return Response;
         }
@@ -238,10 +277,16 @@ namespace OutWit.Communication.Client
                 return;
 
             if (message.Type == WitComMessageType.Initialization && IsInitialized)
+            {
+                Logger?.LogError("Wrong initialization request");
                 throw new WitComException($"Wrong initialization request");
+            }
 
             if (message.Type == WitComMessageType.Authorization && IsAuthorized)
+            {
+                Logger?.LogError("Wrong authorization request");
                 throw new WitComException($"Wrong authorization request");
+            }
 
             if (message.Type == WitComMessageType.Callback)
                 CallbackReceived(Decrypt(message).Data.GetRequest(Serializer, Converter));
@@ -266,6 +311,9 @@ namespace OutWit.Communication.Client
         #endregion
 
         #region Properties
+
+        private TimeSpan? Timeout { get; }
+
 
         private AutoResetEvent WaitForResponse { get; }
 
@@ -292,6 +340,8 @@ namespace OutWit.Communication.Client
         private IEncryptorClient Encryptor { get; }
 
         private IAccessTokenProvider TokenProvider { get; }
+
+        private ILogger? Logger { get; }
 
         #endregion
     }
