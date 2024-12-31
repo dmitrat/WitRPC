@@ -14,5 +14,8 @@ namespace OutWit.Communication.Interfaces
 
 
         Task Disconnect();
+
+
+        public string? Address { get; }
     }
 }

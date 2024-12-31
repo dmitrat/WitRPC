@@ -19,6 +19,7 @@ namespace OutWit.Communication.Client.WebSocket
         public WebSocketClientTransport(WebSocketClientTransportOptions options)
         {
             Options = options;
+            Address = $"{options.Url}";
         }
 
         #endregion
@@ -156,6 +157,8 @@ namespace OutWit.Communication.Client.WebSocket
         #region Properties
 
         public Guid Id { get; }
+
+        public string? Address { get; }
 
         private WebSocketClientTransportOptions Options { get; }
 

@@ -1,11 +1,12 @@
 ﻿using System;
-using System.IO.Pipes;
-using OutWit.Communication.Exceptions;
+using System.Net;
+using System.Net.Sockets;
 using OutWit.Communication.Interfaces;
 
-namespace OutWit.Communication.Client.Pipes
+namespace OutWit.Communication.Client.Tcp
 {
-    public class NamedPipeClientTransport : ITransportClient
+    public abstract class TcpClientTransportBase<TOptions> : ITransportClient
+        where TOptions : TcpClientTransportOptions
     {
         #region Events
 
@@ -17,56 +18,42 @@ namespace OutWit.Communication.Client.Pipes
 
         #region Constructors
 
-        public NamedPipeClientTransport(NamedPipeClientTransportOptions options)
+        protected TcpClientTransportBase(TOptions options)
         {
             Options = options;
-            Address = options.PipeName;
-        }
-
-        #endregion
-
-        #region Initialization
-
-        private void InitPipe()
-        {
-            if (string.IsNullOrEmpty(Options.ServerName))
-                throw new WitComExceptionTransport($"Failed to create pipe: server name is empty. " +
-                                             $"Use \".\" as server name for local communication");
-
-            if (string.IsNullOrEmpty(Options.PipeName))
-                throw new WitComExceptionTransport($"Failed to create pipe: pipe name is empty");
-
-            Stream = new NamedPipeClientStream(Options.ServerName, Options.PipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
-            Reader = new BinaryReader(Stream);
-            Writer = new BinaryWriter(Stream);
-
-            IsListening = true;
+            Address = $"{options.Host}:{options.Port}";
+            Id = Guid.NewGuid();
         }
 
         #endregion
 
         #region ITransport
 
+        protected abstract Stream CreateStream();
+
         public async Task<bool> ConnectAsync(TimeSpan timeout, CancellationToken cancellationToken)
         {
-            InitPipe();
-
-            if (Stream == null)
-                return false;
+            Client = new TcpClient();
 
             try
             {
-                if(timeout == TimeSpan.Zero)
-                    await Stream.ConnectAsync(cancellationToken);
-                else
-                    await Stream.ConnectAsync(timeout, cancellationToken);
+                if (!IPAddress.TryParse(Options.Host, out IPAddress? address) || Options.Port == null)
+                    return false;
+
+                await Client.ConnectAsync(address, Options.Port.Value, cancellationToken);
+
+                Stream = CreateStream();
+                Reader = new BinaryReader(Stream);
+                Writer = new BinaryWriter(Stream);
+
+                IsListening = true;
 
                 Task.Run(ListenForIncomingData);
-
                 return true;
             }
-            catch (Exception e)
+            catch
             {
+                Dispose();
                 return false;
             }
         }
@@ -103,12 +90,12 @@ namespace OutWit.Communication.Client.Pipes
 
         private async Task ListenForIncomingData()
         {
-            if (Stream == null || Writer == null || Reader == null)
+            if (Client == null || Stream == null || Writer == null || Reader == null)
                 return;
 
             try
             {
-                while (IsListening && Stream.IsConnected)
+                while (IsListening && Client.Connected)
                 {
                     int dataLength = Reader.ReadInt32();
                     if (dataLength > 0)
@@ -135,6 +122,7 @@ namespace OutWit.Communication.Client.Pipes
             Reader?.Dispose();
             Writer?.Dispose();
             Stream?.Dispose();
+            Client?.Close();
 
             Disconnected(Id);
         }
@@ -147,9 +135,11 @@ namespace OutWit.Communication.Client.Pipes
 
         public string? Address { get; }
 
-        private NamedPipeClientTransportOptions Options { get; }
+        protected TOptions Options { get; }
 
-        private NamedPipeClientStream? Stream { get; set; }
+        protected TcpClient? Client { get; set; }
+
+        private Stream? Stream { get; set; }
 
         private BinaryReader? Reader { get; set; }
 

@@ -13,16 +13,21 @@ namespace OutWit.Communication.Client
 {
     public static class WitComClientBuilder
     {
-        public static WitComClient Build(Action<WitComClientBuilderOptions> optionsBuilder)
+        public static WitComClient Build(WitComClientBuilderOptions options)
         {
-            var options = new WitComClientBuilderOptions();
-            optionsBuilder(options);
-
             if (options.Transport == null)
                 throw new WitComException("Transport cannot be empty");
 
             return new WitComClient(options.Transport, options.Encryptor, options.TokenProvider, options.Serializer,
                 options.Converter, options.Logger, options.Timeout);
+        }
+
+        public static WitComClient Build(Action<WitComClientBuilderOptions> optionsBuilder)
+        {
+            var options = new WitComClientBuilderOptions();
+            optionsBuilder(options);
+
+            return Build(options);
         }
 
         public static TService GetService<TService>(this WitComClient me, bool strongAssemblyMatch = true)

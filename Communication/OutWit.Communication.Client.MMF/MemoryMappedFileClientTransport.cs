@@ -21,6 +21,7 @@ namespace OutWit.Communication.Client.MMF
         public MemoryMappedFileClientTransport(MemoryMappedFileClientTransportOptions options)
         {
             Options = options;
+            Address = options.Name;
         }
 
         #endregion
@@ -119,7 +120,7 @@ namespace OutWit.Communication.Client.MMF
         {
             Dispose();
         }
-
+        
         #endregion
 
         #region Functions
@@ -181,6 +182,8 @@ namespace OutWit.Communication.Client.MMF
         #region Properties
 
         public Guid Id { get; }
+
+        public string? Address { get; }
 
         private MemoryMappedFileClientTransportOptions Options { get; }
 
