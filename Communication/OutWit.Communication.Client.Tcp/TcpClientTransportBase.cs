@@ -37,10 +37,10 @@ namespace OutWit.Communication.Client.Tcp
 
             try
             {
-                if (!IPAddress.TryParse(Options.Host, out IPAddress? address) || Options.Port == null)
+                if (string.IsNullOrEmpty(Options.Host) || Options.Port == null)
                     return false;
 
-                await Client.ConnectAsync(address, Options.Port.Value, cancellationToken);
+                await Client.ConnectAsync(Options.Host, Options.Port.Value, cancellationToken);
 
                 Stream = CreateStream();
                 Reader = new BinaryReader(Stream);
