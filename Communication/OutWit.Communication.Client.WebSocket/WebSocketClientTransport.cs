@@ -40,7 +40,7 @@ namespace OutWit.Communication.Client.WebSocket
 
                 if(timeout == TimeSpan.Zero || timeout == TimeSpan.MaxValue)
                     await Client.ConnectAsync(new Uri(Options.Url),  cancellationToken);
-                else if (!Client.ConnectAsync(new Uri(Options.Url), cancellationToken).Wait(timeout, cancellationToken))
+                else if (!Client.ConnectAsync(new Uri(Options.Url), cancellationToken).Wait((int)timeout.TotalMilliseconds, cancellationToken))
                     return false;
 
                 IsListening = true;

@@ -62,7 +62,7 @@ namespace OutWit.Communication.Client.Pipes
                 if(timeout == TimeSpan.Zero)
                     await Stream.ConnectAsync(cancellationToken);
                 else
-                    await Stream.ConnectAsync(timeout, cancellationToken);
+                    await Stream.ConnectAsync((int)timeout.TotalMilliseconds, cancellationToken);
 
                 Task.Run(ListenForIncomingData);
 
