@@ -238,7 +238,7 @@ namespace OutWit.Communication.Tests.Communication.Service
         {
 
             var service = new MockService();
-            var serverTransport = new WebSocketServerTransportFactory(new WebSocketSecureServerTransportOptions
+            var serverTransport = new WebSocketServerTransportFactory(new WebSocketServerTransportOptions
             {
                 Url = $"http://localhost:5000/{callerMember}/",
                 MaxNumberOfClients = maxNumberOfClients

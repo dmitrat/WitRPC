@@ -274,7 +274,7 @@ namespace OutWit.Communication.Tests.Communication.Basic
 
         private WitComServer GetServer(int maxNumberOfClients, [CallerMemberName] string callerMember = "")
         {
-            var serverTransport = new WebSocketServerTransportFactory(new WebSocketSecureServerTransportOptions
+            var serverTransport = new WebSocketServerTransportFactory(new WebSocketServerTransportOptions
             {
                 Url = $"http://localhost:5000/{callerMember}/",
                 MaxNumberOfClients = maxNumberOfClients
