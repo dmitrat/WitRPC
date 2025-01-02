@@ -1,5 +1,8 @@
 ﻿using System;
+using System.IO;
 using System.Net.WebSockets;
+using System.Threading;
+using System.Threading.Tasks;
 using OutWit.Communication.Interfaces;
 
 namespace OutWit.Communication.Client.WebSocket

@@ -1,6 +1,10 @@
-﻿using OutWit.Communication.Exceptions;
+﻿using System;
+using System.IO;
+using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
 using System.IO.Pipes;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OutWit.Communication.Server.Pipes
 {

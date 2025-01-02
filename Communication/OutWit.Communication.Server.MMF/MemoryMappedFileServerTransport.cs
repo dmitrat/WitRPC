@@ -1,7 +1,11 @@
-﻿using System.IO.MemoryMappedFiles;
+﻿using System;
+using System.IO;
+using System.IO.MemoryMappedFiles;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
 using System.IO.Pipes;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OutWit.Communication.Server.MMF
 {

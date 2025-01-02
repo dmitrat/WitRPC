@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net9.0;net8.0;net7.0;net6.0;net5.0</TargetFrameworks>
+		<Nullable>enable</Nullable>
+
+		<SignAssembly>False</SignAssembly>
+		<RootNamespace>OutWit.Common.Reflection</RootNamespace>
+
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<PackageId>OutWit.Common.Reflection</PackageId>
+		<Version>1.0.0</Version>
+		<Authors>Dmitry Ratner</Authors>
+		<Company>OutWit</Company>
+		<Product>OutWit.Common.Reflection</Product>
+		<Description>Reflection utils. Universal event handler.</Description>
+		<PackageTags>OutWit;Common;Reflection</PackageTags>
+		<Copyright>Copyright © Dmitry Ratner 2025</Copyright>
+
+		<RepositoryUrl>https://github.com/dmitrat/WitCom/tree/main/Common/OutWit.Common.Reflection</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/dmitrat/WitCom/tree/main/Common/OutWit.Common.Reflection</PackageProjectUrl>
+
+		<PackageIcon>OutWitIcon128.png</PackageIcon>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="LICENSE" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="OutWitIcon128.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+</Project>

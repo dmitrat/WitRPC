@@ -2,6 +2,8 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
+using System.Threading.Tasks;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
 

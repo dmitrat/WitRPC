@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using OutWit.Communication.Requests;
 using OutWit.Communication.Responses;
 

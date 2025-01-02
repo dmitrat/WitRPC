@@ -1,4 +1,5 @@
-﻿using OutWit.Common.Rest;
+﻿using System.Threading.Tasks;
+using OutWit.Common.Rest;
 using OutWit.Common.Rest.Interfaces;
 using OutWit.Communication.Client.Rest.Utils;
 using OutWit.Communication.Converters;

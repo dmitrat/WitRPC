@@ -1,4 +1,5 @@
-﻿using OutWit.Communication.Interfaces;
+﻿using System.IO;
+using OutWit.Communication.Interfaces;
 using System.Net.Sockets;
 
 namespace OutWit.Communication.Server.Tcp

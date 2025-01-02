@@ -1,4 +1,5 @@
-﻿using OutWit.Communication.Exceptions;
+﻿using System.IO;
+using OutWit.Communication.Exceptions;
 using System.Net.Security;
 using System.Net.Sockets;
 
