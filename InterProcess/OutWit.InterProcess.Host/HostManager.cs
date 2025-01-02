@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using OutWit.Common.Exceptions;
 using OutWit.Communication.Client;
 using OutWit.InterProcess.Interfaces;

@@ -1,4 +1,5 @@
-﻿using OutWit.Common.Abstract;
+﻿using System;
+using OutWit.Common.Abstract;
 using OutWit.Common.Random;
 using OutWit.Common.Values;
 using System.Diagnostics;

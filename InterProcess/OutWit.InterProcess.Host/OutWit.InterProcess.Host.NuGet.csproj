@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>net9.0-windows;net8.0-windows;net7.0-windows;net6.0-windows;net5.0-windows</TargetFrameworks>
+    <Nullable>enable</Nullable>
+
+
+	  <SignAssembly>False</SignAssembly>
+	  <RootNamespace>OutWit.InterProcess.Host</RootNamespace>
+
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <PackageId>OutWit.InterProcess.Host</PackageId>
+	  <Version>1.0.0</Version>
+	  <Authors>Dmitry Ratner</Authors>
+	  <Company>OutWit</Company>
+	  <Product>OutWit.InterProcess.Host</Product>
+	  <Description>Inter Process Host logic</Description>
+	  <PackageTags>OutWit;Communication;InterProcess;Host</PackageTags>
+	  <Copyright>Copyright © Dmitry Ratner 2025</Copyright>
+
+	  <RepositoryUrl>https://github.com/dmitrat/WitCom/tree/main/InterProcess/OutWit.InterProcess.Host</RepositoryUrl>
+	  <PackageProjectUrl>https://github.com/dmitrat/WitCom/tree/main/InterProcess/OutWit.InterProcess.Host</PackageProjectUrl>
+
+	  <PackageIcon>OutWitIcon128.png</PackageIcon>
+	  <PackageLicenseFile>LICENSE</PackageLicenseFile>
+
+
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OutWit.Communication.Client" Version="1.0.0" />
+    <PackageReference Include="OutWit.InterProcess" Version="1.0.0" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<None Include="LICENSE" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="OutWitIcon128.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+</Project>
