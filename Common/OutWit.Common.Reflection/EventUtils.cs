@@ -2,7 +2,7 @@
 using System.Reflection.Emit;
 using System.Reflection;
 
-namespace OutWit.Communication.Utils
+namespace OutWit.Common.Reflection
 {
     public static class EventUtils
     {
@@ -18,7 +18,6 @@ namespace OutWit.Communication.Utils
 
             return events;
         }
-
 
         public static Delegate CreateUniversalHandler<TSender>(this EventInfo me, TSender sender, UniversalEventHandler<TSender> handler)
             where TSender: class
@@ -72,4 +71,5 @@ namespace OutWit.Communication.Utils
 
     public delegate void UniversalEventHandler<in TSender>(TSender sender, string eventName, object[] parameters) 
         where TSender : class;
+
 }

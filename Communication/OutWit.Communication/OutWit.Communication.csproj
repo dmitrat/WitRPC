@@ -13,4 +13,8 @@
     <PackageReference Include="OutWit.Common.MessagePack" Version="1.0.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\OutWit.Common.Reflection\OutWit.Common.Reflection.csproj" />
+  </ItemGroup>
+
 </Project>

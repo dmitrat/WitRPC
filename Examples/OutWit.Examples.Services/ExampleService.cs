@@ -62,7 +62,7 @@ namespace OutWit.Examples.Services
 
                 ProgressChanged(i);
 
-                Thread.Sleep(50);
+                Thread.Sleep(100);
             }
 
             ProcessingCompleted(status);
