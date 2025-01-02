@@ -19,7 +19,7 @@ namespace OutWit.Communication.Tests.Utils
             var bytes = key.ToBytes();
             Assert.That(bytes, Is.Not.Empty);
 
-            RSAParameters key1 = bytes.ToRsaParameters();
+            RSAParameters key1 = bytes.ToRsaParameters().Value;
             Assert.That(key.D, Is.EqualTo(key1.D));
             Assert.That(key.DP, Is.EqualTo(key1.DP));
             Assert.That(key.DQ, Is.EqualTo(key1.DQ));

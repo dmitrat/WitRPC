@@ -9,7 +9,7 @@ namespace OutWit.Communication.Client.Authorization
 
         public string GetToken()
         {
-            return "0";
+            return "";
         }
 
         #endregion

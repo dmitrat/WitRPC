@@ -15,6 +15,8 @@ namespace OutWit.Communication.Client
 
         public event ClientEventHandler CallbackReceived = delegate { };
 
+        public event TransportEventHandler Disconnected = delegate { };
+
         #endregion
 
         #region Constructors
@@ -271,9 +273,9 @@ namespace OutWit.Communication.Client
         private void OnMessageReceived(WitComMessage? message)
         {
             if(message == null)
-                return;
+                throw new WitComException("Received empty message");
 
-            if(message.Type == WitComMessageType.Unknown)
+            if (message.Type == WitComMessageType.Unknown)
                 return;
 
             if (message.Type == WitComMessageType.Initialization && IsInitialized)
@@ -306,6 +308,7 @@ namespace OutWit.Communication.Client
 
         private void OnServerDisconnected(Guid sender)
         {
+            Disconnected(sender);
         }
 
         #endregion

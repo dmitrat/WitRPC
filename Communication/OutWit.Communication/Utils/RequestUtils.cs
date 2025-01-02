@@ -76,7 +76,7 @@ namespace OutWit.Communication.Utils
             {
                 IReadOnlyList<MethodInfo> candidates = typeof(TService)
                     .GetMethods()
-                    .Where(info => info.Name == me.MethodName)
+                    .Where(info => info.Name.Equals(me.MethodName, StringComparison.InvariantCultureIgnoreCase))
                     .ToList();
 
                 var parameterTypes = me.ParameterTypes.ToArray();

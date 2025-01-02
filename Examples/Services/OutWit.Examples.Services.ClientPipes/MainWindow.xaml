@@ -1,0 +1,64 @@
+﻿<Window x:Class="OutWit.Examples.Services.ClientPipes.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OutWit.Examples.Services.ClientPipes"
+        xmlns:viewModels="clr-namespace:OutWit.Examples.Services.ClientPipes.ViewModels"
+        mc:Ignorable="d" Title="Client Pipes" Height="450" Width="800">
+
+    <Grid IsSharedSizeScope="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="LightBlue">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="NAMED PIPES CLIENT" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Button Grid.Column="1" Content="CONNECT" Padding="10"
+                        Command="{Binding ServiceVm.ReconnectCmd}"
+                        IsEnabled="{Binding ServiceVm.CanReconnect}"/>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1"  Margin="0 0 0 10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="25"/>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <ProgressBar Grid.Row="1" Minimum="0" Maximum="100" Value="{Binding ServiceVm.Progress, Mode=OneWay}" Margin="10 0 10 0"/>
+
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="1" Content="Start Processing" Padding="10"
+                        Command="{Binding ServiceVm.StartProcessingCmd}"
+                        IsEnabled="{Binding ServiceVm.CanStartProcessing}"/>
+                <Button Grid.Column="3" Content="Interrupt Processing"  Padding="10"
+                        Command="{Binding ServiceVm.InterruptProcessingCmd}"
+                        IsEnabled="{Binding ServiceVm.CanInterruptProcessing}"/>
+
+            </Grid>
+
+        </Grid>
+
+        <ListBox Grid.Row="2" ItemsSource="{Binding ServiceVm.Logger}"/>
+    </Grid>
+
+</Window>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using Castle.Components.DictionaryAdapter.Xml;
 using Microsoft.Extensions.Logging;
 using OutWit.Common.Utils;
 using OutWit.Communication.Exceptions;
@@ -225,15 +226,23 @@ namespace OutWit.Communication.Server
         {
             foreach (var connection in m_connections.Values)
             {
-                var message = new WitComMessage
+                try
                 {
-                    Id = connection.Id,
-                    Type = WitComMessageType.Callback,
-                    Data = callback
-                };
+                    var message = new WitComMessage
+                    {
+                        Id = connection.Id,
+                        Type = WitComMessageType.Callback,
+                        Data = callback
+                    };
 
-                var data = Serializer.Serialize(Encrypt(connection.Id, message));
-                await  connection.Transport.SendBytesAsync(data);
+                    var data = Serializer.Serialize(Encrypt(connection.Id, message));
+                    await connection.Transport.SendBytesAsync(data);
+                }
+                catch (Exception e)
+                {
+                    Logger?.LogError(e, "Failed to send callback");
+                }
+        
             }
         }
 

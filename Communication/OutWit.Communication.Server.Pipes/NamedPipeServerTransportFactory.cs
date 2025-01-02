@@ -10,6 +10,8 @@ namespace OutWit.Communication.Server.Pipes
 
         public event TransportFactoryEventHandler NewClientConnected = delegate { };
 
+        private readonly HashSet<Guid> m_clients = new HashSet<Guid>();
+
         #endregion
 
         #region Constructors
@@ -40,6 +42,7 @@ namespace OutWit.Communication.Server.Pipes
                     {
                         transport.Disconnected += OnTransportDisconnected;
                         NewClientConnected(transport);
+                        m_clients.Add(transport.Id);
                     }
                     else
                         transport.Dispose();
@@ -58,7 +61,11 @@ namespace OutWit.Communication.Server.Pipes
 
         private void OnTransportDisconnected(Guid sender)
         {
-            WaitForConnectionSlot?.Release();
+            if (m_clients.Contains(sender))
+            {
+                m_clients.Remove(sender);
+                WaitForConnectionSlot?.Release();
+            }
         }
 
         #endregion

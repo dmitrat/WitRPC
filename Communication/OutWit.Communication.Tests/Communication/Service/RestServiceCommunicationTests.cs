@@ -53,7 +53,7 @@ namespace OutWit.Communication.Tests.Communication.Service
             };
             return new WitComServerRest(options,
                 new AccessTokenValidatorStatic(AUTHORIZATION_TOKEN),
-                new RequestProcessorRest<IService>(service));
+                new RequestProcessorRest<IService>(service), null, null);
         }
 
         private WitComClientRest GetClient([CallerMemberName] string callerMember = "")

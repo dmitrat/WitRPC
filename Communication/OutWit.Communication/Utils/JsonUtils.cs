@@ -36,12 +36,30 @@ namespace OutWit.Communication.Utils
         public static TObject? FromJsonBytes<TObject>(this byte[] me)
             where TObject : class
         {
-            return JsonConvert.DeserializeObject<TObject>(Encoding.UTF8.GetString(me));
+            try
+            {
+
+                return JsonConvert.DeserializeObject<TObject>(Encoding.UTF8.GetString(me));
+            }
+            catch (Exception e)
+            {
+                return null;
+
+            }
         }
 
         public static object? FromJsonBytes(this byte[] me, Type type)
         {
-            return JsonConvert.DeserializeObject(Encoding.UTF8.GetString(me), type);
+            try
+            {
+
+                return JsonConvert.DeserializeObject(Encoding.UTF8.GetString(me), type);
+            }
+            catch (Exception e)
+            {
+                return null;
+
+            }
         }
 
         public static TObject? JsonClone<TObject>(this TObject me)

@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using OutWit.Communication.Converters;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Requests;
@@ -19,12 +20,16 @@ namespace OutWit.Communication.Server.Rest
         #endregion
         #region Constructors
 
-        public WitComServerRest(RestServerTransportOptions options, IAccessTokenValidator tokenValidator, IRequestProcessor requestProcessor)
+        public WitComServerRest(RestServerTransportOptions options, IAccessTokenValidator tokenValidator, IRequestProcessor requestProcessor, 
+            ILogger? logger, TimeSpan? timeout)
         {
             Options = options;
             Serializer = new MessageSerializerJson();
             TokenValidator = tokenValidator;
             RequestProcessor = requestProcessor;
+
+            Logger = logger;
+            Timeout = timeout;
         }
 
         #endregion
@@ -73,6 +78,7 @@ namespace OutWit.Communication.Server.Rest
             }
             catch (WitComExceptionRest e)
             {
+                Logger?.LogError(e, "Failed to process request");
                 SendResponse(context.Response, WitComResponse.BadRequest("Failed to process request", e));
                 return;
             }
@@ -122,6 +128,10 @@ namespace OutWit.Communication.Server.Rest
         private IMessageSerializer Serializer { get; }
 
         private IAccessTokenValidator TokenValidator { get; }
+
+        private ILogger? Logger { get; }
+
+        private TimeSpan? Timeout { get; }
 
         #endregion
     }

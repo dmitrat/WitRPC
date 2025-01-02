@@ -9,12 +9,12 @@ namespace OutWit.Communication.Server.Authorization
 
         public bool IsRequestTokenValid(string token)
         {
-            return token == "0";
+            return token == "";
         }
 
         public bool IsAuthorizationTokenValid(string token)
         {
-            return token == "0";
+            return token == "";
         }
 
         #endregion

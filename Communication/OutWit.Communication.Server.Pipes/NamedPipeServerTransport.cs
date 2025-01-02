@@ -72,6 +72,7 @@ namespace OutWit.Communication.Server.Pipes
             {
                 Writer.Write(data.Length);
                 Writer.Write(data);
+                Writer.Flush();
             }
             catch (IOException e)
             {
