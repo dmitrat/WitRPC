@@ -7,12 +7,6 @@ namespace OutWit.InterProcess.Agent
 {
     public class AgentApplication : Application
     {
-        #region Constants
-
-        private const int DEFAULT_TIMEOUT_MIN = 20;
-
-        #endregion
-
         #region Constructors
 
         public AgentApplication(AgentStartupParameters parameters)
@@ -55,11 +49,10 @@ namespace OutWit.InterProcess.Agent
         {
             Timer?.Stop();
 
-            TimeSpan timeout = Parameters.Timeout == TimeSpan.Zero
-                ? TimeSpan.FromMinutes(DEFAULT_TIMEOUT_MIN)
-                : Parameters.Timeout;
+            if(Parameters.Timeout == TimeSpan.Zero)
+                return;
 
-            Timer = new DispatcherTimer { Interval = timeout };
+            Timer = new DispatcherTimer { Interval = Parameters.Timeout };
             Timer.Tick += OnTimeout;
             Timer.Start();
         }

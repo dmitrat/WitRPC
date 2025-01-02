@@ -87,7 +87,7 @@ namespace OutWit.Examples.InterProcess.BasicHost.ViewModels
             if(string.IsNullOrEmpty(agentPath) || !File.Exists(agentPath))
                 return;
 
-            var parameters = dialog.SelectedTransport.GetParameters();
+            var parameters = dialog.SelectedTransport.GetParameters(Logger);
 
             var process = HostUtils.RunAgent(agentPath, parameters);
             if(process == null)
@@ -143,7 +143,7 @@ namespace OutWit.Examples.InterProcess.BasicHost.ViewModels
                 return;
 
 
-            if(!SelectedAgent.IsProcessingStarted)
+            if(SelectedAgent.CanStartProcess)
                 SelectedAgent.StartProcessing();
         }
 
@@ -152,7 +152,7 @@ namespace OutWit.Examples.InterProcess.BasicHost.ViewModels
             if (SelectedAgent == null)
                 return;
 
-            if (SelectedAgent.IsProcessingStarted)
+            if (SelectedAgent.CanInterruptProcess)
                 SelectedAgent.InterruptProcessing();
         }
 
@@ -164,10 +164,8 @@ namespace OutWit.Examples.InterProcess.BasicHost.ViewModels
 
         private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.IsProperty((AgentsViewModel vm) => vm.Agents))
-            {
-                int hh = 0;
-            }
+            if (e.IsProperty((AgentsViewModel vm) => vm.SelectedAgent))
+                HasSelectedAgent = SelectedAgent != null;
         }
 
         #endregion
@@ -182,6 +180,9 @@ namespace OutWit.Examples.InterProcess.BasicHost.ViewModels
 
         [Notify]
         public SimpleLogger Logger { get; set; }
+
+        [Notify]
+        public bool HasSelectedAgent { get; private set; }
 
         #endregion
 

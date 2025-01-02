@@ -14,15 +14,12 @@ namespace OutWit.Examples.Services
 
         public event ExampleServiceProcessingEventHandler ProcessingCompleted = delegate { };
 
-        public event PropertyChangedEventHandler? PropertyChanged = delegate { };
-
         #endregion
 
         #region Constructors
 
         public ExampleService()
         {
-            IsProcessingStarted = false;
         }
 
         #endregion
@@ -34,11 +31,11 @@ namespace OutWit.Examples.Services
             if(CancellationTokenSource != null)
                 return false;
 
-            IsProcessingStarted = true;
-
             CancellationTokenSource = new CancellationTokenSource();
 
             Task.Run(Process);
+
+            ProcessingStarted();
 
             return true;
         }
@@ -70,16 +67,12 @@ namespace OutWit.Examples.Services
 
             ProcessingCompleted(status);
             CancellationTokenSource = null;
-            IsProcessingStarted = false;
         }
 
 
         #endregion
 
         #region Properties
-        
-        [Notify]
-        public bool IsProcessingStarted { get; private set; }
 
         private CancellationTokenSource? CancellationTokenSource { get; set; }
 

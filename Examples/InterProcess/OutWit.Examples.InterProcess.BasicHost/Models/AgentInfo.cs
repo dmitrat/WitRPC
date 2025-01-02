@@ -69,13 +69,9 @@ namespace OutWit.Examples.InterProcess.BasicHost.Models
             try
             {
                 Service.StartProcessing();
-                IsProcessingStarted = true;
             }
             catch (Exception e)
             {
-
-
-                int hh = 0;
             }
         }
 
@@ -84,12 +80,9 @@ namespace OutWit.Examples.InterProcess.BasicHost.Models
             try
             {
                 Service.StopProcessing();
-                IsProcessingStarted = false;
             }
             catch (Exception e)
             {
-
-                int hh = 0;
             }
         }
 
@@ -103,9 +96,9 @@ namespace OutWit.Examples.InterProcess.BasicHost.Models
             {
                 CanStartProcess = true;
                 CanInterruptProcess = false;
+
                 Progress = 0;
                 ProcessingStatus = status;
-                IsProcessingStarted = false;
             });
         }
 
@@ -160,9 +153,6 @@ namespace OutWit.Examples.InterProcess.BasicHost.Models
         public IExampleService Service { get; }
 
         public TransportType Transport { get; }
-
-        [Notify]
-        public bool IsProcessingStarted { get; private set; }
 
         [Notify]
         public double Progress { get; private set; }

@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OutWit.Common.Random;
 using OutWit.Communication.Client;
 using OutWit.Communication.Client.MMF.Utils;
@@ -18,25 +15,52 @@ namespace OutWit.Examples.InterProcess.BasicHost.Utils
 {
     public static class TransportUtils
     {
-        public static StartupParametersTransport GetParameters( this TransportType me)
+        public static StartupParametersTransport GetParameters( this TransportType me, ILogger logger)
         {
             switch (me)
             {
                 case TransportType.Pipes:
-                    return new StartupParametersTransport(me, RandomUtils.RandomString(), Process.GetCurrentProcess().Id,
+                {
+                    var pipeName = RandomUtils.RandomString();
+
+                    logger.LogInformation($"Starting pipes agent, pipe name: {pipeName}");
+
+                    return new StartupParametersTransport(me, pipeName, Process.GetCurrentProcess().Id,
                         TimeSpan.Zero, true);
+
+                }
 
                 case TransportType.MMF:
-                    return new StartupParametersTransport(me, RandomUtils.RandomString(), Process.GetCurrentProcess().Id,
+                {
+                    var mmfName = RandomUtils.RandomString();
+
+                    logger.LogInformation($"Starting memory mapped file agent, file name: {mmfName}");
+
+                    return new StartupParametersTransport(me, mmfName, Process.GetCurrentProcess().Id,
                         TimeSpan.Zero, true);
+
+                }
 
                 case TransportType.Tcp:
-                    return new StartupParametersTransport(me, $"127.0.0.1:{TcpUtils.FreeTcpPort()}", Process.GetCurrentProcess().Id,
+                {
+                    var tcpPort = TcpUtils.FreeTcpPort();
+
+                    logger.LogInformation($"Starting tcp agent, tcp port: {tcpPort}");
+
+                    return new StartupParametersTransport(me, $"localhost:{tcpPort}", Process.GetCurrentProcess().Id,
                         TimeSpan.Zero, true);
 
+                }
+
                 case TransportType.WebSocket:
-                    return new StartupParametersTransport(me, $"ws://localhost:{TcpUtils.FreeTcpPort()}/api/", Process.GetCurrentProcess().Id,
+                {
+                    var port = TcpUtils.FreeTcpPort();
+
+                    logger.LogInformation($"Starting web socket agent, port: {port}");
+
+                    return new StartupParametersTransport(me, $"ws://localhost:{port}/api/", Process.GetCurrentProcess().Id,
                         TimeSpan.Zero, true);
+                }
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(me), me, null);

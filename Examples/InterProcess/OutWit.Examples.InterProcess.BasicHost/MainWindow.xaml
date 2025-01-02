@@ -6,6 +6,11 @@
         xmlns:local="clr-namespace:OutWit.Examples.InterProcess.BasicHost"
         xmlns:models="clr-namespace:OutWit.Examples.InterProcess.BasicHost.Models"
         mc:Ignorable="d" Title="Basic Pipes Host" Height="450" Width="800">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibility"/>
+    </Window.Resources>
+
     <Grid IsSharedSizeScope="True">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*"/>
@@ -66,21 +71,21 @@
         <Grid Grid.Column="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
             <Border Grid.Row="0" Background="LightBlue">
                 <TextBlock Text="{Binding AgentsVm.SelectedAgent, StringFormat=AGENT: {0}}" FontWeight="Bold" HorizontalAlignment="Center"/>
             </Border>
 
-            <Grid Grid.Row="1">
+            <Grid Grid.Row="1"  Margin="0 0 0 10"
+                  Visibility="{Binding AgentsVm.HasSelectedAgent, Converter={StaticResource BooleanToVisibility}}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="25"/>
                     <RowDefinition Height="40"/>
-                    <RowDefinition Height="25"/>
+                    <RowDefinition Height="10"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
                 <ProgressBar Grid.Row="1" Minimum="0" Maximum="100" Value="{Binding AgentsVm.SelectedAgent.Progress, Mode=OneWay}" Margin="10 0 10 0"/>
@@ -95,15 +100,17 @@
                     </Grid.ColumnDefinitions>
 
                     <Button Grid.Column="1" Content="Start Processing" Padding="10"
-                            Command="{Binding AgentsVm.StartProcessingCmd}"/>
+                            Command="{Binding AgentsVm.StartProcessingCmd}"
+                            IsEnabled="{Binding AgentsVm.SelectedAgent.CanStartProcess}"/>
                     <Button Grid.Column="3" Content="Interrupt Processing"  Padding="10"
-                            Command="{Binding AgentsVm.InterruptProcessingCmd}"/>
+                            Command="{Binding AgentsVm.InterruptProcessingCmd}"
+                            IsEnabled="{Binding AgentsVm.SelectedAgent.CanInterruptProcess}"/>
 
                 </Grid>
 
-                <ListBox Grid.Row="4" ItemsSource="{Binding AgentsVm.Logger}"/>
-
             </Grid>
+
+            <ListBox Grid.Row="2" ItemsSource="{Binding AgentsVm.Logger}"/>
 
         </Grid>
 

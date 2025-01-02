@@ -2,7 +2,7 @@
 
 namespace OutWit.Examples.Contracts
 {
-    public interface IExampleService : INotifyPropertyChanged
+    public interface IExampleService
     {
         public event ExampleServiceEventHandler ProcessingStarted;
         public event ExampleServiceProgressEventHandler ProgressChanged;
@@ -10,8 +10,6 @@ namespace OutWit.Examples.Contracts
 
         public bool StartProcessing();
         public void StopProcessing();
-
-        public bool IsProcessingStarted { get; }
     }
 
     public delegate void ExampleServiceEventHandler();
