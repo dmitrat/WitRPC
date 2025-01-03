@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="OutWit.Common.Logging" Version="1.0.2" />
+		<PackageReference Include="OutWit.Common.MVVM" Version="1.0.1" />
+		<PackageReference Include="OutWit.Communication.Client.Tcp" Version="1.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\OutWit.Examples.Contracts\OutWit.Examples.Contracts.csproj" />
+	</ItemGroup>
+
+</Project>
