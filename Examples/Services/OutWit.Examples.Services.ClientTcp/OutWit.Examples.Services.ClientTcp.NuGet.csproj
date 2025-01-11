@@ -11,11 +11,11 @@
 	<ItemGroup>
 		<PackageReference Include="OutWit.Common.Logging" Version="1.0.2" />
 		<PackageReference Include="OutWit.Common.MVVM" Version="1.0.1" />
-		<PackageReference Include="OutWit.Communication.Client.Tcp" Version="1.0.0" />
+		<PackageReference Include="OutWit.Communication.Client.Tcp" Version="1.0.2" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\OutWit.Examples.Contracts\OutWit.Examples.Contracts.csproj" />
+	  <ProjectReference Include="..\..\OutWit.Examples.Contracts\OutWit.Examples.Contracts.NuGet.csproj" />
 	</ItemGroup>
 
 </Project>

@@ -12,10 +12,10 @@
     <PackageReference Include="OutWit.Communication.Server.Pipes" Version="1.0.0" />
     <PackageReference Include="OutWit.Communication.Server.Rest" Version="1.0.0" />
     <PackageReference Include="OutWit.Communication.Server.Tcp" Version="1.0.0" />
-    <PackageReference Include="OutWit.Communication.Server.WebSocket" Version="1.0.0" />
+    <PackageReference Include="OutWit.Communication.Server.WebSocket" Version="1.0.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\OutWit.Examples.Services\OutWit.Examples.Services.csproj" />
+    <ProjectReference Include="..\..\OutWit.Examples.Services\OutWit.Examples.Services.NuGet.csproj" />
   </ItemGroup>
 </Project>
