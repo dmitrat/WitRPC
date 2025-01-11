@@ -1,0 +1,62 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFramework>netstandard2.0</TargetFramework>
+	  <LangVersion>latest</LangVersion>
+	  <OutputType>Library</OutputType>
+	  <IncludeBuildOutput>false</IncludeBuildOutput>
+	  <Nullable>enable</Nullable>
+	  <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+	  <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)Generated</CompilerGeneratedFilesOutputPath>
+	  <IsRoslynComponent>true</IsRoslynComponent>
+	  <IsAnalyzer>true</IsAnalyzer>
+	  <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+	  
+	  <SignAssembly>False</SignAssembly>
+	  <RootNamespace>OutWit.Common.Proxy.Generator</RootNamespace>
+
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <PackageId>OutWit.Common.Proxy.Generator</PackageId>
+	  <Version>1.0.0</Version>
+	  <Authors>Dmitry Ratner</Authors>
+	  <Company>OutWit</Company>
+	  <Product>OutWit.Common.Proxy.Generator</Product>
+	  <Description>Static Interface proxy generatorl</Description>
+	  <PackageTags>OutWit;Common;Proxy;Generator</PackageTags>
+	  <Copyright>Copyright © Dmitry Ratner 2025</Copyright>
+
+	  <RepositoryUrl>https://github.com/dmitrat/WitCom/tree/main/Common/OutWit.Common.Proxy.Generator</RepositoryUrl>
+	  <PackageProjectUrl>https://github.com/dmitrat/WitCom/tree/main/Common/OutWit.Common.Proxy.Generator</PackageProjectUrl>
+
+	  <PackageIcon>OutWitIcon128.png</PackageIcon>
+	  <PackageLicenseFile>LICENSE</PackageLicenseFile>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<None Include="LICENSE" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="OutWitIcon128.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+
+
+	<ItemGroup>
+		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="build\OutWit.Common.Proxy.Generator.props" Pack="true" PackagePath="build" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" PrivateAssets="all" />
+		<PackageReference Include="OutWit.Common.Proxy" Version="1.0.0" />
+	</ItemGroup>
+
+	<Target Name="EnsureBuild" BeforeTargets="Pack">
+		<MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Build" />
+	</Target>
+
+</Project>

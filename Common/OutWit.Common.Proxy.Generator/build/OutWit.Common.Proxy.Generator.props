@@ -1,0 +1,5 @@
+<Project>
+	<ItemGroup>
+		<Analyzer Include="$(MSBuildThisFileDirectory)..\analyzers\dotnet\cs\OutWit.Common.Proxy.Generator.NuGet.dll" />
+	</ItemGroup>
+</Project>
