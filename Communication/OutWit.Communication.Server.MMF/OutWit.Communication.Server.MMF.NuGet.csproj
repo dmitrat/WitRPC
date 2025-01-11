@@ -8,7 +8,7 @@
 
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <PackageId>OutWit.Communication.Server.MMF</PackageId>
-	  <Version>1.0.0</Version>
+	  <Version>1.0.2</Version>
 	  <Authors>Dmitry Ratner</Authors>
 	  <Company>OutWit</Company>
 	  <Product>OutWit.Communication.Server.MMF</Product>
@@ -25,7 +25,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OutWit.Communication.Server" Version="1.0.0" />
+    <PackageReference Include="OutWit.Communication.Server" Version="1.0.2" />
   </ItemGroup>
 
 	<ItemGroup>
