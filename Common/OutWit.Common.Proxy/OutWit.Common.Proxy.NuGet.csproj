@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFramework>netstandard2.0</TargetFramework>
+	  <LangVersion>latest</LangVersion>
+
+	  <SignAssembly>False</SignAssembly>
+	  <RootNamespace>OutWit.Common.Proxy</RootNamespace>
+
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <PackageId>OutWit.Common.Proxy</PackageId>
+	  <Version>1.0.0</Version>
+	  <Authors>Dmitry Ratner</Authors>
+	  <Company>OutWit</Company>
+	  <Product>OutWit.Common.Proxy</Product>
+	  <Description>Static Interface proxy generator/interceptor base model</Description>
+	  <PackageTags>OutWit;Common;Proxy;Generator;Interceptor</PackageTags>
+	  <Copyright>Copyright © Dmitry Ratner 2025</Copyright>
+
+	  <RepositoryUrl>https://github.com/dmitrat/WitCom/tree/main/Common/OutWit.Common.Proxy</RepositoryUrl>
+	  <PackageProjectUrl>https://github.com/dmitrat/WitCom/tree/main/Common/OutWit.Common.Proxy</PackageProjectUrl>
+
+	  <PackageIcon>OutWitIcon128.png</PackageIcon>
+	  <PackageLicenseFile>LICENSE</PackageLicenseFile>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OutWit.Common" Version="1.0.2" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<None Include="LICENSE" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="OutWitIcon128.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+</Project>

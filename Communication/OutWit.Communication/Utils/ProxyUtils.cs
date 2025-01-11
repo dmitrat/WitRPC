@@ -14,7 +14,7 @@ namespace OutWit.Communication.Utils
         public static Type[] GetParametersTypes(this IProxyInvocation me)
         {
             if (me.ParametersTypes == null || me.ParametersTypes.Length == 0)
-                return [];
+                return Array.Empty<Type>();
 
             return me.ParametersTypes.Select(Type.GetType).ToArray()!;
         }
@@ -22,7 +22,7 @@ namespace OutWit.Communication.Utils
         public static Type[] GetGenericArguments(this IProxyInvocation me)
         {
             if (me.GenericArguments == null || me.GenericArguments.Length == 0)
-                return [];
+                return Array.Empty<Type>();
 
             return me.GenericArguments.Select(Type.GetType).ToArray()!;
         }
@@ -52,7 +52,7 @@ namespace OutWit.Communication.Utils
                 ReturnType = me.Method.ReturnType.TypeString()
             };
             if(me.GenericArguments == null || me.GenericArguments.Length == 0)
-                invocation.GenericArguments = [];
+                invocation.GenericArguments = Array.Empty<string>();
             else
                 invocation.GenericArguments = me.GenericArguments.Select(p => p.TypeString()).ToArray();
 
