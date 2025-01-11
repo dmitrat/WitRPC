@@ -1,8 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
-using System;
+﻿using System;
+using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace OutWit.Common.Proxy.Generator.Utils
 {
@@ -10,10 +8,15 @@ namespace OutWit.Common.Proxy.Generator.Utils
     {
         public static IEnumerable<ISymbol> GetAllMembers(this INamedTypeSymbol me)
         {
-            List<ISymbol> members = me.GetMembers().ToList();
+            HashSet<ISymbol> members = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
+            foreach (var symbol in me.GetMembers())
+                members.Add(symbol);
 
             foreach (INamedTypeSymbol baseInterface in me.Interfaces)
-                members.AddRange(GetAllMembers(baseInterface));
+            {
+                foreach (var symbol in baseInterface.GetAllMembers())
+                    members.Add(symbol);
+            }
 
             return members;
         }
