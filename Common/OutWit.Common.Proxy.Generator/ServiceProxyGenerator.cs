@@ -1,12 +1,10 @@
-﻿using System.Diagnostics;
+﻿using System;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using OutWit.Common.Proxy.Attributes;
 using OutWit.Common.Proxy.Generator.Generators;
-using OutWit.Common.Proxy.Generator.Syntax;
 using OutWit.Common.Proxy.Generator.Utils;
 using OutWit.Common.Proxy.Interfaces;
 
@@ -17,23 +15,13 @@ namespace OutWit.Common.Proxy.Generator
     {
         public void Initialize(GeneratorInitializationContext context)
         {
-            context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
+
         }
 
         public void Execute(GeneratorExecutionContext context)
         {
-            if (context.SyntaxReceiver is not SyntaxReceiver receiver)
-                return;
-
-            var compilation = context.Compilation;
-            foreach (InterfaceDeclarationSyntax interfaceDeclaration in receiver)
+            foreach (INamedTypeSymbol symbol in context.Compilation.GetCandidates())
             {
-                var semanticModel = compilation.GetSemanticModel(interfaceDeclaration.SyntaxTree);
-
-                var symbol = semanticModel.GetDeclaredSymbol(interfaceDeclaration) as INamedTypeSymbol;
-                if (symbol == null)
-                    continue;
-
                 var proxyTargetAttribute = symbol.GetAttributes()
                     .FirstOrDefault(data => data.AttributeClass?.Name == nameof(ProxyTargetAttribute));
 

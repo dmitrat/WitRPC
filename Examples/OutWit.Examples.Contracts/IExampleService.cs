@@ -1,7 +1,9 @@
 ﻿using System.ComponentModel;
+using OutWit.Common.Proxy.Attributes;
 
 namespace OutWit.Examples.Contracts
 {
+    [ProxyTarget("ExampleServiceProxy")]
     public interface IExampleService
     {
         public event ExampleServiceEventHandler ProcessingStarted;
