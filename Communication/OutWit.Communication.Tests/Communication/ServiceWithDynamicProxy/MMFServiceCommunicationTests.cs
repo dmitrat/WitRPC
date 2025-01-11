@@ -2,33 +2,33 @@
 using OutWit.Communication.Serializers;
 using OutWit.Communication.Server.Authorization;
 using OutWit.Communication.Server.Encryption;
-using OutWit.Communication.Server.Pipes;
 using OutWit.Communication.Server;
 using OutWit.Communication.Tests.Mock;
 using OutWit.Communication.Client;
 using OutWit.Communication.Client.Authorization;
 using OutWit.Communication.Client.Encryption;
-using OutWit.Communication.Client.Pipes;
 using System.Runtime.CompilerServices;
 using OutWit.Communication.Processors;
 using OutWit.Communication.Tests.Mock.Interfaces;
 using Castle.DynamicProxy;
+using OutWit.Communication.Client.MMF;
 using OutWit.Communication.Interceptors;
+using OutWit.Communication.Server.MMF;
 using OutWit.Communication.Tests.Mock.Model;
 using OutWit.Common.Aspects.Utils;
 
-namespace OutWit.Communication.Tests.Communication.Service
+namespace OutWit.Communication.Tests.Communication.ServiceWithDynamicProxy
 {
     [TestFixture]
-    public class PipesServiceCommunicationTests
+    public class MMFServiceCommunicationTests
     {
-        private const string PIPE_NAME = "TestPipe";
+        private const string MEMORY_MAPPED_FILE_NAME = "TestMMF";
         private const string AUTHORIZATION_TOKEN = "token";
 
         [Test]
         public async Task SimpleRequestsSingleClientTest()
         {
-            var server = GetServer(1);
+            var server = GetServer();
             server.StartWaitingForConnection();
 
             var client = GetClient();
@@ -63,7 +63,7 @@ namespace OutWit.Communication.Tests.Communication.Service
         [Test]
         public async Task PropertyChangedCallbackTest()
         {
-            var server = GetServer(1);
+            var server = GetServer();
             server.StartWaitingForConnection();
 
             var client = GetClient();
@@ -94,7 +94,7 @@ namespace OutWit.Communication.Tests.Communication.Service
         [Test]
         public async Task SingleSubscribeSingleClientSimpleCallbackTest()
         {
-            var server = GetServer(1);
+            var server = GetServer();
             server.StartWaitingForConnection();
 
             var client = GetClient();
@@ -128,7 +128,7 @@ namespace OutWit.Communication.Tests.Communication.Service
         [Test]
         public async Task SingleSubscribeComplexTypeSingleClientCallbackTest()
         {
-            var server = GetServer(1);
+            var server = GetServer();
             server.StartWaitingForConnection();
 
             var client = GetClient();
@@ -164,68 +164,6 @@ namespace OutWit.Communication.Tests.Communication.Service
             Assert.That(actualIter, Is.EqualTo(6));
         }
 
-        [Test]
-        public async Task MultiSubscribeMultiClientsCallbackTest()
-        {
-            var server = GetServer(5);
-            server.StartWaitingForConnection();
-
-            var client1 = GetClient();
-
-            Assert.That(await client1.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
-            Assert.That(client1.IsInitialized, Is.True);
-            Assert.That(client1.IsAuthorized, Is.True);
-
-            var service1 = GetService(client1);
-
-
-            var client2 = GetClient();
-
-            Assert.That(await client2.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
-            Assert.That(client2.IsInitialized, Is.True);
-            Assert.That(client2.IsAuthorized, Is.True);
-
-            var service2 = GetService(client1);
-
-            int callbackFirstCount = 0;
-            int callbackSecondCount = 0;
-            string actualFirst = "";
-            string actualSecond = "";
-            service1.Error += text =>
-            {
-                callbackFirstCount++;
-                actualFirst = text;
-                Console.WriteLine(text);
-            };
-
-            service1.ReportError("text1");
-            Assert.That(callbackFirstCount, Is.EqualTo(1));
-            Assert.That(actualFirst, Is.EqualTo("text1"));
-            Assert.That(callbackSecondCount, Is.EqualTo(0));
-            Assert.That(actualSecond, Is.EqualTo(""));
-
-            service2.Error += text =>
-            {
-                callbackSecondCount++;
-                actualSecond = text;
-                Console.WriteLine(text);
-            };
-
-            service2.ReportError("text2");
-            Thread.Sleep(200);
-            Assert.That(callbackFirstCount, Is.EqualTo(2));
-            Assert.That(actualFirst, Is.EqualTo("text2"));
-            Assert.That(callbackSecondCount, Is.EqualTo(1));
-            Assert.That(actualSecond, Is.EqualTo("text2"));
-
-            service1.ReportError("text3");
-            Thread.Sleep(200);
-            Assert.That(callbackFirstCount, Is.EqualTo(3));
-            Assert.That(actualFirst, Is.EqualTo("text3"));
-            Assert.That(callbackSecondCount, Is.EqualTo(2));
-            Assert.That(actualSecond, Is.EqualTo("text3"));
-        }
-
         private IService GetService(WitComClient client)
         {
             var proxyGenerator = new ProxyGenerator();
@@ -234,14 +172,14 @@ namespace OutWit.Communication.Tests.Communication.Service
             return proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
         }
 
-        private WitComServer GetServer(int maxNumberOfClients, [CallerMemberName] string pipeName = PIPE_NAME)
+        private WitComServer GetServer([CallerMemberName] string pipeName = MEMORY_MAPPED_FILE_NAME)
         {
             var service = new MockService();
 
-            var serverTransport = new NamedPipeServerTransportFactory(new NamedPipeServerTransportOptions
+            var serverTransport = new MemoryMappedFileServerTransportFactory(new MemoryMappedFileServerTransportOptions()
             {
-                PipeName = pipeName,
-                MaxNumberOfClients = maxNumberOfClients
+                Name = pipeName,
+                Size = 1024 * 1024
             });
             return new WitComServer(serverTransport,
                 new EncryptorServerFactory<EncryptorServerGeneral>(),
@@ -251,12 +189,11 @@ namespace OutWit.Communication.Tests.Communication.Service
                 new RequestProcessor<IService>(service), null, null);
         }
 
-        private WitComClient GetClient([CallerMemberName] string pipeName = PIPE_NAME)
+        private WitComClient GetClient([CallerMemberName] string pipeName = MEMORY_MAPPED_FILE_NAME)
         {
-            var clientTransport = new NamedPipeClientTransport(new NamedPipeClientTransportOptions
+            var clientTransport = new MemoryMappedFileClientTransport(new MemoryMappedFileClientTransportOptions
             {
-                ServerName = ".",
-                PipeName = pipeName
+                Name = pipeName
             });
 
             return new WitComClient(clientTransport,

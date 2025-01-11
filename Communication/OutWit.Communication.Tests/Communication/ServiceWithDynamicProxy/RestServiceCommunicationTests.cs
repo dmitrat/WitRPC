@@ -12,7 +12,7 @@ using OutWit.Communication.Model;
 using OutWit.Communication.Server.Rest;
 using OutWit.Communication.Server.Rest.Processors;
 
-namespace OutWit.Communication.Tests.Communication.Service
+namespace OutWit.Communication.Tests.Communication.ServiceWithDynamicProxy
 {
     [TestFixture]
     public class RestServiceCommunicationTests

@@ -1,6 +1,7 @@
 ﻿using System;
 using Castle.DynamicProxy;
 using Microsoft.Extensions.Logging;
+using OutWit.Common.Proxy.Interfaces;
 using OutWit.Communication.Client.Authorization;
 using OutWit.Communication.Client.Encryption;
 using OutWit.Communication.Converters;
@@ -37,6 +38,12 @@ namespace OutWit.Communication.Client
             var interceptor = new RequestInterceptorDynamic(me, strongAssemblyMatch);
 
             return proxyGenerator.CreateInterfaceProxyWithoutTarget<TService>(interceptor);
+        }
+
+        public static TService GetService<TService>(this WitComClient me, Func<IProxyInterceptor, TService> create, bool strongAssemblyMatch = true)
+            where TService : class
+        {
+            return create(new RequestInterceptor(me, strongAssemblyMatch));
         }
 
         #region Authorization

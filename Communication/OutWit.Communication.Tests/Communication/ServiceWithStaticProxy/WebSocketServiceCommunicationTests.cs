@@ -16,8 +16,9 @@ using OutWit.Communication.Tests.Mock.Model;
 using OutWit.Communication.Client.WebSocket;
 using OutWit.Communication.Server.WebSocket;
 using OutWit.Common.Aspects.Utils;
+using OutWit.Communication.Tests._Mock.Interfaces;
 
-namespace OutWit.Communication.Tests.Communication.Service
+namespace OutWit.Communication.Tests.Communication.ServiceWithStaticProxy
 {
     [TestFixture]
     public class WebSocketServiceCommunicationTests
@@ -42,21 +43,6 @@ namespace OutWit.Communication.Tests.Communication.Service
             Assert.That(service.DoubleProperty, Is.EqualTo(1.2));
 
             Assert.That(service.RequestData("text"), Is.EqualTo("text"));
-            Assert.That(service.GenericSimple(12, "34", 5.6), Is.EqualTo(5.6));
-            Assert.That(service.GenericComplex(12, "34", new ComplexNumber<int, double>(56, 6.7)).Is(new ComplexNumber<int, double>(56, 6.7)), Is.EqualTo(true));
-            Assert.That(service.GenericComplexArray(12, "34", new List<ComplexNumber<int, double>>
-            {
-                new ComplexNumber<int, double>(56, 6.7),
-                new ComplexNumber<int, double>(89, 10.11),
-                new ComplexNumber<int, double>(123, 14.15),
-            }).Is(new ComplexNumber<int, double>(56, 6.7)), Is.EqualTo(true));
-
-            Assert.That(service.GenericComplexMulti(new ComplexNumber<string, string>("aa", "bb"), "34", new List<ComplexNumber<int, double>>
-            {
-                new ComplexNumber<int, double>(56, 6.7),
-                new ComplexNumber<int, double>(89, 10.11),
-                new ComplexNumber<int, double>(123, 14.15),
-            }).Is(new ComplexNumber<string, int>("bb", 56)), Is.EqualTo(true));
         }
 
         [Test]
@@ -225,12 +211,11 @@ namespace OutWit.Communication.Tests.Communication.Service
             Assert.That(actualSecond, Is.EqualTo("text3"));
         }
 
-        private IService GetService(WitComClient client)
+        private IServiceBase GetService(WitComClient client)
         {
-            var proxyGenerator = new ProxyGenerator();
             var interceptor = new RequestInterceptorDynamic(client, true);
 
-            return proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
+            return new ServiceProxy(interceptor);
         }
 
 
