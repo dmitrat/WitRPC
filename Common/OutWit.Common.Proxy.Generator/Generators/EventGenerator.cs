@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using OutWit.Common.Proxy.Interfaces;
 
 namespace OutWit.Common.Proxy.Generator.Generators
 {
@@ -28,10 +29,10 @@ namespace OutWit.Common.Proxy.Generator.Generators
             sourceBuilder.AppendLine("            {");
             sourceBuilder.AppendLine($"                var invocation = new OutWit.Common.Proxy.{nameof(ProxyInvocation)}");
             sourceBuilder.AppendLine("                {");
-            sourceBuilder.AppendLine($"                    MethodName = \"add_{me.Name}\",");
-            sourceBuilder.AppendLine($"                    Parameters = new object[] {{ value }},");
-            sourceBuilder.AppendLine($"                    ParameterTypes = new string[] {{ \"{me.Name}\" }},");
-            sourceBuilder.AppendLine($"                    ReturnType = \"void\"");
+            sourceBuilder.AppendLine($"                    {nameof(IProxyInvocation.MethodName)} = \"add_{me.Name}\",");
+            sourceBuilder.AppendLine($"                    {nameof(IProxyInvocation.Parameters)} = new object[] {{ value }},");
+            sourceBuilder.AppendLine($"                    {nameof(IProxyInvocation.ParametersTypes)} = new string[] {{ \"{me.Name}\" }},");
+            sourceBuilder.AppendLine($"                    {nameof(IProxyInvocation.ReturnType)} = \"void\"");
             sourceBuilder.AppendLine("                };");
             sourceBuilder.AppendLine("                _interceptor.Intercept(invocation);");
             sourceBuilder.AppendLine($"                _{me.Name} += value;");
@@ -44,10 +45,10 @@ namespace OutWit.Common.Proxy.Generator.Generators
             sourceBuilder.AppendLine("            {");
             sourceBuilder.AppendLine($"                var invocation = new OutWit.Common.Proxy.{nameof(ProxyInvocation)}");
             sourceBuilder.AppendLine("                {");
-            sourceBuilder.AppendLine($"                    MethodName = \"remove_{me.Name}\",");
-            sourceBuilder.AppendLine($"                    Parameters = new object[] {{ value }},");
-            sourceBuilder.AppendLine($"                    ParameterTypes = new string[] {{ \"{me.Name}\" }},");
-            sourceBuilder.AppendLine($"                    ReturnType = \"void\"");
+            sourceBuilder.AppendLine($"                    {nameof(IProxyInvocation.MethodName)} = \"remove_{me.Name}\",");
+            sourceBuilder.AppendLine($"                    {nameof(IProxyInvocation.Parameters)} = new object[] {{ value }},");
+            sourceBuilder.AppendLine($"                    {nameof(IProxyInvocation.ParametersTypes)} = new string[] {{ \"{me.Name}\" }},");
+            sourceBuilder.AppendLine($"                    {nameof(IProxyInvocation.ReturnType)} = \"void\"");
             sourceBuilder.AppendLine("                };");
             sourceBuilder.AppendLine("                _interceptor.Intercept(invocation);");
             sourceBuilder.AppendLine($"                _{me.Name} -= value;");

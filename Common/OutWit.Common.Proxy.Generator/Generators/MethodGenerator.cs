@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using OutWit.Common.Proxy.Generator.Utils;
+using OutWit.Common.Proxy.Interfaces;
 
 namespace OutWit.Common.Proxy.Generator.Generators
 {
@@ -26,10 +27,10 @@ namespace OutWit.Common.Proxy.Generator.Generators
             sourceBuilder.AppendLine("        {");
             sourceBuilder.AppendLine($"            var invocation = new OutWit.Common.Proxy.{nameof(ProxyInvocation)}");
             sourceBuilder.AppendLine("            {");
-            sourceBuilder.AppendLine($"                MethodName = \"{me.Name}\",");
-            sourceBuilder.AppendLine($"                Parameters = new object[] {{ {parameterNames} }},");
-            sourceBuilder.AppendLine($"                ParameterTypes = new string[] {{ {parameterTypes} }},");
-            sourceBuilder.AppendLine($"                ReturnType = \"{me.ReturnType.GetTypeString()}\"");
+            sourceBuilder.AppendLine($"                {nameof(IProxyInvocation.MethodName)} = \"{me.Name}\",");
+            sourceBuilder.AppendLine($"                {nameof(IProxyInvocation.Parameters)} = new object[] {{ {parameterNames} }},");
+            sourceBuilder.AppendLine($"                {nameof(IProxyInvocation.ParametersTypes)} = new string[] {{ {parameterTypes} }},");
+            sourceBuilder.AppendLine($"                {nameof(IProxyInvocation.ReturnType)} = \"{me.ReturnType.GetTypeString()}\"");
             sourceBuilder.AppendLine("            };");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine("            _interceptor.Intercept(invocation);");
@@ -37,8 +38,8 @@ namespace OutWit.Common.Proxy.Generator.Generators
 
             if (returnType != "void")
             {
-                sourceBuilder.AppendLine($"            if (invocation.ReturnValue != null)");
-                sourceBuilder.AppendLine($"                return ({returnType})invocation.ReturnValue;");
+                sourceBuilder.AppendLine($"            if (invocation.{nameof(IProxyInvocation.ReturnValue)} != null)");
+                sourceBuilder.AppendLine($"                return ({returnType})invocation.{nameof(IProxyInvocation.ReturnValue)};");
                 sourceBuilder.AppendLine($"            return default({returnType});");
             }
 

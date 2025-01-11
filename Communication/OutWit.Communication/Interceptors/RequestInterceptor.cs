@@ -2,14 +2,15 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
-using Castle.DynamicProxy;
+using OutWit.Common.Proxy.Interfaces;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Model;
 using OutWit.Communication.Requests;
+using OutWit.Communication.Utils;
 
 namespace OutWit.Communication.Interceptors
 {
-    public class RequestInterceptor : IInterceptor
+    public class RequestInterceptor : IProxyInterceptor
     {
         #region Constants
 
@@ -47,12 +48,12 @@ namespace OutWit.Communication.Interceptors
 
         #region IInterceptor
 
-        public void Intercept(IInvocation invocation)
+        public void Intercept(IProxyInvocation invocation)
         {
-            if(invocation.Method.Name.StartsWith(EVENT_SUBSCRIBE_PREFIX))
+            if(invocation.MethodName.StartsWith(EVENT_SUBSCRIBE_PREFIX))
                 SubscribeEvent(invocation);
 
-            else if (invocation.Method.Name.StartsWith(EVENT_UNSUBSCRIBE_PREFIX))
+            else if (invocation.MethodName.StartsWith(EVENT_UNSUBSCRIBE_PREFIX))
                 UnsubscribeEvent(invocation);
 
             else
@@ -64,23 +65,23 @@ namespace OutWit.Communication.Interceptors
 
         #region Functions
 
-        private async Task ProcessRequest(IInvocation invocation)
+        private async Task ProcessRequest(IProxyInvocation invocation)
         {
             var request = new WitComRequest
             {
-                MethodName = invocation.Method.Name,
-                Parameters = invocation.Arguments,
+                MethodName = invocation.MethodName,
+                Parameters = invocation.Parameters,
             };
 
             if (IsStrongAssemblyMatch)
             {
-                request.ParameterTypes = invocation.Method.GetParameters().Select(info => info.ParameterType).ToArray();
-                request.GenericArguments = invocation.Method.GetGenericArguments();
+                request.ParameterTypes = invocation.GetParametersTypes();
+                request.GenericArguments = invocation.GetGenericArguments();
             }
             else
             {
-                request.ParameterTypesByName = invocation.Method.GetParameters().Select(info => new ParameterType(info.ParameterType)).ToArray();
-                request.GenericArgumentsByName = invocation.Method.GetGenericArguments().Select(type => new ParameterType(type)).ToArray();
+                request.ParameterTypesByName = invocation.GetParametersTypes().Select(type => new ParameterType(type)).ToArray();
+                request.GenericArgumentsByName = invocation.GetGenericArguments().Select(type => new ParameterType(type)).ToArray();
             }
 
             var response = await Client.SendRequest(request);
@@ -88,19 +89,19 @@ namespace OutWit.Communication.Interceptors
             if (!response.IsSuccess())
                 throw response.CreateFaultException();
 
-            if(invocation.Method.ReturnType == typeof(void))
+            if(invocation.GetReturnType() == typeof(void))
                 return;
 
-            if(!Client.Converter.TryConvert(response.Data, invocation.Method.ReturnType, out var value))
+            if(!Client.Converter.TryConvert(response.Data, invocation.GetReturnType(), out var value))
                 throw response.CreateFaultException();
             
             invocation.ReturnValue = value;
         }
 
-        private void SubscribeEvent(IInvocation invocation)
+        private void SubscribeEvent(IProxyInvocation invocation)
         {
-            var eventName = invocation.Method.Name.Substring(EVENT_SUBSCRIBE_PREFIX.Length);
-            var handler = (Delegate)invocation.Arguments[0];
+            var eventName = invocation.MethodName.Substring(EVENT_SUBSCRIBE_PREFIX.Length);
+            var handler = (Delegate)invocation.Parameters[0];
 
             if (m_eventDelegates.TryGetValue(eventName, out Delegate? existing))
                 m_eventDelegates[eventName] = Delegate.Combine(existing, handler);
@@ -108,10 +109,10 @@ namespace OutWit.Communication.Interceptors
                 m_eventDelegates.TryAdd(eventName, handler);
         }
 
-        private void UnsubscribeEvent(IInvocation invocation)
+        private void UnsubscribeEvent(IProxyInvocation invocation)
         {
-            var eventName = invocation.Method.Name.Substring(EVENT_UNSUBSCRIBE_PREFIX.Length);
-            var handler = (Delegate)invocation.Arguments[0];
+            var eventName = invocation.MethodName.Substring(EVENT_UNSUBSCRIBE_PREFIX.Length);
+            var handler = (Delegate)invocation.Parameters[0];
 
             if (!m_eventDelegates.TryGetValue(eventName, out Delegate? existing))
                 return;

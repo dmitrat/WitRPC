@@ -17,7 +17,8 @@ namespace OutWit.Common.Proxy
 
             return MethodName.Is(hostInfo.MethodName) &&
                    Parameters.Is(hostInfo.Parameters) &&
-                   ParameterTypes.Is(hostInfo.ParameterTypes) &&
+                   ParametersTypes.Is(hostInfo.ParametersTypes) &&
+                   GenericArguments.Is(hostInfo.GenericArguments) &&
                    ReturnValue.Equals(hostInfo.ReturnValue) &&
                    ReturnType.Is(hostInfo.ReturnType);
         }
@@ -28,7 +29,8 @@ namespace OutWit.Common.Proxy
             {
                 MethodName = MethodName,
                 Parameters = Parameters,
-                ParameterTypes = ParameterTypes,
+                ParametersTypes = ParametersTypes,
+                GenericArguments = GenericArguments,
                 ReturnValue = ReturnValue,
                 ReturnType = ReturnType
             };
@@ -42,7 +44,9 @@ namespace OutWit.Common.Proxy
 
         public object[] Parameters { get; set; }
 
-        public string[] ParameterTypes { get; set; }
+        public string[] ParametersTypes { get; set; }
+
+        public string[] GenericArguments { get; set; }
 
         public object ReturnValue { get; set; }
 

@@ -24,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Common\OutWit.Common.Proxy.Generator\OutWit.Common.Proxy.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\OutWit.Communication.Client.MMF\OutWit.Communication.Client.MMF.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Client.Pipes\OutWit.Communication.Client.Pipes.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Client.Rest\OutWit.Communication.Client.Rest.csproj" />

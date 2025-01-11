@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OutWit.Common.Aspects;
 using OutWit.Common.Aspects.Utils;
+using OutWit.Communication.Tests._Mock.Interfaces;
 using OutWit.Communication.Tests.Mock.Interfaces;
 using OutWit.Communication.Tests.Mock.Model;
 using OutWit.Communication.Utils;

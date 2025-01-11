@@ -34,7 +34,7 @@ namespace OutWit.Communication.Client
             where TService : class
         {
             var proxyGenerator = new ProxyGenerator();
-            var interceptor = new RequestInterceptor(me, strongAssemblyMatch);
+            var interceptor = new RequestInterceptorDynamic(me, strongAssemblyMatch);
 
             return proxyGenerator.CreateInterfaceProxyWithoutTarget<TService>(interceptor);
         }

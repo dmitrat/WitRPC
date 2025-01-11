@@ -10,7 +10,9 @@ namespace OutWit.Common.Proxy.Interfaces
 
         public object[] Parameters { get; }
 
-        public string[] ParameterTypes { get; }
+        public string[] ParametersTypes { get; }
+
+        public string[] GenericArguments { get; }
 
         public object ReturnValue { get; set; }
 

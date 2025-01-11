@@ -21,6 +21,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\..\Common\OutWit.Common.Proxy\OutWit.Common.Proxy.csproj" />
 	  <ProjectReference Include="..\..\Common\OutWit.Common.Reflection\OutWit.Common.Reflection.csproj" />
 	</ItemGroup>
 

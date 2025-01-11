@@ -1,7 +1,7 @@
 ﻿using System;
+using Castle.DynamicProxy;
 using OutWit.Common.Aspects.Utils;
 using OutWit.Communication.Interceptors;
-using OutWit.Communication.Tests._Mock.Interfaces;
 using OutWit.Communication.Tests.Mock;
 using OutWit.Communication.Tests.Mock.Interfaces;
 using OutWit.Communication.Tests.Mock.Model;
@@ -9,7 +9,7 @@ using OutWit.Communication.Tests.Mock.Model;
 namespace OutWit.Communication.Tests.Interceptors
 {
     [TestFixture]
-    public class RequestInterceptorTests
+    public class RequestInterceptorDynamicTests
     {
         [Test]
         public void SimpleRequestsTest()
@@ -17,15 +17,31 @@ namespace OutWit.Communication.Tests.Interceptors
             var service = new MockService();
             var client = new MockClient<IService>(service);
 
-            var interceptor = new RequestInterceptor(client, true);
+            var proxyGenerator = new ProxyGenerator();
+            var interceptor = new RequestInterceptorDynamic(client, true);
 
-            IServiceBase serviceProxy = new ServiceProxy(interceptor);
+            IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
 
 
             Assert.That(serviceProxy.StringProperty, Is.EqualTo("TestString"));
             Assert.That(serviceProxy.DoubleProperty, Is.EqualTo(1.2));
 
             Assert.That(serviceProxy.RequestData("text"), Is.EqualTo("text"));
+            Assert.That(serviceProxy.GenericSimple(12, "34", 5.6), Is.EqualTo(5.6));
+            Assert.That(serviceProxy.GenericComplex(12, "34", new ComplexNumber<int, double>(56, 6.7)).Is(new ComplexNumber<int, double>(56, 6.7)), Is.EqualTo(true));
+            Assert.That(serviceProxy.GenericComplexArray(12, "34", new List<ComplexNumber<int, double>>
+            {
+                new ComplexNumber<int, double>(56, 6.7),
+                new ComplexNumber<int, double>(89, 10.11),
+                new ComplexNumber<int, double>(123, 14.15),
+            }).Is(new ComplexNumber<int, double>(56, 6.7)), Is.EqualTo(true));
+
+            Assert.That(serviceProxy.GenericComplexMulti(new ComplexNumber<string, string>("aa", "bb"), "34", new List<ComplexNumber<int, double>>
+            {
+                new ComplexNumber<int, double>(56, 6.7),
+                new ComplexNumber<int, double>(89, 10.11),
+                new ComplexNumber<int, double>(123, 14.15),
+            }).Is(new ComplexNumber<string, int>("bb", 56)), Is.EqualTo(true));
         }
 
         [Test]
@@ -34,9 +50,10 @@ namespace OutWit.Communication.Tests.Interceptors
             var service = new MockService();
             var client = new MockClient<IService>(service);
 
-            var interceptor = new RequestInterceptor(client, true);
-            IServiceBase serviceProxy = new ServiceProxy(interceptor);
+            var proxyGenerator = new ProxyGenerator();
+            var interceptor = new RequestInterceptorDynamic(client, true);
 
+            IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
             int callbackCount = 0;
             serviceProxy.PropertyChanged += (s,e) =>
             {
@@ -58,9 +75,10 @@ namespace OutWit.Communication.Tests.Interceptors
             var service = new MockService();
             var client = new MockClient<IService>(service);
 
-            var interceptor = new RequestInterceptor(client, true);
-            IServiceBase serviceProxy = new ServiceProxy(interceptor);
+            var proxyGenerator = new ProxyGenerator();
+            var interceptor = new RequestInterceptorDynamic(client, true);
 
+            IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
             int callbackCount = 0;
             string actual = "";
             serviceProxy.Error += text =>
@@ -86,9 +104,10 @@ namespace OutWit.Communication.Tests.Interceptors
             var service = new MockService();
             var client = new MockClient<IService>(service);
 
-            var interceptor = new RequestInterceptor(client, true);
-            IServiceBase serviceProxy = new ServiceProxy(interceptor);
+            var proxyGenerator = new ProxyGenerator();
+            var interceptor = new RequestInterceptorDynamic(client, true);
 
+            IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
             int callbackCount = 0;
             ComplexNumber<int, int>? actualNum = null;
             int actualIter = 0;
@@ -119,9 +138,10 @@ namespace OutWit.Communication.Tests.Interceptors
             var service = new MockService();
             var client = new MockClient<IService>(service);
 
-            var interceptor = new RequestInterceptor(client, true);
-            IServiceBase serviceProxy = new ServiceProxy(interceptor);
+            var proxyGenerator = new ProxyGenerator();
+            var interceptor = new RequestInterceptorDynamic(client, true);
 
+            IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
             int callbackCount = 0;
             object? actualSender = null;
             ComplexNumber<int, string>? actualNum = null;
@@ -152,9 +172,10 @@ namespace OutWit.Communication.Tests.Interceptors
             var service = new MockService();
             var client = new MockClient<IService>(service);
 
-            var interceptor = new RequestInterceptor(client, true);
-            IServiceBase serviceProxy = new ServiceProxy(interceptor);
+            var proxyGenerator = new ProxyGenerator();
+            var interceptor = new RequestInterceptorDynamic(client, true);
 
+            IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
             int callbackFirstCount = 0;
             int callbackSecondCount = 0;
             string actualFirst = "";
@@ -198,9 +219,10 @@ namespace OutWit.Communication.Tests.Interceptors
             var service = new MockService();
             var client = new MockClient<IService>(service);
 
-            var interceptor = new RequestInterceptor(client, true);
-            IServiceBase serviceProxy = new ServiceProxy(interceptor);
+            var proxyGenerator = new ProxyGenerator();
+            var interceptor = new RequestInterceptorDynamic(client, true);
 
+            IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
             int callbackFirstCount = 0;
             int callbackSecondCount = 0;
             string actualFirst = "";

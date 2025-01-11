@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using OutWit.Common.Reflection;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Requests;
@@ -77,7 +78,7 @@ namespace OutWit.Communication.Utils
             try
             {
                 IReadOnlyList<MethodInfo> candidates = typeof(TService)
-                    .GetMethods()
+                    .GetAllMethods()
                     .Where(info => info.Name.Equals(me.MethodName, StringComparison.InvariantCultureIgnoreCase))
                     .ToList();
 

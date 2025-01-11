@@ -21,6 +21,19 @@ namespace OutWit.Common.Reflection
             return events;
         }
 
+        public static IEnumerable<MethodInfo> GetAllMethods(this Type type)
+        {
+            var events = new HashSet<MethodInfo>(type.GetMethods());
+
+            foreach (var baseInterface in type.GetInterfaces())
+                events.UnionWith(baseInterface.GetAllMethods());
+
+            if (type.BaseType != null)
+                events.UnionWith(type.BaseType.GetAllMethods());
+
+            return events;
+        }
+
         public static Delegate CreateUniversalHandler<TSender>(this EventInfo me, TSender sender, UniversalEventHandler<TSender> handler)
             where TSender: class
         {

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 using OutWit.Common.Proxy.Attributes;
 using OutWit.Common.Proxy.Generator.Generators;
 using OutWit.Common.Proxy.Generator.Syntax;
+using OutWit.Common.Proxy.Generator.Utils;
 using OutWit.Common.Proxy.Interfaces;
 
 namespace OutWit.Common.Proxy.Generator
@@ -67,7 +68,7 @@ namespace OutWit.Common.Proxy.Generator
             sourceBuilder.AppendLine("        }");
 
 
-            foreach (ISymbol member in interfaceSymbol.GetMembers())
+            foreach (ISymbol member in interfaceSymbol.GetAllMembers())
             {
                 if (member is IMethodSymbol method)
                     method.Generate(sourceBuilder);
