@@ -41,7 +41,7 @@ namespace OutWit.Communication.Server.WebSocket
 
                 IsListening = true;
 
-                Task.Run(ListenForIncomingData);
+                _ = ListenForIncomingData();
 
                 return true;
             }

@@ -40,12 +40,15 @@ namespace OutWit.Communication.Client.WebSocket
 
                 if(timeout == TimeSpan.Zero || timeout == TimeSpan.MaxValue)
                     await Client.ConnectAsync(new Uri(Options.Url),  cancellationToken);
-                else if (!Client.ConnectAsync(new Uri(Options.Url), cancellationToken).Wait((int)timeout.TotalMilliseconds, cancellationToken))
-                    return false;
+                else 
+                {
+                    using var timeoutToken = new CancellationTokenSource(timeout);
+                    await Client.ConnectAsync(new Uri(Options.Url), timeoutToken.Token);
+                }
 
                 IsListening = true;
 
-                Task.Run(ListenForIncomingData);
+                _ = ListenForIncomingData();
 
                 return true;
             }
