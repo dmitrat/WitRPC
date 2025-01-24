@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -40,13 +42,19 @@ namespace OutWit.Communication.Client
 
             IsInitialized = false;
             IsAuthorized = false;
-
+            
+            InitDefaults();
             InitEvents();
         }
 
         #endregion
 
         #region Initialization
+
+        private void InitDefaults()
+        {
+            AOTUtils.EnsureTypesRegistered();
+        }
 
         private void InitEvents()
         {
@@ -236,6 +244,7 @@ namespace OutWit.Communication.Client
             {
                 var encryptedMessage = await Encrypt(message);
                 byte[] data = Serializer.Serialize(encryptedMessage);
+
                 await Transport.SendBytesAsync(data);
 
                 WaitForResponse = new TaskCompletionSource<WitComMessage?>();
@@ -255,7 +264,6 @@ namespace OutWit.Communication.Client
                     Logger?.LogError("Received response inconsistent");
                     throw new WitComException($"Received response inconsistent");
                 }
-
                 return result;
             }
             catch (Exception e)

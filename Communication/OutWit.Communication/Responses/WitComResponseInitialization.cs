@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Runtime.Serialization;
 using MessagePack;
 using OutWit.Common.Abstract;
@@ -11,6 +10,8 @@ namespace OutWit.Communication.Responses
     [DataContract]
     public class WitComResponseInitialization : ModelBase
     {
+        #region Model Base
+
         public override bool Is(ModelBase modelBase, double tolerance = 1E-07)
         {
             if (!(modelBase is WitComResponseInitialization request))
@@ -24,10 +25,12 @@ namespace OutWit.Communication.Responses
         {
             return new WitComResponseInitialization
             {
-                SymmetricKey = SymmetricKey?.ToArray(),
-                Vector = Vector?.ToArray()
+                SymmetricKey = SymmetricKey,
+                Vector = Vector
             };
         }
+
+        #endregion
 
         #region Properties
 

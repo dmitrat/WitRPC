@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "OutWit.Examples.Services.ClientWinUI (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "OutWit.Examples.Services.ClientWinUI (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Extensions.Logging;
 using OutWit.Communication.Interfaces;
 using OutWit.Common.MessagePack;
 
@@ -8,12 +9,12 @@ namespace OutWit.Communication.Serializers
     {
         #region IMessageSerializer
 
-        public T? Deserialize<T>(byte[] bytes) where T: class
+        public T? Deserialize<T>(byte[] bytes, ILogger? logger = null) where T: class
         {
             return bytes.FromPackBytes<T>();
         }
 
-        public byte[] Serialize<T>(T message) where T : class
+        public byte[] Serialize<T>(T message, ILogger? logger = null) where T : class
         {
             return message.ToPackBytes();
         }

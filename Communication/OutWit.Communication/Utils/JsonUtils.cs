@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using MessagePack.Formatters;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace OutWit.Communication.Utils
@@ -9,31 +10,31 @@ namespace OutWit.Communication.Utils
     {
         #region Json
 
-        public static string ToJsonString<TObject>(this TObject me)
+        public static string ToJsonString<TObject>(this TObject me, ILogger? logger = null)
             where TObject : class
         {
             return JsonConvert.SerializeObject(me);
         }
 
-        public static TObject? FromJsonString<TObject>(this string me)
+        public static TObject? FromJsonString<TObject>(this string me, ILogger? logger = null)
             where TObject : class
         {
             return JsonConvert.DeserializeObject<TObject>(me);
         }
 
-        public static object? FromJsonString(this string me, Type type)
+        public static object? FromJsonString(this string me, Type type, ILogger? logger = null)
         {
             return JsonConvert.DeserializeObject(me, type);
         }
 
 
-        public static byte[] ToJsonBytes<TObject>(this TObject me)
+        public static byte[] ToJsonBytes<TObject>(this TObject me, ILogger? logger = null)
             where TObject : class
         {
-            return Encoding.UTF8.GetBytes(me.ToJsonString());
+            return Encoding.UTF8.GetBytes(me.ToJsonString(logger));
         }
 
-        public static TObject? FromJsonBytes<TObject>(this byte[] me)
+        public static TObject? FromJsonBytes<TObject>(this byte[] me, ILogger? logger = null)
             where TObject : class
         {
             try
@@ -43,12 +44,13 @@ namespace OutWit.Communication.Utils
             }
             catch (Exception e)
             {
+                logger?.LogError(e, "Error while deserialization");
                 return null;
 
             }
         }
 
-        public static object? FromJsonBytes(this byte[] me, Type type)
+        public static object? FromJsonBytes(this byte[] me, Type type, ILogger? logger = null)
         {
             try
             {
@@ -57,6 +59,7 @@ namespace OutWit.Communication.Utils
             }
             catch (Exception e)
             {
+                logger?.LogError(e, "Error while deserialization");
                 return null;
 
             }

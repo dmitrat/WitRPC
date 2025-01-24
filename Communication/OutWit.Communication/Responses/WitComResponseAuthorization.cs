@@ -10,6 +10,16 @@ namespace OutWit.Communication.Responses
     [DataContract]
     public class WitComResponseAuthorization : ModelBase
     {
+        #region Constructors
+
+        public WitComResponseAuthorization()
+        {
+        }
+
+        #endregion
+
+        #region ModelBase
+
         public override bool Is(ModelBase modelBase, double tolerance = 1E-07)
         {
             if (!(modelBase is WitComResponseAuthorization request))
@@ -27,6 +37,8 @@ namespace OutWit.Communication.Responses
                 Message = Message
             };
         }
+
+        #endregion
 
         #region Properties
 

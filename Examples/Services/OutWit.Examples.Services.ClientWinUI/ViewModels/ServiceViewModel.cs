@@ -1,23 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Extensions.Logging;
 using OutWit.Common.Aspects;
 using OutWit.Common.Logging;
-using OutWit.Common.MVVM.Commands;
-using OutWit.Common.MVVM.ViewModels;
 using OutWit.Communication.Client;
 using OutWit.Communication.Client.WebSocket.Utils;
 using OutWit.Communication.Interfaces;
+using OutWit.Communication.Responses;
 using OutWit.Examples.Contracts;
-using static OutWit.Common.MVVM.Utils.Extensions;
+using OutWit.Examples.Services.ClientWinUI.Commands;
 
-namespace OutWit.Examples.Services.WebSocket.ViewModels
+namespace OutWit.Examples.Services.ClientWinUI.ViewModels
 {
     public class ServiceViewModel : ViewModelBase<ApplicationViewModel>
     {
@@ -27,10 +29,11 @@ namespace OutWit.Examples.Services.WebSocket.ViewModels
 
         #endregion
 
+
         #region Constructors
 
         public ServiceViewModel(ApplicationViewModel applicationVm) 
-            : base(applicationVm)
+            : base(applicationVm) 
         {
             InitDefaults();
             InitCommands();
@@ -44,7 +47,8 @@ namespace OutWit.Examples.Services.WebSocket.ViewModels
 
         private void InitDefaults()
         {
-            Logger = new SimpleLogger("WebSocket Client");
+            Logger = new SimpleLogger("WinUI Client");
+            Logger.CollectionChanged += OnLoggerCollectionChanged;
         }
 
         private void InitCommands()
@@ -101,7 +105,9 @@ namespace OutWit.Examples.Services.WebSocket.ViewModels
                     Client = null;
                 }
                 else
-                    Service = Client.GetService<IExampleService>();
+                    Service = Client.GetService<IExampleService>(interceptor=>new ExampleServiceProxy(interceptor));
+
+
 
             }
             catch (Exception e)
@@ -111,7 +117,11 @@ namespace OutWit.Examples.Services.WebSocket.ViewModels
                 Service = null;
             }
 
-            UpdateStatus();
+            ApplicationVm.Invoke(() =>
+            {
+                UpdateStatus();
+            });
+
             InitClient();
             InitService();
         }
@@ -162,7 +172,7 @@ namespace OutWit.Examples.Services.WebSocket.ViewModels
 
         private void OnProcessingCompleted(ProcessingStatus status)
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            ApplicationVm.Invoke(() =>
             {
                 CanStartProcessing = true;
                 CanInterruptProcessing = false;
@@ -174,7 +184,7 @@ namespace OutWit.Examples.Services.WebSocket.ViewModels
 
         private void OnProcessingStarted()
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            ApplicationVm.Invoke(() =>
             {
                 CanStartProcessing = false;
                 CanInterruptProcessing = true;
@@ -183,7 +193,7 @@ namespace OutWit.Examples.Services.WebSocket.ViewModels
 
         private void OnProgressChanged(double progress)
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            ApplicationVm.Invoke(() =>
             {
                 Progress = progress;
             });
@@ -191,13 +201,20 @@ namespace OutWit.Examples.Services.WebSocket.ViewModels
 
         private void OnClientDisconnected(Guid sender)
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            ApplicationVm.Invoke(() =>
             {
                 Thread.Sleep(500);
                 Logger?.LogInformation("Client disconnected, trying to reconnect");
                 Reconnect();
             });
         }
+
+
+        private void OnLoggerCollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            Log = Logger!.ToList();
+        }
+
 
         #endregion
 
@@ -209,6 +226,12 @@ namespace OutWit.Examples.Services.WebSocket.ViewModels
 
         [Notify]
         public SimpleLogger? Logger { get; private set; }
+
+        [Notify]
+        public string Message { get; set; }
+
+        [Notify]
+        public IReadOnlyList<string> Log { get; private set; }
 
         [Notify]
         public bool CanReconnect { get; private set; }

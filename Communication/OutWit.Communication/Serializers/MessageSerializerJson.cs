@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Logging;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Utils;
 
@@ -8,14 +10,14 @@ namespace OutWit.Communication.Serializers
     {
         #region IMessageSerializer
 
-        public T? Deserialize<T>(byte[] bytes) where T : class
+        public T? Deserialize<T>(byte[] bytes, ILogger? logger = null) where T : class
         {
-            return bytes.FromJsonBytes<T>();
+            return bytes.FromJsonBytes<T>(logger);
         }
 
-        public byte[] Serialize<T>(T message) where T : class
+        public byte[] Serialize<T>(T message, ILogger? logger = null) where T : class
         {
-            return message.ToJsonBytes();
+            return message.ToJsonBytes(logger);
         }
 
         #endregion
