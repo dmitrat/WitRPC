@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using OutWit.Common.Proxy;
 using OutWit.Common.Proxy.Interfaces;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Model;
@@ -27,10 +29,11 @@ namespace OutWit.Communication.Interceptors
 
         #region Constructors
 
-        public RequestInterceptor(IClient client, bool strongAssemblyMatch)
+        public RequestInterceptor(IClient client, bool allowThreadBlock, bool strongAssemblyMatch)
         {
             Client = client;
             IsStrongAssemblyMatch = strongAssemblyMatch;
+            AllowThreadBlock = allowThreadBlock;
 
             InitEvents();
         }
@@ -56,9 +59,21 @@ namespace OutWit.Communication.Interceptors
             else if (invocation.MethodName.StartsWith(EVENT_UNSUBSCRIBE_PREFIX))
                 UnsubscribeEvent(invocation);
 
+            else if (AllowThreadBlock)
+            {
+                var waitForResponse = new AutoResetEvent(false);
+                Task.Run(async () =>
+                {
+                    await ProcessRequest(invocation);
+                    waitForResponse.Set();
+                });
+
+                waitForResponse.WaitOne();
+            }
             else
-                ProcessRequest(invocation).Wait();
-            
+            {
+                ProcessRequest(invocation).ConfigureAwait(false).GetAwaiter().GetResult();
+            }
         }
 
         #endregion
@@ -143,6 +158,8 @@ namespace OutWit.Communication.Interceptors
         #region Properties
 
         private bool IsStrongAssemblyMatch { get; }
+
+        private bool AllowThreadBlock { get; }
 
         private IClient Client { get; }
 

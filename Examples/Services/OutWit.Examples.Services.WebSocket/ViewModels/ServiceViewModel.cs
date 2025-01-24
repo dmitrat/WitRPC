@@ -123,6 +123,7 @@ namespace OutWit.Examples.Services.WebSocket.ViewModels
 
             try
             {
+                //Task.Run(() => Service.StartProcessing());
                 Service.StartProcessing();
             }
             catch (Exception e)
@@ -138,6 +139,7 @@ namespace OutWit.Examples.Services.WebSocket.ViewModels
                 return;
             try
             {
+                //Task.Run(() => Service.StopProcessing());
                 Service.StopProcessing();
             }
             catch (Exception e)

@@ -214,7 +214,7 @@ namespace OutWit.Communication.Tests.Communication.ServiceWithStaticProxy
 
         private IServiceBase GetService(WitComClient client)
         {
-            var interceptor = new RequestInterceptorDynamic(client, true);
+            var interceptor = new RequestInterceptorDynamic(client, true, true);
 
             return new ServiceProxy(interceptor);
         }

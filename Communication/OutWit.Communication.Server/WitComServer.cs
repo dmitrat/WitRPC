@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Castle.Components.DictionaryAdapter.Xml;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using OutWit.Common.Utils;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
@@ -38,7 +40,7 @@ namespace OutWit.Communication.Server
             Logger = logger;
             Timeout = timeout;
 
-            WaitForCallback = new AutoResetEvent(true);
+            WaitForCallback = new SemaphoreSlim(1, 1);
 
             InitEvents();
         }
@@ -183,7 +185,7 @@ namespace OutWit.Communication.Server
             return message.With(x => x.Data = Serializer.Serialize(response!));
         }
 
-        private WitComMessage Encrypt(Guid client, WitComMessage message)
+        private async Task<WitComMessage> Encrypt(Guid client, WitComMessage message)
         {
             if (!m_connections.TryGetValue(client, out ConnectionInfo? connection))
             {
@@ -194,10 +196,12 @@ namespace OutWit.Communication.Server
             if (message.Type == WitComMessageType.Initialization || message.Data == null)
                 return message;
 
-            return message.With(x => x.Data = connection.Encryptor.Encrypt(message.Data));
+            var data = await connection.Encryptor.Encrypt(message.Data);
+
+            return message.With(x => x.Data = data);
         }
 
-        private WitComMessage Decrypt(Guid client, WitComMessage message)
+        private async Task<WitComMessage> Decrypt(Guid client, WitComMessage message)
         {
             if (!m_connections.TryGetValue(client, out ConnectionInfo? connection))
             {
@@ -208,7 +212,9 @@ namespace OutWit.Communication.Server
             if (message.Type == WitComMessageType.Initialization || message.Data == null)
                 return message;
 
-            return message.With(x => x.Data = connection.Encryptor.Decrypt(message.Data));
+            var data = await connection.Encryptor.Decrypt(message.Data);
+
+            return message.With(x => x.Data = data);
         }
 
         #endregion
@@ -220,7 +226,8 @@ namespace OutWit.Communication.Server
             if(!m_connections.TryGetValue(client, out ConnectionInfo? connection))
                 return;
 
-            var data = Serializer.Serialize(Encrypt(client, message));
+            var encryptedMessage = await Encrypt(client, message);
+            var data = Serializer.Serialize(encryptedMessage);
             await connection.Transport.SendBytesAsync(data);
         }
 
@@ -237,7 +244,8 @@ namespace OutWit.Communication.Server
                         Data = callback
                     };
 
-                    var data = Serializer.Serialize(Encrypt(connection.Id, message));
+                    var encryptedMessage = await Encrypt(connection.Id, message);
+                    var data = Serializer.Serialize(encryptedMessage);
                     await connection.Transport.SendBytesAsync(data);
                 }
                 catch (Exception e)
@@ -257,18 +265,20 @@ namespace OutWit.Communication.Server
             if(message == null || message.Type == WitComMessageType.Unknown)
                 return;
 
-            WaitForCallback.Reset();
+            await WaitForCallback.WaitAsync();
+
+            var decryptedMessage = await Decrypt(client, message);
 
             if (message.Type == WitComMessageType.Initialization)
-                await SendMessageAsync(client, ProcessInitialization(client, Decrypt(client, message)));
+                await SendMessageAsync(client, ProcessInitialization(client, decryptedMessage));
 
             if (message.Type == WitComMessageType.Authorization)
-                await SendMessageAsync(client, ProcessAuthorization(client, Decrypt(client, message)));
+                await SendMessageAsync(client, ProcessAuthorization(client, decryptedMessage));
 
             else if(message.Type == WitComMessageType.Request)
-                await SendMessageAsync(client, ProcessMessage(client,Decrypt(client, message)));
+                await SendMessageAsync(client, ProcessMessage(client, decryptedMessage));
 
-            WaitForCallback.Set();
+            WaitForCallback.Release();
         }
 
         private async void OnDataReceived(Guid sender, byte[] data)
@@ -281,16 +291,16 @@ namespace OutWit.Communication.Server
             if (request == null)
                 return;
 
-            Task.Run(() =>
+            Task.Run(async () =>
             {
-                WaitForCallback.WaitOne();
+                await WaitForCallback.WaitAsync();
 
                 if(Timeout != null && Timeout != TimeSpan.Zero)
                     SendCallbackAsync(Serializer.Serialize(request)).Wait(Timeout.Value);
                 else
                     SendCallbackAsync(Serializer.Serialize(request)).Wait();
 
-                WaitForCallback.Set();
+                WaitForCallback.Release();
             });
         }
 
@@ -324,7 +334,7 @@ namespace OutWit.Communication.Server
 
         private IAccessTokenValidator TokenValidator { get; }
 
-        private AutoResetEvent WaitForCallback{ get; }
+        private SemaphoreSlim WaitForCallback { get; }
 
         private ILogger? Logger { get; }
 

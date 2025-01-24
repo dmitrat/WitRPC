@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.11" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.11" PrivateAssets="all" />
+    <PackageReference Include="MudBlazor" Version="7.15.0" />
+    <PackageReference Include="OutWit.Common.Logging" Version="1.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Common\OutWit.Common.Proxy.Generator\OutWit.Common.Proxy.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\..\Common\OutWit.Common.Proxy\OutWit.Common.Proxy.csproj" />
+    <ProjectReference Include="..\..\..\Communication\OutWit.Communication.Client.WebSocket\OutWit.Communication.Client.WebSocket.csproj" />
+    <ProjectReference Include="..\..\OutWit.Examples.Contracts\OutWit.Examples.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

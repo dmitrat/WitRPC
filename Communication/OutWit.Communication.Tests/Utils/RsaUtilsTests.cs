@@ -28,6 +28,11 @@ namespace OutWit.Communication.Tests.Utils
             Assert.That(key.Modulus, Is.EqualTo(key1.Modulus));
             Assert.That(key.P, Is.EqualTo(key1.P));
             Assert.That(key.Q, Is.EqualTo(key1.Q));
+
+            key = rsa.ExportParameters(false);
+
+            bytes = key.ToBytes();
+            Assert.That(bytes, Is.Not.Empty);
         }
     }
 }

@@ -31,19 +31,19 @@ namespace OutWit.Communication.Client
             return Build(options);
         }
 
-        public static TService GetService<TService>(this WitComClient me, bool strongAssemblyMatch = true)
+        public static TService GetService<TService>(this WitComClient me, bool allowThreadBlock = true, bool strongAssemblyMatch = true)
             where TService : class
         {
             var proxyGenerator = new ProxyGenerator();
-            var interceptor = new RequestInterceptorDynamic(me, strongAssemblyMatch);
+            var interceptor = new RequestInterceptorDynamic(me, allowThreadBlock, strongAssemblyMatch);
 
             return proxyGenerator.CreateInterfaceProxyWithoutTarget<TService>(interceptor);
         }
 
-        public static TService GetService<TService>(this WitComClient me, Func<IProxyInterceptor, TService> create, bool strongAssemblyMatch = true)
+        public static TService GetService<TService>(this WitComClient me, Func<IProxyInterceptor, TService> create, bool allowThreadBlock = true, bool strongAssemblyMatch = true)
             where TService : class
         {
-            return create(new RequestInterceptor(me, strongAssemblyMatch));
+            return create(new RequestInterceptor(me, allowThreadBlock, strongAssemblyMatch));
         }
 
         #region Authorization

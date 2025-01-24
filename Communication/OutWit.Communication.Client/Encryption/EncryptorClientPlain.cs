@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using OutWit.Communication.Interfaces;
 
 namespace OutWit.Communication.Client.Encryption
@@ -17,6 +18,11 @@ namespace OutWit.Communication.Client.Encryption
             return new byte[] { 0 };
         }
 
+        public async Task<byte[]> DecryptRsa(byte[] data)
+        {
+            return data;
+        }
+
         public bool ResetAes(byte[] symmetricKey, byte[] vector)
         {
             return true;
@@ -26,12 +32,12 @@ namespace OutWit.Communication.Client.Encryption
         
         #region IEncryptor
 
-        public byte[] Encrypt(byte[] data)
+        public async Task<byte[]> Encrypt(byte[] data)
         {
             return data;
         }
 
-        public byte[] Decrypt(byte[] data)
+        public async Task<byte[]> Decrypt(byte[] data)
         {
             return data;
         }

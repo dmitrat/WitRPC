@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
 
 namespace OutWit.Communication.Client.Tcp
@@ -46,8 +47,6 @@ namespace OutWit.Communication.Client.Tcp
                 await Client.ConnectAsync(Options.Host, Options.Port.Value, cancellationToken);
 
                 Stream = CreateStream();
-                Reader = new BinaryReader(Stream);
-                Writer = new BinaryWriter(Stream);
 
                 IsListening = true;
 
@@ -68,13 +67,15 @@ namespace OutWit.Communication.Client.Tcp
 
         public async Task SendBytesAsync(byte[] data)
         {
-            if (Writer == null || Reader == null)
+            if (Stream == null)
                 return;
 
             try
             {
-                Writer.Write(data.Length);
-                Writer.Write(data);
+                var lengthBuffer = BitConverter.GetBytes(data.Length);
+
+                await Stream.WriteAsync(lengthBuffer);
+                await Stream.WriteAsync(data);
             }
             catch (IOException e)
             {
@@ -93,19 +94,35 @@ namespace OutWit.Communication.Client.Tcp
 
         private async Task ListenForIncomingData()
         {
-            if (Client == null || Stream == null || Writer == null || Reader == null)
+            if (Client == null || Stream == null)
                 return;
+
+            var lengthBuffer = new byte[sizeof(int)];
 
             try
             {
                 while (IsListening && Client.Connected)
                 {
-                    int dataLength = Reader.ReadInt32();
-                    if (dataLength > 0)
+                    int bytesRead = await Stream.ReadAsync(lengthBuffer, 0, lengthBuffer.Length);
+                    if (bytesRead == 0)
+                        throw new WitComExceptionTransport($"Server disconnected");
+
+                    int messageLength = BitConverter.ToInt32(lengthBuffer, 0);
+
+                    var dataBuffer = new byte[messageLength];
+                    int totalBytesRead = 0;
+
+                    while (totalBytesRead < messageLength)
                     {
-                        byte[] data = Reader.ReadBytes(dataLength);
-                        Callback(Id, data);
+                        int read = await Stream.ReadAsync(dataBuffer, totalBytesRead, messageLength - totalBytesRead);
+                        if (read == 0)
+                            throw new WitComExceptionTransport($"Server disconnected");
+
+                        totalBytesRead += read;
                     }
+
+                    if (totalBytesRead == messageLength)
+                        _ = Task.Run(() => Callback(Id, dataBuffer));
                 }
             }
             catch (Exception)
@@ -122,8 +139,6 @@ namespace OutWit.Communication.Client.Tcp
         {
             IsListening = false;
 
-            Reader?.Dispose();
-            Writer?.Dispose();
             Stream?.Dispose();
             Client?.Close();
 
@@ -143,10 +158,6 @@ namespace OutWit.Communication.Client.Tcp
         protected TcpClient? Client { get; set; }
 
         private Stream? Stream { get; set; }
-
-        private BinaryReader? Reader { get; set; }
-
-        private BinaryWriter? Writer { get; set; }
 
         private bool IsListening { get; set; }
 

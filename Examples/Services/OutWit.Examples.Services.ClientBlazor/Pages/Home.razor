@@ -1,0 +1,53 @@
+﻿@page "/"
+
+@using OutWit.Examples.Services.ClientBlazor.Encryption
+@inject EncryptorClientWeb  EncryptorClientWeb1
+@inherits OutWit.Examples.Services.ClientBlazor.ViewModel.ServiceViewModel
+
+<MudPaper Elevation="0" Width="100%">
+    <MudGrid>
+        <MudItem xs="12">
+            <MudAppBar Elevation="0">
+                <MudGrid>
+                    <MudItem xs="10">
+                        <MudText Typo="Typo.h4">WEB SOCKET BLAZOR CLIENT</MudText>
+                        <MudSpacer/>
+                    </MudItem>
+                    <MudItem xs="2">
+                        <MudButton OnClick="Reconnect" Disabled="IsConnected"
+                                   Variant="Variant.Filled" Color="Color.Secondary">Connect</MudButton>
+                    </MudItem>
+                </MudGrid>
+              
+            </MudAppBar>
+        </MudItem>
+        
+        <MudItem xs="12">
+            <MudProgressLinear Color="Color.Primary" Value="@Progress" Size="Size.Large" />
+        </MudItem>
+        
+        <MudItem xs="2"></MudItem>
+        <MudItem xs="4" Class="d-flex justify-center">
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="@(!CanStartProcessing)"
+                       OnClick="StartProcessing">Start Processing</MudButton>
+        </MudItem>
+        <MudItem xs="4" Class="d-flex justify-center">
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="@(!CanInterruptProcessing)"
+                       OnClick="InterruptProcessing">Interrupt Processing</MudButton>
+        </MudItem>
+        <MudItem xs="2"></MudItem>
+        
+        <MudItem xs="12" Class="mt-4 grow">
+            <MudPaper Class="pa-2 full-height-scroll">
+                <MudList T="string">
+                    @foreach (var log in Logger)
+                    {
+                        <MudListItem>
+                            @log
+                        </MudListItem>
+                    }
+                </MudList>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudPaper>

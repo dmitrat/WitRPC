@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OutWit.Communication.Client.Pipes
 {
@@ -40,10 +41,6 @@ namespace OutWit.Communication.Client.Pipes
                 throw new WitComExceptionTransport($"Failed to create pipe: pipe name is empty");
 
             Stream = new NamedPipeClientStream(Options.ServerName, Options.PipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
-            Reader = new BinaryReader(Stream);
-            Writer = new BinaryWriter(Stream);
-
-            IsListening = true;
         }
 
         #endregion
@@ -64,6 +61,8 @@ namespace OutWit.Communication.Client.Pipes
                 else
                     await Stream.ConnectAsync((int)timeout.TotalMilliseconds, cancellationToken);
 
+                IsListening = true;
+
                 Task.Run(ListenForIncomingData);
 
                 return true;
@@ -81,14 +80,16 @@ namespace OutWit.Communication.Client.Pipes
 
         public async Task SendBytesAsync(byte[] data)
         {
-            if (Writer == null || Reader == null)
+            if (Stream == null)
                 return;
 
             try
             {
-                Writer.Write(data.Length);
-                Writer.Write(data);
-                Writer.Flush();
+                var lengthBuffer = BitConverter.GetBytes(data.Length);
+
+                await Stream.WriteAsync(lengthBuffer);
+                await Stream.WriteAsync(data);
+                await Stream.FlushAsync();
             }
             catch (IOException e)
             {
@@ -107,19 +108,35 @@ namespace OutWit.Communication.Client.Pipes
 
         private async Task ListenForIncomingData()
         {
-            if (Stream == null || Writer == null || Reader == null)
+            if (Stream == null)
                 return;
+
+            var lengthBuffer = new byte[sizeof(int)];
 
             try
             {
                 while (IsListening && Stream.IsConnected)
                 {
-                    int dataLength = Reader.ReadInt32();
-                    if (dataLength > 0)
+                    int bytesRead = await Stream.ReadAsync(lengthBuffer, 0, lengthBuffer.Length);
+                    if (bytesRead == 0)
+                        throw new WitComExceptionTransport($"Server disconnected");
+
+                    int messageLength = BitConverter.ToInt32(lengthBuffer, 0);
+
+                    var dataBuffer = new byte[messageLength];
+                    int totalBytesRead = 0;
+
+                    while (totalBytesRead < messageLength)
                     {
-                        byte[] data = Reader.ReadBytes(dataLength);
-                        Callback(Id, data);
+                        int read = await Stream.ReadAsync(dataBuffer, totalBytesRead, messageLength - totalBytesRead);
+                        if (read == 0)
+                            throw new WitComExceptionTransport($"Server disconnected");
+
+                        totalBytesRead += read;
                     }
+
+                    if (totalBytesRead == messageLength)
+                        _ = Task.Run(() => Callback(Id, dataBuffer));
                 }
             }
             catch (Exception)
@@ -135,9 +152,6 @@ namespace OutWit.Communication.Client.Pipes
         public void Dispose()
         {
             IsListening = false;
-
-            Reader?.Dispose();
-            Writer?.Dispose();
             Stream?.Dispose();
 
             Disconnected(Id);
@@ -154,10 +168,6 @@ namespace OutWit.Communication.Client.Pipes
         private NamedPipeClientTransportOptions Options { get; }
 
         private NamedPipeClientStream? Stream { get; set; }
-
-        private BinaryReader? Reader { get; set; }
-
-        private BinaryWriter? Writer { get; set; }
 
         private bool IsListening { get; set; }
 

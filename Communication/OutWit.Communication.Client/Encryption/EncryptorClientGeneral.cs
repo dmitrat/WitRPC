@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Utils;
 
@@ -39,6 +40,11 @@ namespace OutWit.Communication.Client.Encryption
             return PrivateKey.ToBytes();
         }
 
+        public async Task<byte[]> DecryptRsa(byte[] data)
+        {
+            return data.DecryptRsa(PrivateKey);
+        }
+
         public bool ResetAes(byte[] symmetricKey, byte[] vector)
         {
             try
@@ -59,13 +65,13 @@ namespace OutWit.Communication.Client.Encryption
 
         #region IEncryptor
 
-        public byte[] Encrypt(byte[] data)
+        public async Task<byte[]> Encrypt(byte[] data)
         {
             using ICryptoTransform encryptor = Aes!.CreateEncryptor();
             return encryptor.TransformFinalBlock(data, 0, data.Length);
         }
 
-        public byte[] Decrypt(byte[] data)
+        public async Task<byte[]> Decrypt(byte[] data)
         {
             using ICryptoTransform decryptor = Aes!.CreateDecryptor();
             return decryptor.TransformFinalBlock(data, 0, data.Length);

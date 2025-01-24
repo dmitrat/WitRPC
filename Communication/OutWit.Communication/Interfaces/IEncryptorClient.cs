@@ -13,6 +13,8 @@ namespace OutWit.Communication.Interfaces
 
         public byte[] GetPrivateKey();
 
+        public Task<byte[]> DecryptRsa(byte[] data);
+
         public bool ResetAes(byte[] symmetricKey, byte[] vector);
     }
 }

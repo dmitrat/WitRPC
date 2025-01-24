@@ -37,7 +37,7 @@ namespace OutWit.Communication.Tests.Communication.ServiceWithDynamicProxy
         private IService GetService(WitComClientRest client)
         {
             var proxyGenerator = new ProxyGenerator();
-            var interceptor = new RequestInterceptorDynamic(client, true);
+            var interceptor = new RequestInterceptorDynamic(client, true, true);
 
             return proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
         }

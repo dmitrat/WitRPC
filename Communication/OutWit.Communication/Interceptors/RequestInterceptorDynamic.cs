@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Castle.DynamicProxy;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Utils;
@@ -9,9 +11,10 @@ namespace OutWit.Communication.Interceptors
     {
         #region Constructors
 
-        public RequestInterceptorDynamic(IClient client, bool strongAssemblyMatch)
-            : base(client, strongAssemblyMatch )
+        public RequestInterceptorDynamic(IClient client, bool allowThreadBlock,  bool strongAssemblyMatch)
+            : base(client, allowThreadBlock, strongAssemblyMatch)
         {
+
         }
 
         #endregion

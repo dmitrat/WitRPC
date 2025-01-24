@@ -1,0 +1,14 @@
+﻿@inherits OutWit.Examples.Services.ClientBlazor.ViewModel.MainLayoutViewModel
+<MudThemeProvider Theme="@Theme" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+<MudPopoverProvider />
+
+<MudLayout>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge">
+            <MudPaper Elevation="0" Height="20px"/>
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>

@@ -41,7 +41,7 @@ namespace OutWit.Communication.Server.WebSocket
 
                 IsListening = true;
 
-                _ = ListenForIncomingData();
+                Task.Run(ListenForIncomingData);
 
                 return true;
             }
@@ -119,7 +119,8 @@ namespace OutWit.Communication.Server.WebSocket
 
                     byte[] data = memoryStream.ToArray();
                     memoryStream.SetLength(0);
-                    Callback(Id, data);
+
+                    _ = Task.Run(() => Callback(Id, data));
                 }
             }
             catch (Exception)

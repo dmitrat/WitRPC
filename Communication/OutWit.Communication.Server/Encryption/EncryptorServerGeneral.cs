@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
+using Castle.Components.DictionaryAdapter.Xml;
 using OutWit.Communication.Interfaces;
 
 namespace OutWit.Communication.Server.Encryption
@@ -30,22 +32,35 @@ namespace OutWit.Communication.Server.Encryption
         public void Reset()
         {
             Aes = Aes.Create();
+            Aes.Mode = CipherMode.CBC;
+            Aes.Padding = PaddingMode.PKCS7;
         }
 
         #endregion
 
         #region IEncryptor
 
-        public byte[] Encrypt(byte[] data)
+        public async Task<byte[]> Encrypt(byte[] data)
         {
             using ICryptoTransform encryptor = Aes.CreateEncryptor();
             return encryptor.TransformFinalBlock(data, 0, data.Length);
         }
 
-        public byte[] Decrypt(byte[] data)
+        public async Task<byte[]> Decrypt(byte[] data)
         {
-            using ICryptoTransform decryptor = Aes.CreateDecryptor();
-            return decryptor.TransformFinalBlock(data, 0, data.Length);
+            try
+            {
+                using ICryptoTransform decryptor = Aes.CreateDecryptor();
+                return decryptor.TransformFinalBlock(data, 0, data.Length);
+            }
+            catch (Exception e)
+            {
+
+                int hh = 0;
+
+                return new byte[0];
+            }
+      
         }
 
         #endregion

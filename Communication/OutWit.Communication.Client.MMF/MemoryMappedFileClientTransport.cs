@@ -146,7 +146,8 @@ namespace OutWit.Communication.Client.MMF
                     if (dataLength > 0)
                     {
                         byte[] data = Reader.ReadBytes(dataLength);
-                        Callback(Id, data);
+
+                        _ = Task.Run(() => Callback(Id, data));
                     }
                 }
             }

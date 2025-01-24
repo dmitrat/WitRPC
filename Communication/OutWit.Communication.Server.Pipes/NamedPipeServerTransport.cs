@@ -41,9 +41,7 @@ namespace OutWit.Communication.Server.Pipes
 
             Stream = new NamedPipeServerStream(Options.PipeName, PipeDirection.InOut,
                 Options.MaxNumberOfClients, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
-            Reader = new BinaryReader(Stream);
-            Writer = new BinaryWriter(Stream);
-            IsListening = true;
+        
         }
 
         #endregion
@@ -55,6 +53,8 @@ namespace OutWit.Communication.Server.Pipes
             try
             {
                 await Stream!.WaitForConnectionAsync(token);
+
+                IsListening = true;
 
                 Task.Run(ListenForIncomingData);
 
@@ -69,14 +69,16 @@ namespace OutWit.Communication.Server.Pipes
 
         public async Task SendBytesAsync(byte[] data)
         {
-            if (Writer == null || Reader == null)
+            if (Stream == null)
                 return;
 
             try
             {
-                Writer.Write(data.Length);
-                Writer.Write(data);
-                Writer.Flush();
+                var lengthBuffer = BitConverter.GetBytes(data.Length);
+
+                await Stream.WriteAsync(lengthBuffer);
+                await Stream.WriteAsync(data);
+                await Stream.FlushAsync();
             }
             catch (IOException e)
             {
@@ -91,19 +93,36 @@ namespace OutWit.Communication.Server.Pipes
 
         private async Task ListenForIncomingData()
         {
-            if (Stream == null || Writer == null || Reader == null)
+            if (Stream == null)
                 return;
+
+
+            var lengthBuffer = new byte[sizeof(int)];
 
             try
             {
                 while (IsListening && Stream.IsConnected)
                 {
-                    int dataLength = Reader.ReadInt32();
-                    if (dataLength > 0)
+                    int bytesRead = await Stream.ReadAsync(lengthBuffer, 0, lengthBuffer.Length);
+                    if (bytesRead == 0)
+                        throw new WitComExceptionTransport($"Client disconnected");
+
+                    int messageLength = BitConverter.ToInt32(lengthBuffer, 0);
+
+                    var dataBuffer = new byte[messageLength];
+                    int totalBytesRead = 0;
+
+                    while (totalBytesRead < messageLength)
                     {
-                        byte[] data = Reader.ReadBytes(dataLength);
-                        Callback(Id, data);
+                        int read = await Stream.ReadAsync(dataBuffer, totalBytesRead, messageLength - totalBytesRead);
+                        if (read == 0)
+                            throw new WitComExceptionTransport($"Client disconnected");
+
+                        totalBytesRead += read;
                     }
+
+                    if (totalBytesRead == messageLength)
+                        _ = Task.Run(() => Callback(Id, dataBuffer));
                 }
             }
             catch (Exception)
@@ -119,9 +138,6 @@ namespace OutWit.Communication.Server.Pipes
         public void Dispose()
         {
             IsListening = false;
-
-            Reader?.Dispose();
-            Writer?.Dispose();
             Stream?.Dispose();
 
             Disconnected(Id);
@@ -138,10 +154,6 @@ namespace OutWit.Communication.Server.Pipes
         private NamedPipeServerTransportOptions Options { get; }
 
         private NamedPipeServerStream? Stream { get; set; }
-
-        private BinaryReader? Reader { get; set; }
-
-        private BinaryWriter? Writer { get; set; }
 
         private bool IsListening { get; set; }
 
