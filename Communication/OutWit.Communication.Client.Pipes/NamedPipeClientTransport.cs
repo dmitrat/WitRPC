@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OutWit.Communication.Client.Pipes
 {

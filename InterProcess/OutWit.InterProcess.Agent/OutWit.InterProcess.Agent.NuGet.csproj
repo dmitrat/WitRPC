@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFrameworks>net9.0-windows;net8.0-windows;net7.0-windows;net6.0-windows;net5.0-windows</TargetFrameworks>
+	  <TargetFrameworks>net9.0-windows;net8.0-windows;net7.0-windows;net6.0-windows</TargetFrameworks>
     <Nullable>enable</Nullable>
 	<UseWPF>true</UseWPF>
 
@@ -10,7 +10,7 @@
 
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <PackageId>OutWit.InterProcess.Agent</PackageId>
-	  <Version>1.0.0</Version>
+	  <Version>1.1.0</Version>
 	  <Authors>Dmitry Ratner</Authors>
 	  <Company>OutWit</Company>
 	  <Product>OutWit.InterProcess.Agent</Product>
@@ -27,7 +27,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OutWit.Communication.Server" Version="1.0.0" />
+    <PackageReference Include="OutWit.Communication.Server" Version="1.1.0" />
     <PackageReference Include="OutWit.InterProcess" Version="1.0.0" />
   </ItemGroup>
 

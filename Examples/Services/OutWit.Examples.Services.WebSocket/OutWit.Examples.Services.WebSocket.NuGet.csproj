@@ -11,7 +11,7 @@
 	<ItemGroup>
 		<PackageReference Include="OutWit.Common.Logging" Version="1.0.2" />
 		<PackageReference Include="OutWit.Common.MVVM" Version="1.0.1" />
-		<PackageReference Include="OutWit.Communication.Client.WebSocket" Version="1.0.2" />
+		<PackageReference Include="OutWit.Communication.Client.WebSocket" Version="1.1.0" />
 	</ItemGroup>
 
 	<ItemGroup>
