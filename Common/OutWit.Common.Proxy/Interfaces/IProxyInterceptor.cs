@@ -8,5 +8,12 @@ namespace OutWit.Common.Proxy.Interfaces
     public interface IProxyInterceptor
     {
         public void Intercept(IProxyInvocation invocation);
+
+        public Task<T> InterceptMethodAsync<T>(IProxyInvocation invocation);
+
+        public Task InterceptMethodAsync(IProxyInvocation invocation);
+
+        public object InterceptMethod(IProxyInvocation invocation);
+
     }
 }

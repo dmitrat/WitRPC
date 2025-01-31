@@ -50,15 +50,15 @@ namespace OutWit.Communication.Server.Rest
 
             Listener.Start();
 
-            Task.Run(() =>
+            Task.Run(async () =>
             {
                 while (!TokenSource.Token.IsCancellationRequested)
                 {
-                    var context = Listener.GetContext();
-                    if(TokenSource.IsCancellationRequested)
+                    var context = await Listener.GetContextAsync();
+                    if (TokenSource.IsCancellationRequested)
                         return;
 
-                    ProcessRequest(context);
+                    await ProcessRequest(context);
                 }
             });
         }
@@ -68,7 +68,7 @@ namespace OutWit.Communication.Server.Rest
             Dispose();
         }
 
-        private void ProcessRequest(HttpListenerContext context)
+        private async Task ProcessRequest(HttpListenerContext context)
         {
             var httpRequest = context.Request;
 
@@ -86,7 +86,7 @@ namespace OutWit.Communication.Server.Rest
                 return;
             }
 
-            SendResponse(context.Response, RequestProcessor.Process(request));
+            SendResponse(context.Response,  await RequestProcessor.Process(request));
         }
 
         private void SendResponse(HttpListenerResponse httpResponse, WitComResponse response)

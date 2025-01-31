@@ -13,7 +13,7 @@ namespace OutWit.Communication.Interfaces
     {
         public event RequestProcessorEventHandler Callback;
 
-        public WitComResponse Process(WitComRequest? request);
+        public Task<WitComResponse> Process(WitComRequest? request);
     }
 
     public delegate void RequestProcessorEventHandler(WitComRequest? request);

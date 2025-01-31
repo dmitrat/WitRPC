@@ -24,9 +24,17 @@ namespace OutWit.Communication.Tests._Mock.Interfaces
 
         public string RequestData(string message);
 
+        public Task<string> RequestDataAsync(string message);
+
+
         public ComplexNumber<int, int> StartProcessing(ComplexNumber<int, int> number, int iterations);
 
+        public Task<ComplexNumber<int, int>> StartProcessingAsync(ComplexNumber<int, int> number, int iterations);
+
+
         public void ReportError(string error);
+
+        public Task ReportErrorAsync(string error);
 
 
         public string StringProperty { get; }

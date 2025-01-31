@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using OutWit.Communication.Tests.Mock.Interfaces;
 using Castle.DynamicProxy;
 using OutWit.Communication.Client.Rest;
+using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interceptors;
 using OutWit.Communication.Tests.Mock.Model;
 using OutWit.Communication.Model;
@@ -31,7 +32,7 @@ namespace OutWit.Communication.Tests.Communication.ServiceWithDynamicProxy
 
             Assert.That(service.RequestData("text"), Is.EqualTo("text"));
             Assert.That(service.StartProcessing(new ComplexNumber<int, int>(12, 34), 1).Is(new ComplexNumber<int, int>(24, 68)), Is.True);
-            Assert.Throws<AggregateException>(()=>service.GenericComplex(12, "34", new ComplexNumber<int, double>(56, 6.7)));
+            Assert.Throws<WitComExceptionFault>(()=>service.GenericComplex(12, "34", new ComplexNumber<int, double>(56, 6.7)));
         }
 
         private IService GetService(WitComClientRest client)

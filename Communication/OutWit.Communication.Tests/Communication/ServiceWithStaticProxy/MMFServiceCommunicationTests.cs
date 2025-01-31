@@ -46,6 +46,24 @@ namespace OutWit.Communication.Tests.Communication.ServiceWithStaticProxy
             Assert.That(service.RequestData("text"), Is.EqualTo("text"));
         }
 
+
+        [Test]
+        public async Task SimpleRequestsSingleClientAsyncTest()
+        {
+            var server = GetServer();
+            server.StartWaitingForConnection();
+
+            var client = GetClient();
+
+            Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(client.IsInitialized, Is.True);
+            Assert.That(client.IsAuthorized, Is.True);
+
+            var service = GetService(client);
+
+            Assert.That(await service.RequestDataAsync("text"), Is.EqualTo("text"));
+        }
+
         [Test]
         public async Task PropertyChangedCallbackTest()
         {
@@ -111,6 +129,41 @@ namespace OutWit.Communication.Tests.Communication.ServiceWithStaticProxy
             Assert.That(actual, Is.EqualTo("text2"));
         }
 
+
+        [Test]
+        public async Task SingleSubscribeSingleClientSimpleCallbackAsyncTest()
+        {
+            var server = GetServer();
+            server.StartWaitingForConnection();
+
+            var client = GetClient();
+
+            Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(client.IsInitialized, Is.True);
+            Assert.That(client.IsAuthorized, Is.True);
+
+            var service = GetService(client);
+
+            int callbackCount = 0;
+            string actual = "";
+            service.Error += text =>
+            {
+                callbackCount++;
+                actual = text;
+                Console.WriteLine(text);
+            };
+
+            await service.ReportErrorAsync("text1");
+            Thread.Sleep(200);
+            Assert.That(callbackCount, Is.EqualTo(1));
+            Assert.That(actual, Is.EqualTo("text1"));
+
+            await service.ReportErrorAsync("text2");
+            Thread.Sleep(200);
+            Assert.That(callbackCount, Is.EqualTo(2));
+            Assert.That(actual, Is.EqualTo("text2"));
+        }
+
         [Test]
         public async Task SingleSubscribeComplexTypeSingleClientCallbackTest()
         {
@@ -143,6 +196,46 @@ namespace OutWit.Communication.Tests.Communication.ServiceWithStaticProxy
             Assert.That(actualIter, Is.EqualTo(3));
 
             service.StartProcessing(new ComplexNumber<int, int>(4, 5), 6);
+            Thread.Sleep(200);
+            Assert.That(callbackCount, Is.EqualTo(2));
+            Assert.That(actualNum!.A, Is.EqualTo(4));
+            Assert.That(actualNum!.B, Is.EqualTo(5));
+            Assert.That(actualIter, Is.EqualTo(6));
+        }
+
+
+        [Test]
+        public async Task SingleSubscribeComplexTypeSingleClientCallbackAsyncTest()
+        {
+            var server = GetServer();
+            server.StartWaitingForConnection();
+
+            var client = GetClient();
+
+            Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(client.IsInitialized, Is.True);
+            Assert.That(client.IsAuthorized, Is.True);
+
+            var service = GetService(client);
+            int callbackCount = 0;
+            ComplexNumber<int, int>? actualNum = null;
+            int actualIter = 0;
+            service.StartProcessingRequested += (num, iter) =>
+            {
+                callbackCount++;
+                actualNum = num;
+                actualIter = iter;
+                Console.WriteLine(num);
+            };
+
+            await service.StartProcessingAsync(new ComplexNumber<int, int>(1, 2), 3);
+            Thread.Sleep(200);
+            Assert.That(callbackCount, Is.EqualTo(1));
+            Assert.That(actualNum!.A, Is.EqualTo(1));
+            Assert.That(actualNum!.B, Is.EqualTo(2));
+            Assert.That(actualIter, Is.EqualTo(3));
+
+            await service.StartProcessingAsync(new ComplexNumber<int, int>(4, 5), 6);
             Thread.Sleep(200);
             Assert.That(callbackCount, Is.EqualTo(2));
             Assert.That(actualNum!.A, Is.EqualTo(4));

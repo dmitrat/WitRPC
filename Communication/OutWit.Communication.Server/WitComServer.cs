@@ -163,7 +163,7 @@ namespace OutWit.Communication.Server
             TransportFactory.StopWaitingForConnection();
         }
 
-        protected WitComMessage ProcessMessage(Guid client, WitComMessage message)
+        protected async Task<WitComMessage> ProcessMessage(Guid client, WitComMessage message)
         {
             var request = message.Data.GetRequest(Serializer, Converter);
 
@@ -180,7 +180,7 @@ namespace OutWit.Communication.Server
                 response = WitComResponse.UnauthorizedRequest("Tokes is not valid");
             }
             else 
-                response = RequestProcessor.Process(request);
+                response = await RequestProcessor.Process(request);
 
             return message.With(x => x.Data = Serializer.Serialize(response!));
         }
@@ -275,8 +275,11 @@ namespace OutWit.Communication.Server
             if (message.Type == WitComMessageType.Authorization)
                 await SendMessageAsync(client, ProcessAuthorization(client, decryptedMessage));
 
-            else if(message.Type == WitComMessageType.Request)
-                await SendMessageAsync(client, ProcessMessage(client, decryptedMessage));
+            else if (message.Type == WitComMessageType.Request)
+            {
+                var responseMessage = await ProcessMessage(client, decryptedMessage);
+                await SendMessageAsync(client, responseMessage);
+            }
 
             WaitForCallback.Release();
         }

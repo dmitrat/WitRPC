@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using OutWit.Common.Reflection;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Model;
@@ -43,7 +44,7 @@ namespace OutWit.Communication.Processors
 
         #region IProcessor
 
-        public WitComResponse Process(WitComRequest? request)
+        public async Task<WitComResponse> Process(WitComRequest? request)
         {
             if(request == null)
                 return WitComResponse.BadRequest("Request is empty");
@@ -54,13 +55,56 @@ namespace OutWit.Communication.Processors
 
             try
             {
-                return WitComResponse.Success(method.Invoke(Service, request.Parameters));
+                var returnType = method.ReturnType;
+                if (returnType == typeof(Task))
+                    return await ProcessAsync(method, request.Parameters);
+                
+                if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))
+                    return await ProcessGenericAsync(method, request.Parameters);
+                else 
+                    return WitComResponse.Success(method.Invoke(Service, request.Parameters));
             }
             catch (Exception e)
             {
                 return WitComResponse.InternalServerError("Failed to process request", e);
             }
             
+        }
+
+        private async Task<WitComResponse> ProcessAsync(MethodInfo method, object[] parameters)
+        {
+            try
+            {
+                var task = method.Invoke(Service, parameters) as Task;
+                if (task == null)
+                    return WitComResponse.InternalServerError("Failed to process request");
+
+                await task;
+
+                return WitComResponse.Success(null);
+            }
+            catch (Exception e)
+            {
+                return WitComResponse.InternalServerError("Failed to process request", e);
+            }
+        }
+
+        private async Task<WitComResponse> ProcessGenericAsync(MethodInfo method, object[] parameters)
+        {
+            try
+            {
+                var task = method.Invoke(Service, parameters) as Task;
+                if (task == null)
+                    return WitComResponse.InternalServerError("Failed to process request");
+
+                object? result = await task.ContinueWith(t => (object)((dynamic)t).Result);
+
+                return WitComResponse.Success(result);
+            }
+            catch (Exception e)
+            {
+                return WitComResponse.InternalServerError("Failed to process request", e);
+            }
         }
 
         #endregion

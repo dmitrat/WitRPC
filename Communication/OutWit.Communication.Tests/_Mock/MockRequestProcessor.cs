@@ -9,7 +9,7 @@ namespace OutWit.Communication.Tests.Mock
     {
         public event RequestProcessorEventHandler Callback = delegate { };
 
-        public WitComResponse Process(WitComRequest? request)
+        public async Task<WitComResponse> Process(WitComRequest? request)
         {
             Thread.Sleep(50);
             return WitComResponse.Success(request?.MethodName);

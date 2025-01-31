@@ -19,8 +19,12 @@ namespace OutWit.Common.Proxy
                    Parameters.Is(hostInfo.Parameters) &&
                    ParametersTypes.Is(hostInfo.ParametersTypes) &&
                    GenericArguments.Is(hostInfo.GenericArguments) &&
+                   HasReturnValue.Equals(hostInfo.HasReturnValue) &&
                    ReturnValue.Equals(hostInfo.ReturnValue) &&
-                   ReturnType.Is(hostInfo.ReturnType);
+                   ReturnType.Is(hostInfo.ReturnType) &&
+                   ReturnsTask.Is(hostInfo.ReturnsTask) &&
+                   ReturnsTaskWithResult.Is(hostInfo.ReturnsTaskWithResult) &&
+                   TaskResultType.Is(hostInfo.TaskResultType);
         }
 
         public override ModelBase Clone()
@@ -31,8 +35,12 @@ namespace OutWit.Common.Proxy
                 Parameters = Parameters,
                 ParametersTypes = ParametersTypes,
                 GenericArguments = GenericArguments,
+                HasReturnValue = HasReturnValue,
                 ReturnValue = ReturnValue,
-                ReturnType = ReturnType
+                ReturnType = ReturnType,
+                ReturnsTask = ReturnsTask,
+                ReturnsTaskWithResult = ReturnsTaskWithResult,
+                TaskResultType = TaskResultType
             };
         }
 
@@ -48,9 +56,17 @@ namespace OutWit.Common.Proxy
 
         public string[] GenericArguments { get; set; }
 
+        public bool HasReturnValue { get; set; }
+
         public object ReturnValue { get; set; }
 
         public string ReturnType { get; set; }
+
+        public bool ReturnsTask { get; set; }
+
+        public bool ReturnsTaskWithResult { get; set; }
+
+        public string TaskResultType { get; set; }
 
         #endregion
     }

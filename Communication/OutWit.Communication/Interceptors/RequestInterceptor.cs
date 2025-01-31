@@ -3,12 +3,11 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using OutWit.Common.Proxy;
 using OutWit.Common.Proxy.Interfaces;
+using OutWit.Common.Proxy.Utils;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Model;
 using OutWit.Communication.Requests;
-using OutWit.Communication.Utils;
 
 namespace OutWit.Communication.Interceptors
 {
@@ -59,28 +58,15 @@ namespace OutWit.Communication.Interceptors
             else if (invocation.MethodName.StartsWith(EVENT_UNSUBSCRIBE_PREFIX))
                 UnsubscribeEvent(invocation);
 
-            else if (AllowThreadBlock)
-            {
-                var waitForResponse = new AutoResetEvent(false);
-                Task.Run(async () =>
-                {
-                    await ProcessRequest(invocation);
-                    waitForResponse.Set();
-                });
-
-                waitForResponse.WaitOne();
-            }
-            else
-            {
-                ProcessRequest(invocation).ConfigureAwait(false).GetAwaiter().GetResult();
-            }
+            else 
+                invocation.ReturnValue = InterceptMethod(invocation);
         }
 
         #endregion
 
-        #region Functions
+        #region Process
 
-        private async Task ProcessRequest(IProxyInvocation invocation)
+        public async Task<object?> InterceptMethodInner(IProxyInvocation invocation)
         {
             var request = new WitComRequest
             {
@@ -104,15 +90,80 @@ namespace OutWit.Communication.Interceptors
             if (!response.IsSuccess())
                 throw response.CreateFaultException();
 
-            if(invocation.GetReturnType() == typeof(void))
-                return;
+            var returnType = invocation.GetReturnType();
 
-            if(!Client.Converter.TryConvert(response.Data, invocation.GetReturnType(), out var value))
+            if (returnType == typeof(void) || invocation.IsAsync())
+                return null;
+
+            if (invocation.IsAsyncGeneric())
+                returnType = returnType.GetGenericArguments()[0];
+
+            if (!Client.Converter.TryConvert(response.Data, returnType, out var value))
                 throw response.CreateFaultException();
-            
-            invocation.ReturnValue = value;
+
+            return value;
         }
 
+        public async Task InterceptMethodAsync(IProxyInvocation invocation)
+        {
+            await InterceptMethodInner(invocation);
+        }
+
+        public async Task<T> InterceptMethodAsync<T>(IProxyInvocation invocation)
+        {
+            var result = await InterceptMethodInner(invocation);
+
+            return await Task.FromResult((T)result);
+        }
+
+        public object? InterceptMethod(IProxyInvocation invocation)
+        {
+            return AllowThreadBlock 
+                ? InterceptMethodWithThreadBlock(invocation) 
+                : InterceptMethodWithAwaiter(invocation);
+        }
+
+        private object? InterceptMethodWithAwaiter(IProxyInvocation invocation)
+        {
+            return InterceptMethodInner(invocation)
+                .ConfigureAwait(false)
+                .GetAwaiter()
+                .GetResult();
+        }
+
+        private object? InterceptMethodWithThreadBlock(IProxyInvocation invocation)
+        {
+            var waitForResponse = new AutoResetEvent(false);
+            object? result = null;
+            Exception? exception = null;
+            Task.Run(async () =>
+            {
+                try
+                {
+                    result = await InterceptMethodInner(invocation);
+                }
+                catch (Exception e)
+                {
+                    exception = e;
+                }
+                finally
+                {
+
+                    waitForResponse.Set();
+                }
+            });
+
+            waitForResponse.WaitOne();
+            if(exception != null)
+                throw exception;
+
+            return result;
+        }
+
+        #endregion
+
+        #region Functions
+        
         private void SubscribeEvent(IProxyInvocation invocation)
         {
             var eventName = invocation.MethodName.Substring(EVENT_SUBSCRIBE_PREFIX.Length);

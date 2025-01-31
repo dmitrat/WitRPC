@@ -33,7 +33,7 @@ namespace OutWit.Communication.Tests.Mock
 
         public async Task<WitComResponse> SendRequest(WitComRequest? request)
         {
-            return Processor.Process(request);
+            return await Processor.Process(request);
         }
 
         #endregion

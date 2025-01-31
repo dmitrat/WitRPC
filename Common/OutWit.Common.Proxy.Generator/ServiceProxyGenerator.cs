@@ -55,11 +55,10 @@ namespace OutWit.Common.Proxy.Generator
             sourceBuilder.AppendLine("            _interceptor = interceptor;");
             sourceBuilder.AppendLine("        }");
 
-
             foreach (ISymbol member in interfaceSymbol.GetAllMembers())
             {
                 if (member is IMethodSymbol method)
-                    method.Generate(sourceBuilder);
+                    method.Generate(sourceBuilder, context);
                 
                 else if (member is IPropertySymbol property)
                     property.Generate(sourceBuilder);

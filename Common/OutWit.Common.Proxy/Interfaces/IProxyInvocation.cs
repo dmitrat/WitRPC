@@ -14,8 +14,16 @@ namespace OutWit.Common.Proxy.Interfaces
 
         public string[] GenericArguments { get; }
 
+        public bool HasReturnValue { get; }
+
         public object ReturnValue { get; set; }
 
         public string ReturnType { get; }
+
+        public bool ReturnsTask { get; }
+
+        public bool ReturnsTaskWithResult { get; }
+
+        public string TaskResultType { get; }
     }
 }
