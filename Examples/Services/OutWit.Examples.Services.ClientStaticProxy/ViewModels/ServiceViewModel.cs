@@ -44,7 +44,7 @@ namespace OutWit.Examples.Services.ClientStaticProxy.ViewModels
 
         private void InitDefaults()
         {
-            Logger = new SimpleLogger("Pipes Client");
+            Logger = new SimpleLogger("Static Proxy Client");
         }
 
         private void InitCommands()
@@ -52,6 +52,8 @@ namespace OutWit.Examples.Services.ClientStaticProxy.ViewModels
             ReconnectCmd = new DelegateCommand(x=> Reconnect());
             StartProcessingCmd = new DelegateCommand(x=> StartProcessing());
             InterruptProcessingCmd = new DelegateCommand(x=>InterruptProcessing());
+            InterruptProcessingCmd = new DelegateCommand(x => InterruptProcessing());
+            InterruptProcessingAsyncCmd = new DelegateCommand(x => InterruptProcessingAsync());
         }
 
         private void InitClient()
@@ -127,7 +129,23 @@ namespace OutWit.Examples.Services.ClientStaticProxy.ViewModels
             }
             catch (Exception e)
             {
-                
+
+
+            }
+        }
+
+        private async void StartProcessingAsync()
+        {
+            if (Service == null || !CanStartProcessing)
+                return;
+
+            try
+            {
+                await Service.StartProcessingAsync();
+            }
+            catch (Exception e)
+            {
+
 
             }
         }
@@ -139,6 +157,20 @@ namespace OutWit.Examples.Services.ClientStaticProxy.ViewModels
             try
             {
                 Service.StopProcessing();
+            }
+            catch (Exception e)
+            {
+
+            }
+        }
+
+        private async void InterruptProcessingAsync()
+        {
+            if (Service == null || !CanInterruptProcessing)
+                return;
+            try
+            {
+                await Service.StopProcessingAsync();
             }
             catch (Exception e)
             {
@@ -238,6 +270,12 @@ namespace OutWit.Examples.Services.ClientStaticProxy.ViewModels
 
         [Notify]
         public ICommand? InterruptProcessingCmd { get; private set; }
+
+        [Notify]
+        public ICommand? StartProcessingAsyncCmd { get; private set; }
+
+        [Notify]
+        public ICommand? InterruptProcessingAsyncCmd { get; private set; }
 
         #endregion
     }

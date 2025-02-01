@@ -11,7 +11,10 @@ namespace OutWit.Examples.Contracts
         public event ExampleServiceProcessingEventHandler ProcessingCompleted;
 
         public bool StartProcessing();
+        public Task<bool> StartProcessingAsync();
+
         public void StopProcessing();
+        public Task StopProcessingAsync();
     }
 
     public delegate void ExampleServiceEventHandler();

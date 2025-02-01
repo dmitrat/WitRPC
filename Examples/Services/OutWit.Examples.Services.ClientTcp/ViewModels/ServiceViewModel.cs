@@ -50,8 +50,12 @@ namespace OutWit.Examples.Services.ClientTcp.ViewModels
         private void InitCommands()
         {
             ReconnectCmd = new DelegateCommand(x=> Reconnect());
+
             StartProcessingCmd = new DelegateCommand(x=> StartProcessing());
             InterruptProcessingCmd = new DelegateCommand(x=>InterruptProcessing());
+
+            InterruptProcessingCmd = new DelegateCommand(x => InterruptProcessing());
+            InterruptProcessingAsyncCmd = new DelegateCommand(x => InterruptProcessingAsync());
         }
 
         private void InitClient()
@@ -127,7 +131,23 @@ namespace OutWit.Examples.Services.ClientTcp.ViewModels
             }
             catch (Exception e)
             {
-                
+
+
+            }
+        }
+
+        private async void StartProcessingAsync()
+        {
+            if (Service == null || !CanStartProcessing)
+                return;
+
+            try
+            {
+                await Service.StartProcessingAsync();
+            }
+            catch (Exception e)
+            {
+
 
             }
         }
@@ -139,6 +159,20 @@ namespace OutWit.Examples.Services.ClientTcp.ViewModels
             try
             {
                 Service.StopProcessing();
+            }
+            catch (Exception e)
+            {
+
+            }
+        }
+
+        private async void InterruptProcessingAsync()
+        {
+            if (Service == null || !CanInterruptProcessing)
+                return;
+            try
+            {
+                await Service.StopProcessingAsync();
             }
             catch (Exception e)
             {
@@ -239,6 +273,12 @@ namespace OutWit.Examples.Services.ClientTcp.ViewModels
 
         [Notify]
         public ICommand? InterruptProcessingCmd { get; private set; }
+
+        [Notify]
+        public ICommand? StartProcessingAsyncCmd { get; private set; }
+
+        [Notify]
+        public ICommand? InterruptProcessingAsyncCmd { get; private set; }
 
         #endregion
     }

@@ -19,7 +19,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var client = new MockClient<IService>(service);
 
             var proxyGenerator = new ProxyGenerator();
-            var interceptor = new RequestInterceptorDynamic(client, true, true);
+            var interceptor = new RequestInterceptorDynamic(client, true);
 
             IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
 
@@ -52,7 +52,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var client = new MockClient<IService>(service);
 
             var proxyGenerator = new ProxyGenerator();
-            var interceptor = new RequestInterceptorDynamic(client, true, true);
+            var interceptor = new RequestInterceptorDynamic(client, true);
 
             IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
 
@@ -81,7 +81,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var client = new MockClient<IService>(service);
 
             var proxyGenerator = new ProxyGenerator();
-            var interceptor = new RequestInterceptorDynamic(client, true, true);
+            var interceptor = new RequestInterceptorDynamic(client, true);
 
             IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
             int callbackCount = 0;
@@ -105,7 +105,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var client = new MockClient<IService>(service);
 
             var proxyGenerator = new ProxyGenerator();
-            var interceptor = new RequestInterceptorDynamic(client, true, true);
+            var interceptor = new RequestInterceptorDynamic(client, true);
 
             IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
             int callbackCount = 0;
@@ -134,7 +134,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var client = new MockClient<IService>(service);
 
             var proxyGenerator = new ProxyGenerator();
-            var interceptor = new RequestInterceptorDynamic(client, true, true);
+            var interceptor = new RequestInterceptorDynamic(client, true);
 
             IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
             int callbackCount = 0;
@@ -163,7 +163,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var client = new MockClient<IService>(service);
 
             var proxyGenerator = new ProxyGenerator();
-            var interceptor = new RequestInterceptorDynamic(client, true, true);
+            var interceptor = new RequestInterceptorDynamic(client, true);
 
             IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
             int callbackCount = 0;
@@ -197,7 +197,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var client = new MockClient<IService>(service);
 
             var proxyGenerator = new ProxyGenerator();
-            var interceptor = new RequestInterceptorDynamic(client, true, true);
+            var interceptor = new RequestInterceptorDynamic(client, true);
 
             IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
             int callbackCount = 0;
@@ -231,7 +231,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var client = new MockClient<IService>(service);
 
             var proxyGenerator = new ProxyGenerator();
-            var interceptor = new RequestInterceptorDynamic(client, true, true);
+            var interceptor = new RequestInterceptorDynamic(client, true);
 
             IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
             int callbackCount = 0;
@@ -265,7 +265,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var client = new MockClient<IService>(service);
 
             var proxyGenerator = new ProxyGenerator();
-            var interceptor = new RequestInterceptorDynamic(client, true, true);
+            var interceptor = new RequestInterceptorDynamic(client, true);
 
             IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
             int callbackCount = 0;
@@ -300,7 +300,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var client = new MockClient<IService>(service);
 
             var proxyGenerator = new ProxyGenerator();
-            var interceptor = new RequestInterceptorDynamic(client, true, true);
+            var interceptor = new RequestInterceptorDynamic(client, true);
 
             IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
             int callbackFirstCount = 0;
@@ -347,7 +347,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var client = new MockClient<IService>(service);
 
             var proxyGenerator = new ProxyGenerator();
-            var interceptor = new RequestInterceptorDynamic(client, true, true);
+            var interceptor = new RequestInterceptorDynamic(client, true);
 
             IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
             int callbackFirstCount = 0;
@@ -394,7 +394,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var client = new MockClient<IService>(service);
 
             var proxyGenerator = new ProxyGenerator();
-            var interceptor = new RequestInterceptorDynamic(client, true, true);
+            var interceptor = new RequestInterceptorDynamic(client, true);
 
             IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
             int callbackFirstCount = 0;
@@ -455,7 +455,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var client = new MockClient<IService>(service);
 
             var proxyGenerator = new ProxyGenerator();
-            var interceptor = new RequestInterceptorDynamic(client, true, true);
+            var interceptor = new RequestInterceptorDynamic(client, true);
 
             IService serviceProxy = proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
             int callbackFirstCount = 0;

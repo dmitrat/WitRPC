@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using OutWit.Common.Proxy.Interfaces;
 using OutWit.Common.Proxy.Utils;
@@ -28,11 +27,10 @@ namespace OutWit.Communication.Interceptors
 
         #region Constructors
 
-        public RequestInterceptor(IClient client, bool allowThreadBlock, bool strongAssemblyMatch)
+        public RequestInterceptor(IClient client, bool strongAssemblyMatch)
         {
             Client = client;
             IsStrongAssemblyMatch = strongAssemblyMatch;
-            AllowThreadBlock = allowThreadBlock;
 
             InitEvents();
         }
@@ -58,15 +56,19 @@ namespace OutWit.Communication.Interceptors
             else if (invocation.MethodName.StartsWith(EVENT_UNSUBSCRIBE_PREFIX))
                 UnsubscribeEvent(invocation);
 
+            else if(invocation.ReturnsTask || invocation.ReturnsTaskWithResult)
+                invocation.ReturnValue = InterceptMethodAsync(invocation);
+
             else 
                 invocation.ReturnValue = InterceptMethod(invocation);
+
         }
 
         #endregion
 
         #region Process
 
-        public async Task<object?> InterceptMethodInner(IProxyInvocation invocation)
+        public async Task<object?> InterceptMethodAsync(IProxyInvocation invocation)
         {
             var request = new WitComRequest
             {
@@ -92,10 +94,10 @@ namespace OutWit.Communication.Interceptors
 
             var returnType = invocation.GetReturnType();
 
-            if (returnType == typeof(void) || invocation.IsAsync())
+            if (returnType == typeof(void) || invocation.ReturnsTask)
                 return null;
 
-            if (invocation.IsAsyncGeneric())
+            if (invocation.ReturnsTaskWithResult)
                 returnType = returnType.GetGenericArguments()[0];
 
             if (!Client.Converter.TryConvert(response.Data, returnType, out var value))
@@ -104,60 +106,12 @@ namespace OutWit.Communication.Interceptors
             return value;
         }
 
-        public async Task InterceptMethodAsync(IProxyInvocation invocation)
-        {
-            await InterceptMethodInner(invocation);
-        }
-
-        public async Task<T> InterceptMethodAsync<T>(IProxyInvocation invocation)
-        {
-            var result = await InterceptMethodInner(invocation);
-
-            return await Task.FromResult((T)result);
-        }
-
         public object? InterceptMethod(IProxyInvocation invocation)
         {
-            return AllowThreadBlock 
-                ? InterceptMethodWithThreadBlock(invocation) 
-                : InterceptMethodWithAwaiter(invocation);
-        }
-
-        private object? InterceptMethodWithAwaiter(IProxyInvocation invocation)
-        {
-            return InterceptMethodInner(invocation)
+            return Task.Run(() => InterceptMethodAsync(invocation))
                 .ConfigureAwait(false)
                 .GetAwaiter()
                 .GetResult();
-        }
-
-        private object? InterceptMethodWithThreadBlock(IProxyInvocation invocation)
-        {
-            var waitForResponse = new AutoResetEvent(false);
-            object? result = null;
-            Exception? exception = null;
-            Task.Run(async () =>
-            {
-                try
-                {
-                    result = await InterceptMethodInner(invocation);
-                }
-                catch (Exception e)
-                {
-                    exception = e;
-                }
-                finally
-                {
-
-                    waitForResponse.Set();
-                }
-            });
-
-            waitForResponse.WaitOne();
-            if(exception != null)
-                throw exception;
-
-            return result;
         }
 
         #endregion
@@ -209,8 +163,6 @@ namespace OutWit.Communication.Interceptors
         #region Properties
 
         private bool IsStrongAssemblyMatch { get; }
-
-        private bool AllowThreadBlock { get; }
 
         private IClient Client { get; }
 

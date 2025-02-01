@@ -40,9 +40,20 @@ namespace OutWit.Examples.Services
             return true;
         }
 
+        public async Task<bool> StartProcessingAsync()
+        {
+            return StartProcessing();
+        }
+
         public void StopProcessing()
         {
             CancellationTokenSource?.Cancel(false);
+        }
+
+        public async Task StopProcessingAsync()
+        {
+            if(CancellationTokenSource != null)
+                await CancellationTokenSource.CancelAsync();
         }
 
         #endregion

@@ -32,6 +32,8 @@
                 <RowDefinition Height="40"/>
                 <RowDefinition Height="10"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <ProgressBar Grid.Row="1" Minimum="0" Maximum="100" Value="{Binding ServiceVm.Progress, Mode=OneWay}" Margin="10 0 10 0"/>
@@ -39,18 +41,36 @@
             <Grid Grid.Row="3">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Button"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Button"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
                 <Button Grid.Column="1" Content="Start Processing" Padding="10"
-                 Command="{Binding ServiceVm.StartProcessingCmd}"
-                 IsEnabled="{Binding ServiceVm.CanStartProcessing}"/>
+                        Command="{Binding ServiceVm.StartProcessingCmd}"
+                        IsEnabled="{Binding ServiceVm.CanStartProcessing}"/>
                 <Button Grid.Column="3" Content="Interrupt Processing"  Padding="10"
-                 Command="{Binding ServiceVm.InterruptProcessingCmd}"
-                 IsEnabled="{Binding ServiceVm.CanInterruptProcessing}"/>
+                        Command="{Binding ServiceVm.InterruptProcessingCmd}"
+                        IsEnabled="{Binding ServiceVm.CanInterruptProcessing}"/>
+
+            </Grid>
+
+            <Grid Grid.Row="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Button"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="Button"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="1" Content="Start Processing Async" Padding="10"
+                        Command="{Binding ServiceVm.StartProcessingAsyncCmd}"
+                        IsEnabled="{Binding ServiceVm.CanStartProcessing}"/>
+                <Button Grid.Column="3" Content="Interrupt Processing Async"  Padding="10"
+                        Command="{Binding ServiceVm.InterruptProcessingAsyncCmd}"
+                        IsEnabled="{Binding ServiceVm.CanInterruptProcessing}"/>
 
             </Grid>
 

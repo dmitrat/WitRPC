@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Castle.DynamicProxy;
 using OutWit.Common.Proxy.Utils;
 using OutWit.Communication.Interfaces;
@@ -12,8 +13,8 @@ namespace OutWit.Communication.Interceptors
     {
         #region Constructors
 
-        public RequestInterceptorDynamic(IClient client, bool allowThreadBlock,  bool strongAssemblyMatch)
-            : base(client, allowThreadBlock, strongAssemblyMatch)
+        public RequestInterceptorDynamic(IClient client, bool strongAssemblyMatch)
+            : base(client, strongAssemblyMatch)
         {
 
         }
@@ -28,30 +29,34 @@ namespace OutWit.Communication.Interceptors
 
             var returnType = proxyInvocation.GetReturnType();
 
-            if (proxyInvocation.IsAsyncGeneric())
-            {
-                MethodInfo? method = typeof(RequestInterceptor)
-                    .GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                    .Where(x=>x.Name.Equals(nameof(InterceptMethodAsync)))
-                    .FirstOrDefault(x=>x.IsGenericMethod);
+            base.Intercept(proxyInvocation);
 
-                if(method == null || !method.IsGenericMethod)
+            if (proxyInvocation.ReturnsTaskWithResult)
+            {
+                MethodInfo? method = typeof(RequestInterceptorDynamic)
+                    .GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
+                    .Where(x => x.Name.Equals(nameof(CastTask)))
+                    .FirstOrDefault(x => x.IsGenericMethod);
+
+                if (method == null || !method.IsGenericMethod)
                     return;
 
                 method = method.MakeGenericMethod(returnType.GetGenericArguments().Single());
 
-                invocation.ReturnValue = method.Invoke(this, new[] { proxyInvocation });
+                invocation.ReturnValue = method.Invoke(this, new[] { proxyInvocation.ReturnValue });
             }
-            else if (proxyInvocation.IsAsync())
-                invocation.ReturnValue = InterceptMethodAsync(proxyInvocation);
 
             else
-            {
-                base.Intercept(proxyInvocation);
-
                 invocation.ReturnValue = proxyInvocation.ReturnValue;
-            }
-           
+        }
+
+        #endregion
+
+        #region Functions
+
+        private Task<T> CastTask<T>(Task<object?> task)
+        {
+            return task.ContinueWith(x => (T)x.Result);
         }
 
         #endregion

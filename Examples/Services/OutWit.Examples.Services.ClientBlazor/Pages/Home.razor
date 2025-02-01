@@ -37,6 +37,17 @@
         </MudItem>
         <MudItem xs="2"></MudItem>
         
+        <MudItem xs="2"></MudItem>
+        <MudItem xs="4" Class="d-flex justify-center">
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="@(!CanStartProcessing)"
+                       OnClick="StartProcessingAsync">Start Processing Async</MudButton>
+        </MudItem>
+        <MudItem xs="4" Class="d-flex justify-center">
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="@(!CanInterruptProcessing)"
+                       OnClick="InterruptProcessingAsync">Interrupt Processing Async</MudButton>
+        </MudItem>
+        <MudItem xs="2"></MudItem>
+        
         <MudItem xs="12" Class="mt-4 grow">
             <MudPaper Class="pa-2 full-height-scroll">
                 <MudList T="string">

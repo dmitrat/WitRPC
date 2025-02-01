@@ -55,7 +55,9 @@ namespace OutWit.Examples.Services.ClientWinUI.ViewModels
         {
             ReconnectCmd = new DelegateCommand(x=> Reconnect());
             StartProcessingCmd = new DelegateCommand(x=> StartProcessing());
+            StartProcessingAsyncCmd = new DelegateCommand(x=> StartProcessingAsync());
             InterruptProcessingCmd = new DelegateCommand(x=>InterruptProcessing());
+            InterruptProcessingAsyncCmd = new DelegateCommand(x=>InterruptProcessingAsync());
         }
 
         private void InitClient()
@@ -133,12 +135,28 @@ namespace OutWit.Examples.Services.ClientWinUI.ViewModels
 
             try
             {
-                //Task.Run(() => Service.StartProcessing());
                 Service.StartProcessing();
             }
             catch (Exception e)
             {
                 
+
+            }
+        }
+
+
+        private async void StartProcessingAsync()
+        {
+            if (Service == null || !CanStartProcessing)
+                return;
+
+            try
+            {
+                await Service.StartProcessingAsync();
+            }
+            catch (Exception e)
+            {
+
 
             }
         }
@@ -149,8 +167,21 @@ namespace OutWit.Examples.Services.ClientWinUI.ViewModels
                 return;
             try
             {
-                //Task.Run(() => Service.StopProcessing());
                 Service.StopProcessing();
+            }
+            catch (Exception e)
+            {
+
+            }
+        }
+
+        private async void InterruptProcessingAsync()
+        {
+            if (Service == null || !CanInterruptProcessing)
+                return;
+            try
+            {
+                await Service.StopProcessingAsync();
             }
             catch (Exception e)
             {
@@ -263,6 +294,13 @@ namespace OutWit.Examples.Services.ClientWinUI.ViewModels
 
         [Notify]
         public ICommand? InterruptProcessingCmd { get; private set; }
+
+
+        [Notify]
+        public ICommand? StartProcessingAsyncCmd { get; private set; }
+
+        [Notify]
+        public ICommand? InterruptProcessingAsyncCmd { get; private set; }
 
         #endregion
     }

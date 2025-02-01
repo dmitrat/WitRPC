@@ -18,7 +18,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var service = new MockService();
             var client = new MockClient<IService>(service);
 
-            var interceptor = new RequestInterceptor(client, true, true);
+            var interceptor = new RequestInterceptor(client, true);
 
             IServiceBase serviceProxy = new ServiceProxy(interceptor);
 
@@ -34,7 +34,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var service = new MockService();
             var client = new MockClient<IService>(service);
 
-            var interceptor = new RequestInterceptor(client, true, true);
+            var interceptor = new RequestInterceptor(client, true);
 
             IServiceBase serviceProxy = new ServiceProxy(interceptor);
 
@@ -49,7 +49,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var service = new MockService();
             var client = new MockClient<IService>(service);
 
-            var interceptor = new RequestInterceptor(client, true, true);
+            var interceptor = new RequestInterceptor(client, true);
             IServiceBase serviceProxy = new ServiceProxy(interceptor);
 
             int callbackCount = 0;
@@ -73,7 +73,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var service = new MockService();
             var client = new MockClient<IService>(service);
 
-            var interceptor = new RequestInterceptor(client, true, true);
+            var interceptor = new RequestInterceptor(client, true);
             IServiceBase serviceProxy = new ServiceProxy(interceptor);
 
             int callbackCount = 0;
@@ -100,7 +100,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var service = new MockService();
             var client = new MockClient<IService>(service);
 
-            var interceptor = new RequestInterceptor(client, true, true);
+            var interceptor = new RequestInterceptor(client, true);
             IServiceBase serviceProxy = new ServiceProxy(interceptor);
 
             int callbackCount = 0;
@@ -127,7 +127,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var service = new MockService();
             var client = new MockClient<IService>(service);
 
-            var interceptor = new RequestInterceptor(client, true, true);
+            var interceptor = new RequestInterceptor(client, true);
             IServiceBase serviceProxy = new ServiceProxy(interceptor);
 
             int callbackCount = 0;
@@ -161,7 +161,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var service = new MockService();
             var client = new MockClient<IService>(service);
 
-            var interceptor = new RequestInterceptor(client, true, true);
+            var interceptor = new RequestInterceptor(client, true);
             IServiceBase serviceProxy = new ServiceProxy(interceptor);
 
             int callbackCount = 0;
@@ -194,7 +194,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var service = new MockService();
             var client = new MockClient<IService>(service);
 
-            var interceptor = new RequestInterceptor(client, true, true);
+            var interceptor = new RequestInterceptor(client, true);
             IServiceBase serviceProxy = new ServiceProxy(interceptor);
 
             int callbackCount = 0;
@@ -228,7 +228,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var service = new MockService();
             var client = new MockClient<IService>(service);
 
-            var interceptor = new RequestInterceptor(client, true, true);
+            var interceptor = new RequestInterceptor(client, true);
             IServiceBase serviceProxy = new ServiceProxy(interceptor);
 
             int callbackCount = 0;
@@ -261,7 +261,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var service = new MockService();
             var client = new MockClient<IService>(service);
 
-            var interceptor = new RequestInterceptor(client, true, true);
+            var interceptor = new RequestInterceptor(client, true);
             IServiceBase serviceProxy = new ServiceProxy(interceptor);
 
             int callbackFirstCount = 0;
@@ -307,7 +307,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var service = new MockService();
             var client = new MockClient<IService>(service);
 
-            var interceptor = new RequestInterceptor(client, true, true);
+            var interceptor = new RequestInterceptor(client, true);
             IServiceBase serviceProxy = new ServiceProxy(interceptor);
 
             int callbackFirstCount = 0;
@@ -353,7 +353,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var service = new MockService();
             var client = new MockClient<IService>(service);
 
-            var interceptor = new RequestInterceptor(client, true, true);
+            var interceptor = new RequestInterceptor(client, true);
             IServiceBase serviceProxy = new ServiceProxy(interceptor);
 
             int callbackFirstCount = 0;
@@ -413,7 +413,7 @@ namespace OutWit.Communication.Tests.Interceptors
             var service = new MockService();
             var client = new MockClient<IService>(service);
 
-            var interceptor = new RequestInterceptor(client, true, true);
+            var interceptor = new RequestInterceptor(client, true);
             IServiceBase serviceProxy = new ServiceProxy(interceptor);
 
             int callbackFirstCount = 0;

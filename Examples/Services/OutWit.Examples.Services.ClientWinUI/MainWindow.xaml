@@ -6,7 +6,7 @@
     xmlns:local="using:OutWit.Examples.Services.ClientWinUI"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d" Title="WEB SOCKET CLIENT">
+    mc:Ignorable="d" Title="WIN UI (AoT) WEB SOCKET CLIENT">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -22,7 +22,7 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0" Text="WEB SOCKET CLIENT" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="0" Text="WIN UI (AoT) WEB SOCKET CLIENT" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 <Button Grid.Column="1" Content="CONNECT" Padding="10"
                    Command="{x:Bind ApplicationVm.ServiceVm.ReconnectCmd}"
                    IsEnabled="{x:Bind ApplicationVm.ServiceVm.CanReconnect}"/>
@@ -33,6 +33,8 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="25"/>
                 <RowDefinition Height="40"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="10"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
@@ -48,12 +50,31 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Button Grid.Column="1" Content="Start Processing" Padding="10"
+                <Button Grid.Column="1" Content="Start Processing" Padding="10" Width="190"
                    Command="{x:Bind ApplicationVm.ServiceVm.StartProcessingCmd}"
                    IsEnabled="{x:Bind ApplicationVm.ServiceVm.CanStartProcessing, Mode=OneWay}"/>
-                <Button Grid.Column="3" Content="Interrupt Processing"  Padding="10"
+                <Button Grid.Column="3" Content="Interrupt Processing"  Padding="10" Width="190"
                    Command="{x:Bind ApplicationVm.ServiceVm.InterruptProcessingCmd}"
                    IsEnabled="{x:Bind ApplicationVm.ServiceVm.CanInterruptProcessing, Mode=OneWay}"/>
+
+            </Grid>
+
+
+            <Grid Grid.Row="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="1" Content="Start Processing Async" Padding="10" Width="190"
+                        Command="{x:Bind ApplicationVm.ServiceVm.StartProcessingAsyncCmd}"
+                        IsEnabled="{x:Bind ApplicationVm.ServiceVm.CanStartProcessing, Mode=OneWay}"/>
+                <Button Grid.Column="3" Content="Interrupt Processing Async"  Padding="10" Width="190"
+                        Command="{x:Bind ApplicationVm.ServiceVm.InterruptProcessingAsyncCmd}"
+                        IsEnabled="{x:Bind ApplicationVm.ServiceVm.CanInterruptProcessing, Mode=OneWay}"/>
 
             </Grid>
 

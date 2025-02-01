@@ -46,14 +46,20 @@ namespace OutWit.Common.Proxy.Generator.Generators
             sourceBuilder.AppendLine("            };");
             sourceBuilder.AppendLine();
 
-            if(!hasReturnValue && !returnsTask)
-                sourceBuilder.AppendLine("            _interceptor.InterceptMethod(invocation);");
-            else if(returnsTask && !returnsTaskWithResult)
-                sourceBuilder.AppendLine($"                return _interceptor.InterceptMethodAsync(invocation);");
-            else if(returnsTaskWithResult)
-                sourceBuilder.AppendLine($"                return _interceptor.InterceptMethodAsync<{taskResultType?.ToDisplayString()}>(invocation);");
-            else
-                sourceBuilder.AppendLine($"                return ({returnType})_interceptor.InterceptMethod(invocation);");
+            sourceBuilder.AppendLine("            _interceptor.Intercept(invocation);");
+            
+            sourceBuilder.AppendLine();
+
+            if(returnsTaskWithResult)
+                sourceBuilder.AppendLine($"                return ((System.Threading.Tasks.Task<object>)invocation.{nameof(IProxyInvocation.ReturnValue)}).ContinueWith(x => ({taskResultType?.ToDisplayString()})x.Result);");
+            else if (returnsTask)
+                sourceBuilder.AppendLine($"                return (System.Threading.Tasks.Task)invocation.{nameof(IProxyInvocation.ReturnValue)};");
+            else if (hasReturnValue)
+            {
+                sourceBuilder.AppendLine($"            if (invocation.{nameof(IProxyInvocation.ReturnValue)} != null)");
+                sourceBuilder.AppendLine($"                return ({returnType})invocation.{nameof(IProxyInvocation.ReturnValue)};");
+                sourceBuilder.AppendLine($"            return default({returnType});");
+            }
   
             sourceBuilder.AppendLine("        }");
         }

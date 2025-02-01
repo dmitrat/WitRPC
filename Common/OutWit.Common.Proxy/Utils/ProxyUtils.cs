@@ -7,26 +7,6 @@ namespace OutWit.Common.Proxy.Utils
 {
     public static class ProxyUtils
     {
-        public static bool IsAsync(this IProxyInvocation me)
-        {
-            var returnType = me.GetReturnType();
-
-            if (returnType == typeof(Task))
-                return true;
-
-            return false;
-        }
-
-        public static bool IsAsyncGeneric(this IProxyInvocation me)
-        {
-            var returnType = me.GetReturnType();
-
-            if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))
-                return true;
-
-            return false;
-        }
-
         public static Type[] GetParametersTypes(this IProxyInvocation me)
         {
             if (me.ParametersTypes == null || me.ParametersTypes.Length == 0)

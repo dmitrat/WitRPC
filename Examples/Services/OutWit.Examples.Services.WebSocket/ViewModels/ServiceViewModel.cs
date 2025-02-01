@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Extensions.Logging;
@@ -13,9 +8,7 @@ using OutWit.Common.MVVM.Commands;
 using OutWit.Common.MVVM.ViewModels;
 using OutWit.Communication.Client;
 using OutWit.Communication.Client.WebSocket.Utils;
-using OutWit.Communication.Interfaces;
 using OutWit.Examples.Contracts;
-using static OutWit.Common.MVVM.Utils.Extensions;
 
 namespace OutWit.Examples.Services.WebSocket.ViewModels
 {
@@ -51,7 +44,10 @@ namespace OutWit.Examples.Services.WebSocket.ViewModels
         {
             ReconnectCmd = new DelegateCommand(x=> Reconnect());
             StartProcessingCmd = new DelegateCommand(x=> StartProcessing());
+            StartProcessingAsyncCmd = new DelegateCommand(x=> StartProcessingAsync());
+
             InterruptProcessingCmd = new DelegateCommand(x=>InterruptProcessing());
+            InterruptProcessingAsyncCmd = new DelegateCommand(x=>InterruptProcessingAsync());
         }
 
         private void InitClient()
@@ -123,12 +119,27 @@ namespace OutWit.Examples.Services.WebSocket.ViewModels
 
             try
             {
-                //Task.Run(() => Service.StartProcessing());
                 Service.StartProcessing();
             }
             catch (Exception e)
             {
                 
+
+            }
+        }
+
+        private async void StartProcessingAsync()
+        {
+            if (Service == null || !CanStartProcessing)
+                return;
+
+            try
+            {
+                await Service.StartProcessingAsync();
+            }
+            catch (Exception e)
+            {
+
 
             }
         }
@@ -139,8 +150,21 @@ namespace OutWit.Examples.Services.WebSocket.ViewModels
                 return;
             try
             {
-                //Task.Run(() => Service.StopProcessing());
                 Service.StopProcessing();
+            }
+            catch (Exception e)
+            {
+
+            }
+        }
+
+        private async void InterruptProcessingAsync()
+        {
+            if (Service == null || !CanInterruptProcessing)
+                return;
+            try
+            {
+                await Service.StopProcessingAsync();
             }
             catch (Exception e)
             {
@@ -240,6 +264,12 @@ namespace OutWit.Examples.Services.WebSocket.ViewModels
 
         [Notify]
         public ICommand? InterruptProcessingCmd { get; private set; }
+
+        [Notify]
+        public ICommand? StartProcessingAsyncCmd { get; private set; }
+
+        [Notify]
+        public ICommand? InterruptProcessingAsyncCmd { get; private set; }
 
         #endregion
     }

@@ -1,15 +1,10 @@
 ﻿using System;
-using System.Net.Mime;
-using System.Windows.Input;
 using Microsoft.AspNetCore.Components;
-using MudBlazor;
 using OutWit.Common.Aspects;
 using OutWit.Common.Logging;
 using OutWit.Communication.Client;
 using OutWit.Communication.Client.WebSocket.Utils;
-using OutWit.Communication.Interfaces;
 using OutWit.Examples.Contracts;
-using OutWit.Examples.Services.ClientBlazor.Commands;
 using OutWit.Examples.Services.ClientBlazor.Encryption;
 
 namespace OutWit.Examples.Services.ClientBlazor.ViewModel
@@ -88,7 +83,7 @@ namespace OutWit.Examples.Services.ClientBlazor.ViewModel
                 }
                 else
                 {
-                    Service = Client.GetService<IExampleService>(false);
+                    Service = Client.GetService<IExampleService>();
                     //Service = Client.GetService<IExampleService>(x=>new ExampleServiceProxy(x));
                 }
 
@@ -121,6 +116,22 @@ namespace OutWit.Examples.Services.ClientBlazor.ViewModel
             }
         }
 
+        public async void StartProcessingAsync()
+        {
+            if (Service == null || !CanStartProcessing)
+                return;
+
+            try
+            {
+                await Service.StartProcessingAsync();
+            }
+            catch (Exception e)
+            {
+
+
+            }
+        }
+
         public void InterruptProcessing()
         {
             if (Service == null || !CanInterruptProcessing)
@@ -128,6 +139,20 @@ namespace OutWit.Examples.Services.ClientBlazor.ViewModel
             try
             {
                 Service.StopProcessing();
+            }
+            catch (Exception e)
+            {
+
+            }
+        }
+
+        public async void InterruptProcessingAsync()
+        {
+            if (Service == null || !CanInterruptProcessing)
+                return;
+            try
+            {
+                await Service.StopProcessingAsync();
             }
             catch (Exception e)
             {
