@@ -26,7 +26,13 @@ namespace OutWit.Communication.Server.WebSocket
 
             if (string.IsNullOrEmpty(Options.Url))
                 throw new WitComException($"Url cannot be null");
-            
+
+            if (Options.MaxNumberOfClients <= 0)
+                throw new WitComException($"Max number od clients must be greater than zero");
+
+            if (Options.BufferSize < 1024)
+                throw new WitComException($"Buffer size must be grater or equals 1024 bytes");
+
 
             Listener = new HttpListener();
             Listener.Prefixes.Add(Options.Url);

@@ -34,7 +34,8 @@ namespace OutWit.Communication.Server.Tcp
         {
             return new TcpServerTransportOptions
             {
-                Port = Port
+                Port = Port,
+                MaxNumberOfClients = MaxNumberOfClients
             };
         }
 

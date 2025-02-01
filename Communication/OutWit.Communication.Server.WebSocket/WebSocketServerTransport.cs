@@ -59,7 +59,7 @@ namespace OutWit.Communication.Server.WebSocket
 
             try
             {
-                const int chunkSize = 1024 * 4;
+                int chunkSize = Options.BufferSize;
                 int offset = 0;
 
                 while (offset < data.Length)
@@ -93,7 +93,7 @@ namespace OutWit.Communication.Server.WebSocket
             if (Client == null)
                 return;
 
-            var buffer = new byte[1024 * 4];
+            var buffer = new byte[Options.BufferSize];
             using var memoryStream = new MemoryStream();
 
             try

@@ -378,7 +378,8 @@ namespace OutWit.Communication.Tests.Communication.ServiceWithStaticProxy
             var serverTransport = new WebSocketServerTransportFactory(new WebSocketServerTransportOptions
             {
                 Url = $"http://localhost:5000/{callerMember}/",
-                MaxNumberOfClients = maxNumberOfClients
+                MaxNumberOfClients = maxNumberOfClients,
+                BufferSize = 4096
             });
             return new WitComServer(serverTransport,
                 new EncryptorServerFactory<EncryptorServerGeneral>(),
@@ -393,6 +394,7 @@ namespace OutWit.Communication.Tests.Communication.ServiceWithStaticProxy
             var clientTransport = new WebSocketClientTransport(new WebSocketClientTransportOptions
             {
                 Url = $"ws://localhost:5000/{callerMember}/",
+                BufferSize = 4096
             });
 
             return new WitComClient(clientTransport,

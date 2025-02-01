@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
+using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
 
 namespace OutWit.Communication.Client.WebSocket
@@ -21,6 +22,12 @@ namespace OutWit.Communication.Client.WebSocket
 
         public WebSocketClientTransport(WebSocketClientTransportOptions options)
         {
+            if (string.IsNullOrEmpty(options.Url))
+                throw new WitComException($"Url cannot be null");
+
+            if (options.BufferSize < 1024)
+                throw new WitComException($"Buffer size must be grater or equals 1024 bytes");
+
             Options = options;
             Address = $"{options.Url}";
         }
@@ -71,7 +78,7 @@ namespace OutWit.Communication.Client.WebSocket
 
             try
             {
-                const int chunkSize = 1024 * 4;
+                int chunkSize = Options.BufferSize;
                 int offset = 0;
 
                 while (offset < data.Length)
@@ -112,7 +119,7 @@ namespace OutWit.Communication.Client.WebSocket
             if (Client == null)
                 return;
 
-            var buffer = new byte[1024 * 4];
+            var buffer = new byte[Options.BufferSize];
             using var memoryStream = new MemoryStream();
 
             try

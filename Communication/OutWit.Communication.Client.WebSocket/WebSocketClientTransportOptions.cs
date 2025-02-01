@@ -10,7 +10,7 @@ namespace OutWit.Communication.Client.WebSocket
 
         public override string ToString()
         {
-            return $"Url: {Url}";
+            return $"Url: {Url}, BufferSize: {BufferSize}";
         }
 
         #endregion
@@ -22,14 +22,16 @@ namespace OutWit.Communication.Client.WebSocket
             if (!(modelBase is WebSocketClientTransportOptions options))
                 return false;
 
-            return Url.Is(options.Url);
+            return Url.Is(options.Url) &&
+                   BufferSize.Is(options.BufferSize);
         }
 
         public override WebSocketClientTransportOptions Clone()
         {
             return new WebSocketClientTransportOptions
             {
-                Url = Url
+                Url = Url,
+                BufferSize = BufferSize
             };
         }
 
@@ -38,6 +40,8 @@ namespace OutWit.Communication.Client.WebSocket
         #region Properties
 
         public string? Url { get; set; }
+
+        public int BufferSize { get; set; }
 
         #endregion
     }
