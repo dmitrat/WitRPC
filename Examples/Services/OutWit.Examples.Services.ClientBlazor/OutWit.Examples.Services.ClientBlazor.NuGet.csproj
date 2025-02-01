@@ -11,9 +11,9 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.11" PrivateAssets="all" />
     <PackageReference Include="MudBlazor" Version="7.15.0" />
     <PackageReference Include="OutWit.Common.Logging" Version="1.0.2" />
-    <PackageReference Include="OutWit.Common.Proxy" Version="1.0.0" />
-    <PackageReference Include="OutWit.Common.Proxy.Generator" Version="1.0.0" />
-    <PackageReference Include="OutWit.Communication.Client.WebSocket" Version="1.1.0" />
+    <PackageReference Include="OutWit.Common.Proxy" Version="1.1.0" />
+    <PackageReference Include="OutWit.Common.Proxy.Generator" Version="1.1.0" />
+    <PackageReference Include="OutWit.Communication.Client.WebSocket" Version="1.1.1" />
   </ItemGroup>
 
   <ItemGroup>

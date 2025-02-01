@@ -10,7 +10,7 @@
 
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <PackageId>OutWit.InterProcess.Agent</PackageId>
-	  <Version>1.1.0</Version>
+	  <Version>1.1.1</Version>
 	  <Authors>Dmitry Ratner</Authors>
 	  <Company>OutWit</Company>
 	  <Product>OutWit.InterProcess.Agent</Product>
@@ -27,7 +27,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OutWit.Communication.Server" Version="1.1.0" />
+    <PackageReference Include="OutWit.Communication.Server" Version="1.1.1" />
     <PackageReference Include="OutWit.InterProcess" Version="1.0.0" />
   </ItemGroup>
 
