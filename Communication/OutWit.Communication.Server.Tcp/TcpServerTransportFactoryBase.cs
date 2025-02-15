@@ -92,6 +92,8 @@ namespace OutWit.Communication.Server.Tcp
 
         #region Properties
 
+        IServerOptions ITransportServerFactory.Options => Options;
+
         private TOptions Options { get; }
 
         private TcpListener Listener { get; }

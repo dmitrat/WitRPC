@@ -28,8 +28,9 @@ namespace OutWit.Communication.Server
         #region Constructors
 
         public WitComServer(ITransportServerFactory transportFactory, IEncryptorServerFactory encryptorFactory,
-            IAccessTokenValidator tokenValidator, IMessageSerializer serializer, IValueConverter valueConverter, IRequestProcessor requestProcessor,
-            ILogger? logger, TimeSpan? timeout)
+            IAccessTokenValidator tokenValidator, IMessageSerializer serializer, IValueConverter valueConverter, 
+            IRequestProcessor requestProcessor, IDiscoveryServer? discoveryServer,
+            ILogger? logger, TimeSpan? timeout, string? name, string? description)
         {
             TransportFactory = transportFactory;
             EncryptorFactory = encryptorFactory;
@@ -37,8 +38,11 @@ namespace OutWit.Communication.Server
             Converter = valueConverter;
             TokenValidator = tokenValidator;
             RequestProcessor = requestProcessor;
+            DiscoveryServer = discoveryServer;
             Logger = logger;
             Timeout = timeout;
+            Name = name;
+            Description = description;
 
             WaitForCallback = new SemaphoreSlim(1, 1);
 
@@ -53,8 +57,10 @@ namespace OutWit.Communication.Server
         {
             TransportFactory.NewClientConnected += OnNewClientConnected;
             RequestProcessor.Callback += OnCallback;
-        }
 
+            if(DiscoveryServer != null)
+                DiscoveryServer.DiscoveryMessageRequested += OnDiscoveryMessageRequested;
+        }
 
         private WitComMessage ProcessInitialization(Guid client, WitComMessage message)
         {
@@ -156,11 +162,22 @@ namespace OutWit.Communication.Server
         public void StartWaitingForConnection()
         {
             TransportFactory.StartWaitingForConnection();
+            if(DiscoveryServer == null)
+                return;
+
+            DiscoveryServer.Start();
+            SendDiscoveryMessage(DiscoveryMessageType.Hello);
+
         }
 
         public void StopWaitingForConnection()
         {
             TransportFactory.StopWaitingForConnection();
+            if (DiscoveryServer == null)
+                return;
+
+            SendDiscoveryMessage(DiscoveryMessageType.Goodbye);
+            DiscoveryServer.Stop();
         }
 
         protected async Task<WitComMessage> ProcessMessage(Guid client, WitComMessage message)
@@ -256,6 +273,24 @@ namespace OutWit.Communication.Server
             }
         }
 
+        private void SendDiscoveryMessage(DiscoveryMessageType type)
+        {
+            DiscoveryServer?.SendDiscoveryMessage(Serializer.Serialize(GetMessage(type), Logger));
+        }
+
+        private DiscoveryMessage GetMessage(DiscoveryMessageType type)
+        {
+            return new DiscoveryMessage
+            {
+                Timestamp = DateTimeOffset.UtcNow,
+                Type = type,
+                ServiceName = Name,
+                ServiceDescription = Description,
+                Transport = TransportFactory.Options.Transport,
+                Data = TransportFactory.Options.Data
+            };
+        }
+
         #endregion
 
         #region Event Handlers
@@ -307,6 +342,11 @@ namespace OutWit.Communication.Server
             });
         }
 
+        private void OnDiscoveryMessageRequested(IDiscoveryServer sender)
+        {
+            SendDiscoveryMessage(DiscoveryMessageType.Heartbeat);
+        }
+
         private void OnNewClientConnected(ITransportServer transport)
         {
             transport.Callback += OnDataReceived;
@@ -337,11 +377,17 @@ namespace OutWit.Communication.Server
 
         private IAccessTokenValidator TokenValidator { get; }
 
+        private IDiscoveryServer? DiscoveryServer { get; }
+
         private SemaphoreSlim WaitForCallback { get; }
 
         private ILogger? Logger { get; }
 
         private TimeSpan? Timeout { get; }
+
+        private string? Name { get; }
+
+        private string? Description { get; }
 
         #endregion
     }

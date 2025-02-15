@@ -13,6 +13,8 @@ namespace OutWit.Communication.Interfaces
         public void StartWaitingForConnection();
 
         public void StopWaitingForConnection();
+
+        public IServerOptions Options { get; }
     }
 
     public delegate void TransportFactoryEventHandler(ITransportServer transport);

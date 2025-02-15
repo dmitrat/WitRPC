@@ -1,17 +1,27 @@
 ﻿using System;
+using System.Net;
 using Microsoft.Extensions.Logging;
 using OutWit.Communication.Converters;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
+using OutWit.Communication.Model;
 using OutWit.Communication.Processors;
 using OutWit.Communication.Serializers;
 using OutWit.Communication.Server.Authorization;
+using OutWit.Communication.Server.Discovery;
 using OutWit.Communication.Server.Encryption;
 
 namespace OutWit.Communication.Server
 {
     public static class WitComServerBuilder
     {
+        #region Constants
+
+        private const string DEFAULT_DISCOVERY_IP = "239.255.255.250";
+        private const int DEFAULT_DISCOVERY_PORT = 3702;
+
+        #endregion
+
         public static WitComServer Build(Action<WitComServerBuilderOptions> optionsBuilder)
         {
             var options = new WitComServerBuilderOptions();
@@ -24,7 +34,7 @@ namespace OutWit.Communication.Server
                 throw new WitComException("Request processor cannot be empty");
 
             return new WitComServer(options.TransportFactory, options.EncryptorFactory, options.TokenValidator, options.Serializer,
-                options.Converter, options.RequestProcessor, options.Logger, options.Timeout);
+                options.Converter, options.RequestProcessor, options.DiscoveryServer, options.Logger, options.Timeout, options.Name, options.Description);
         }
 
         #region Processor
@@ -144,6 +154,63 @@ namespace OutWit.Communication.Server
 
         #endregion
 
+        #region Discovery
+
+        public static WitComServerBuilderOptions WithName(this WitComServerBuilderOptions me, string name)
+        {
+            me.Name = name;
+            return me;
+        }
+
+        public static WitComServerBuilderOptions WithDescription(this WitComServerBuilderOptions me, string description)
+        {
+            me.Description = description;
+            return me;
+        }
+
+        public static WitComServerBuilderOptions WithDiscovery(this WitComServerBuilderOptions me, DiscoveryServerOptions options)
+        {
+            me.DiscoveryServer = new DiscoveryServer(options);
+            return me;
+        }
+
+        public static WitComServerBuilderOptions WithDiscovery(this WitComServerBuilderOptions me, IPAddress ipAddress, int port = DEFAULT_DISCOVERY_PORT, TimeSpan? period = null)
+        {
+            var mode = (period != null && period.Value != TimeSpan.Zero)
+                ? DiscoveryServerMode.Continuous 
+                : DiscoveryServerMode.StartStop;
+
+            return me.WithDiscovery(new DiscoveryServerOptions
+            {
+                IpAddress = ipAddress,
+                Port = port,
+                Mode = mode,
+                Period = period
+            });
+        }
+
+        public static WitComServerBuilderOptions WithDiscovery(this WitComServerBuilderOptions me, string ipAddress, int port = DEFAULT_DISCOVERY_PORT, TimeSpan? period = null)
+        {
+            if(!IPAddress.TryParse(ipAddress, out var address))
+                throw new WitComException("Invalid IP address");
+
+            return me.WithDiscovery(address, port, period);
+        }
+
+        public static WitComServerBuilderOptions WithDiscovery(this WitComServerBuilderOptions me, HostInfo hostInfo, TimeSpan? period = null)
+        {
+            if (hostInfo.Port == null || hostInfo.Port <= 0) 
+                throw new WitComException("Invalid port");
+
+            return me.WithDiscovery(hostInfo.Host, hostInfo.Port.Value, period);
+        }
+
+        public static WitComServerBuilderOptions WithDiscovery(this WitComServerBuilderOptions me, TimeSpan? period = null)
+        {
+            return me.WithDiscovery(DEFAULT_DISCOVERY_IP, DEFAULT_DISCOVERY_PORT, period);
+        }
+
+        #endregion
 
         #region Timeout
 

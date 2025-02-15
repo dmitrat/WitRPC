@@ -50,7 +50,7 @@ namespace OutWit.Communication.Tests.Communication.ServiceWithDynamicProxy
             var service = new MockService();
             var options = new RestServerTransportOptions
             {
-                Url = $"http://localhost:5000/{callerMember}/",
+                Host = (HostInfo?)$"http://localhost:5000/{callerMember}/",
             };
             return new WitComServerRest(options,
                 new AccessTokenValidatorStatic(AUTHORIZATION_TOKEN),

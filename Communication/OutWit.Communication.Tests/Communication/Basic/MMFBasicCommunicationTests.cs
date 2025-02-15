@@ -1,4 +1,5 @@
-﻿using OutWit.Communication.Converters;
+﻿using System.Net;
+using OutWit.Communication.Converters;
 using OutWit.Communication.Serializers;
 using OutWit.Communication.Server.Authorization;
 using OutWit.Communication.Server.Encryption;
@@ -12,6 +13,7 @@ using OutWit.Communication.Requests;
 using OutWit.Communication.Responses;
 using System.Runtime.CompilerServices;
 using OutWit.Communication.Client.MMF;
+using OutWit.Communication.Server.Discovery;
 using OutWit.Communication.Server.MMF;
 
 namespace OutWit.Communication.Tests.Communication.Basic
@@ -154,7 +156,14 @@ namespace OutWit.Communication.Tests.Communication.Basic
                 new AccessTokenValidatorStatic(AUTHORIZATION_TOKEN), 
                 new MessageSerializerJson(), 
                 new ValueConverterJson(), 
-                new MockRequestProcessor(), null, null);
+                new MockRequestProcessor(), 
+                new DiscoveryServer(new DiscoveryServerOptions
+                {
+                    IpAddress = IPAddress.Parse("239.255.255.250"),
+                    Port = 3702,
+                    Mode = DiscoveryServerMode.StartStop
+                }), 
+                null, null, null, null);
         }
 
         private WitComClient GetClient([CallerMemberName] string pipeName = MEMORY_MAPPED_FILE_NAME)

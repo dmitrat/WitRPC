@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using OutWit.Communication.Interfaces;
@@ -77,11 +76,13 @@ namespace OutWit.Communication.Server.MMF
 
         #region Properties
 
+        IServerOptions ITransportServerFactory.Options => Options;
+
         private MemoryMappedFileServerTransportOptions Options { get; }
 
-        private Semaphore? WaitForConnectionSlot { get; set; }
+        private Semaphore? WaitForConnectionSlot { get; }
 
-        private Semaphore? WaitForClient { get; set; }
+        private Semaphore? WaitForClient { get; }
 
         private CancellationTokenSource? CancellationTokenSource { get; set; }
 

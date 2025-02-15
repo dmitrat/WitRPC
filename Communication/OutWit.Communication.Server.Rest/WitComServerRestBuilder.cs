@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using OutWit.Communication.Converters;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
+using OutWit.Communication.Model;
 using OutWit.Communication.Processors;
 using OutWit.Communication.Serializers;
 using OutWit.Communication.Server.Authorization;
@@ -37,7 +38,14 @@ namespace OutWit.Communication.Server.Rest
 
         public static WitComServerRestBuilderOptions WithUrl(this WitComServerRestBuilderOptions me, string url)
         {
-            me.TransportOptions = new RestServerTransportOptions{Url = url};
+            me.TransportOptions = new RestServerTransportOptions{Host = (HostInfo)url };
+            return me;
+        }
+
+
+        public static WitComServerRestBuilderOptions WithHost(this WitComServerRestBuilderOptions me, HostInfo hostInfo)
+        {
+            me.TransportOptions = new RestServerTransportOptions { Host = hostInfo };
             return me;
         }
 

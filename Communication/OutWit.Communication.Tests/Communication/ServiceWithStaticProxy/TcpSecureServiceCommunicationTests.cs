@@ -1,4 +1,5 @@
-﻿using OutWit.Communication.Converters;
+﻿using System.Net;
+using OutWit.Communication.Converters;
 using OutWit.Communication.Serializers;
 using OutWit.Communication.Server.Authorization;
 using OutWit.Communication.Server.Encryption;
@@ -17,6 +18,7 @@ using OutWit.Communication.Client.Tcp;
 using OutWit.Communication.Server.Tcp;
 using OutWit.Common.Aspects.Utils;
 using System.Security.Cryptography.X509Certificates;
+using OutWit.Communication.Server.Discovery;
 using OutWit.Communication.Tests._Mock.Interfaces;
 
 namespace OutWit.Communication.Tests.Communication.ServiceWithStaticProxy
@@ -389,7 +391,14 @@ namespace OutWit.Communication.Tests.Communication.ServiceWithStaticProxy
                 new AccessTokenValidatorStatic(AUTHORIZATION_TOKEN),
                 new MessageSerializerJson(),
                 new ValueConverterJson(),
-                new RequestProcessor<IService>(service), null, null);
+                new RequestProcessor<IService>(service),
+                new DiscoveryServer(new DiscoveryServerOptions
+                {
+                    IpAddress = IPAddress.Parse("239.255.255.250"),
+                    Port = 3702,
+                    Mode = DiscoveryServerMode.StartStop
+                }),
+                null, null, null, null);
         }
 
         private WitComClient GetClient([CallerMemberName] string callerMember = "")

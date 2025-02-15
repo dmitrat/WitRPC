@@ -1,4 +1,5 @@
-﻿using OutWit.Communication.Converters;
+﻿using System.Net;
+using OutWit.Communication.Converters;
 using OutWit.Communication.Serializers;
 using OutWit.Communication.Server.Authorization;
 using OutWit.Communication.Server.Encryption;
@@ -12,6 +13,7 @@ using OutWit.Communication.Requests;
 using OutWit.Communication.Responses;
 using System.Runtime.CompilerServices;
 using OutWit.Communication.Client.WebSocket;
+using OutWit.Communication.Server.Discovery;
 using OutWit.Communication.Server.WebSocket;
 
 namespace OutWit.Communication.Tests.Communication.Basic
@@ -276,7 +278,7 @@ namespace OutWit.Communication.Tests.Communication.Basic
         {
             var serverTransport = new WebSocketServerTransportFactory(new WebSocketServerTransportOptions
             {
-                Url = $"http://localhost:5000/{callerMember}/",
+                Host = (HostInfo?)$"http://localhost:5000/{callerMember}/",
                 MaxNumberOfClients = maxNumberOfClients
             });
             return new WitComServer(serverTransport, 
@@ -284,7 +286,14 @@ namespace OutWit.Communication.Tests.Communication.Basic
                 new AccessTokenValidatorStatic(AUTHORIZATION_TOKEN), 
                 new MessageSerializerJson(), 
                 new ValueConverterJson(), 
-                new MockRequestProcessor(), null, null);
+                new MockRequestProcessor(),
+                new DiscoveryServer(new DiscoveryServerOptions
+                {
+                    IpAddress = IPAddress.Parse("239.255.255.250"),
+                    Port = 3702,
+                    Mode = DiscoveryServerMode.StartStop
+                }),
+                null, null, null, null);
         }
 
         private WitComClient GetClient([CallerMemberName] string callerMember = "")

@@ -1,16 +1,25 @@
 ﻿using System;
+using System.Collections.Generic;
 using OutWit.Common.Abstract;
 using OutWit.Common.Values;
+using OutWit.Communication.Interfaces;
+using OutWit.Communication.Model;
 
 namespace OutWit.Communication.Server.WebSocket
 {
-    public class WebSocketServerTransportOptions : ModelBase
+    public class WebSocketServerTransportOptions : ModelBase, IServerOptions
     {
+        #region Constants
+
+        private const string TRANSPORT = "WebSocket";
+
+        #endregion
+
         #region Functions
 
         public override string ToString()
         {
-            return $"Url: {Url}, MaxNumberOfClients: {MaxNumberOfClients}, BufferSize: {BufferSize}";
+            return $"Url: {Host?.BuildConnection(true)}, MaxNumberOfClients: {MaxNumberOfClients}, BufferSize: {BufferSize}";
         }
 
         #endregion
@@ -22,7 +31,7 @@ namespace OutWit.Communication.Server.WebSocket
             if (!(modelBase is WebSocketServerTransportOptions options))
                 return false;
 
-            return Url.Is(options.Url) && 
+            return Host.Check(options.Host) && 
                    MaxNumberOfClients.Is(options.MaxNumberOfClients) &&
                    BufferSize.Is(options.BufferSize);
         }
@@ -31,11 +40,31 @@ namespace OutWit.Communication.Server.WebSocket
         {
             return new WebSocketServerTransportOptions
             {
-                Url = Url,
+                Host = Host?.Clone(),
                 MaxNumberOfClients = MaxNumberOfClients,
                 BufferSize = BufferSize
             };
         }
+
+        #endregion
+
+        #region IServerOptions
+
+        public string Transport { get; } = TRANSPORT;
+
+        public Dictionary<string, string> Data =>
+            Host == null
+                ? new Dictionary<string, string>()
+                : new()
+                {
+                    { $"{nameof(HostInfo.Port)}", $"{Host.Port}" },
+                    { $"{nameof(HostInfo.Path)}", $"{Host.Path}" },
+                    { $"{nameof(HostInfo.UseSsl)}", $"{Host.UseSsl}" },
+                    { $"{nameof(HostInfo.UseWebSocket)}", $"{Host.UseWebSocket}" },
+                    { $"{nameof(MaxNumberOfClients)}", $"{MaxNumberOfClients}" },
+                    { $"{nameof(BufferSize)}", $"{BufferSize}" },
+                };
+
 
         #endregion
 
@@ -45,7 +74,7 @@ namespace OutWit.Communication.Server.WebSocket
 
         public int BufferSize { get; set; }
         
-        public string? Url { get; set; }
+        public HostInfo? Host { get; set; }
 
         #endregion
     }

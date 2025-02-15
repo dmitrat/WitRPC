@@ -1,15 +1,20 @@
-﻿using OutWit.Common.Abstract;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using OutWit.Common.Abstract;
 using OutWit.Common.Values;
+using OutWit.Communication.Interfaces;
+
 
 namespace OutWit.Communication.Server.Pipes
 {
-    public class NamedPipeServerTransportOptions : ModelBase
+    public class NamedPipeServerTransportOptions : ModelBase, IServerOptions
     {
+        #region Constants
+
+        private const string TRANSPORT = "NamedPipe";
+
+        #endregion
+
         #region Functions
 
         public override string ToString()
@@ -34,9 +39,23 @@ namespace OutWit.Communication.Server.Pipes
         {
             return new NamedPipeServerTransportOptions
             {
-                PipeName = PipeName
+                PipeName = PipeName,
+                MaxNumberOfClients = MaxNumberOfClients,
             };
         }
+
+        #endregion
+
+        #region IServerOptions
+
+        public string Transport { get; } = TRANSPORT;
+
+        public Dictionary<string, string> Data =>
+            new()
+            {
+                { $"{nameof(PipeName)}", $"{PipeName}" },
+                { $"{nameof(MaxNumberOfClients)}", $"{MaxNumberOfClients}" },
+            };
 
         #endregion
 

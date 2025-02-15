@@ -45,7 +45,7 @@ namespace OutWit.Communication.Server.Rest
                 return;
 
             Listener = new HttpListener();
-            Listener.Prefixes.Add(Options.Url!);
+            Listener.Prefixes.Add(Options.Host!.BuildConnection());
             TokenSource = new CancellationTokenSource();
 
             Listener.Start();

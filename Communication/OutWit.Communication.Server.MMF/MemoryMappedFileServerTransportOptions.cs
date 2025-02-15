@@ -1,10 +1,18 @@
-﻿using OutWit.Common.Abstract;
+﻿using System.Collections.Generic;
+using OutWit.Common.Abstract;
 using OutWit.Common.Values;
+using OutWit.Communication.Interfaces;
 
 namespace OutWit.Communication.Server.MMF
 {
-    public class MemoryMappedFileServerTransportOptions : ModelBase
+    public class MemoryMappedFileServerTransportOptions : ModelBase, IServerOptions
     {
+        #region Constants
+
+        private const string TRANSPORT = "MemoryMappedFile";
+
+        #endregion
+
         #region Functions
 
         public override string ToString()
@@ -33,6 +41,19 @@ namespace OutWit.Communication.Server.MMF
                 Size = Size,
             };
         }
+
+        #endregion
+
+        #region IServerOptions
+
+        public string Transport { get; } = TRANSPORT;
+
+        public Dictionary<string, string> Data =>
+            new()
+            {
+                { $"{nameof(Name)}", $"{Name}" },
+                { $"{nameof(Size)}", $"{Size}" },
+            };
 
         #endregion
 

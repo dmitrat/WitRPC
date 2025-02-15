@@ -17,7 +17,7 @@ namespace OutWit.Communication.Server.WebSocket.Utils
         {
             return me.WithWebSocket(new WebSocketServerTransportOptions
             {
-                Url = url,
+                Host = (HostInfo)url,
                 MaxNumberOfClients = maxNumberOfClients,
                 BufferSize = bufferSize
             });
@@ -27,7 +27,7 @@ namespace OutWit.Communication.Server.WebSocket.Utils
         {
             return me.WithWebSocket(new WebSocketServerTransportOptions
             {
-                Url = hostInfo.BuildConnection(true),
+                Host = hostInfo,
                 MaxNumberOfClients = 1,
                 BufferSize = bufferSize
             });

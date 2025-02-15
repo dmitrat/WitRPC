@@ -24,7 +24,7 @@ namespace OutWit.Communication.Server.WebSocket
         {
             Options = options;
 
-            if (string.IsNullOrEmpty(Options.Url))
+            if (Options.Host == null)
                 throw new WitComException($"Url cannot be null");
 
             if (Options.MaxNumberOfClients <= 0)
@@ -35,7 +35,7 @@ namespace OutWit.Communication.Server.WebSocket
 
 
             Listener = new HttpListener();
-            Listener.Prefixes.Add(Options.Url);
+            Listener.Prefixes.Add(Options.Host.BuildConnection());
         }
 
         #endregion
@@ -102,7 +102,9 @@ namespace OutWit.Communication.Server.WebSocket
 
         #endregion
 
-        #region Proeprties
+        #region Properties
+
+        IServerOptions ITransportServerFactory.Options => Options;
 
         private WebSocketServerTransportOptions Options { get; }
 

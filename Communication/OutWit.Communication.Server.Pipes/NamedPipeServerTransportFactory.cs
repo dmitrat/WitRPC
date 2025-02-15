@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -75,9 +74,11 @@ namespace OutWit.Communication.Server.Pipes
 
         #region Properties
 
+        IServerOptions ITransportServerFactory.Options => Options;
+
         private NamedPipeServerTransportOptions Options { get; }
 
-        private Semaphore? WaitForConnectionSlot { get; set; }
+        private Semaphore? WaitForConnectionSlot { get; }
 
         private CancellationTokenSource? CancellationTokenSource { get; set; }
 

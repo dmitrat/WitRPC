@@ -3,6 +3,7 @@ using Castle.DynamicProxy;
 using Microsoft.Extensions.Logging;
 using OutWit.Common.Proxy.Interfaces;
 using OutWit.Communication.Client.Authorization;
+using OutWit.Communication.Client.Discovery;
 using OutWit.Communication.Client.Encryption;
 using OutWit.Communication.Converters;
 using OutWit.Communication.Exceptions;
@@ -14,6 +15,13 @@ namespace OutWit.Communication.Client
 {
     public static class WitComClientBuilder
     {
+        #region Constants
+
+        private const string DEFAULT_DISCOVERY_IP = "239.255.255.250";
+        private const int DEFAULT_DISCOVERY_PORT = 3702;
+
+        #endregion
+
         public static WitComClient Build(WitComClientBuilderOptions options)
         {
             if (options.Transport == null)
@@ -118,6 +126,24 @@ namespace OutWit.Communication.Client
             me.Converter = new ValueConverterMessagePack();
             me.Serializer = new MessageSerializerMessagePack();
             return me;
+        }
+
+        #endregion
+
+        #region Discovery
+
+        public static IDiscoveryClient Discovery(DiscoveryClientOptions options)
+        {
+            if(options.IpAddress == null)
+                throw new WitComException("Discovery ip address is empty");
+
+            if(options.Port == null || options.Port == 0)
+                throw new WitComException("Discovery port is empty");
+
+            if(options.Serializer == null)
+                throw new WitComException("Serializer os empty");
+
+            return new DiscoveryClient(options);
         }
 
         #endregion

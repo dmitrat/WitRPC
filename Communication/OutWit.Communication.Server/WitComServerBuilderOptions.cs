@@ -19,6 +19,8 @@ namespace OutWit.Communication.Server
             EncryptorFactory = new EncryptorServerFactory<EncryptorServerPlain>();
             TokenValidator = new AccessTokenValidatorPlain();
 
+            DiscoveryServer = null;
+
             Logger = null;
             Timeout = null;
         }
@@ -40,9 +42,15 @@ namespace OutWit.Communication.Server
 
         public IAccessTokenValidator TokenValidator { get; set; }
 
+        public IDiscoveryServer? DiscoveryServer { get; set; }
+
         public ILogger? Logger { get; set; }
 
         public TimeSpan? Timeout { get; set; }
+
+        public string? Name { get; set; }
+
+        public string? Description { get; set; }
 
         #endregion
     }

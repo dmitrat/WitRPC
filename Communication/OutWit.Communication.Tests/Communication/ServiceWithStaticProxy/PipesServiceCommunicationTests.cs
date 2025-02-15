@@ -1,4 +1,5 @@
-﻿using OutWit.Communication.Converters;
+﻿using System.Net;
+using OutWit.Communication.Converters;
 using OutWit.Communication.Serializers;
 using OutWit.Communication.Server.Authorization;
 using OutWit.Communication.Server.Encryption;
@@ -16,6 +17,7 @@ using Castle.DynamicProxy;
 using OutWit.Communication.Interceptors;
 using OutWit.Communication.Tests.Mock.Model;
 using OutWit.Common.Aspects.Utils;
+using OutWit.Communication.Server.Discovery;
 using OutWit.Communication.Tests._Mock.Interfaces;
 
 namespace OutWit.Communication.Tests.Communication.ServiceWithStaticProxy
@@ -385,7 +387,14 @@ namespace OutWit.Communication.Tests.Communication.ServiceWithStaticProxy
                 new AccessTokenValidatorStatic(AUTHORIZATION_TOKEN),
                 new MessageSerializerJson(),
                 new ValueConverterJson(),
-                new RequestProcessor<IService>(service), null, null);
+                new RequestProcessor<IService>(service),
+                new DiscoveryServer(new DiscoveryServerOptions
+                {
+                    IpAddress = IPAddress.Parse("239.255.255.250"),
+                    Port = 3702,
+                    Mode = DiscoveryServerMode.StartStop
+                }),
+                null, null, null, null);
         }
 
         private WitComClient GetClient([CallerMemberName] string pipeName = PIPE_NAME)

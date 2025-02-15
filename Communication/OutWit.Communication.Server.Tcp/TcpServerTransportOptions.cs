@@ -1,15 +1,19 @@
-﻿using OutWit.Common.Abstract;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using OutWit.Common.Abstract;
 using OutWit.Common.Values;
+using OutWit.Communication.Interfaces;
 
 namespace OutWit.Communication.Server.Tcp
 {
-    public class TcpServerTransportOptions : ModelBase
+    public class TcpServerTransportOptions : ModelBase, IServerOptions
     {
+        #region Constants
+
+        private const string TRANSPORT = "TCP";
+
+        #endregion
+
         #region Functions
 
         public override string ToString()
@@ -38,6 +42,19 @@ namespace OutWit.Communication.Server.Tcp
                 MaxNumberOfClients = MaxNumberOfClients
             };
         }
+
+        #endregion
+
+        #region IServerOptions
+
+        public string Transport { get; } = TRANSPORT;
+
+        public Dictionary<string, string> Data =>
+            new()
+            {
+                { $"{nameof(Port)}", $"{Port}" },
+                { $"{nameof(MaxNumberOfClients)}", $"{MaxNumberOfClients}" },
+            };
 
         #endregion
 
