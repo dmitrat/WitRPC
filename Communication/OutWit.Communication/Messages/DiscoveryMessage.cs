@@ -18,7 +18,7 @@ namespace OutWit.Communication.Messages
 
         public override string ToString()
         {
-            return $"Timestamp: {Timestamp}, Type: {Type}, Transport: {Transport}, ServiceName: {ServiceName}";
+            return $"ID: {ServiceId}, {Timestamp}, Type: {Type}, Transport: {Transport}, ServiceName: {ServiceName}";
         }
 
         #endregion
@@ -31,6 +31,7 @@ namespace OutWit.Communication.Messages
                 return false;
 
             return (Timestamp?.UtcDateTime).Is(message.Timestamp?.UtcDateTime) &&
+                   ServiceId.Is(message.ServiceId) &&
                    Type.Is(message.Type) &&
                    ServiceName.Is(message.ServiceName) &&
                    ServiceDescription.Is(message.ServiceDescription) &&
@@ -42,6 +43,7 @@ namespace OutWit.Communication.Messages
         {
             return new DiscoveryMessage
             {
+                ServiceId = ServiceId,
                 Timestamp = Timestamp,
                 Type = Type,
                 ServiceName = ServiceName,
@@ -57,25 +59,29 @@ namespace OutWit.Communication.Messages
 
         [Key(0)]
         [DataMember]
+        public Guid? ServiceId { get; set; }
+
+        [Key(1)]
+        [DataMember]
         public DateTimeOffset? Timestamp { get; set; }
         
-        [Key(1)]
+        [Key(2)]
         [DataMember]
         public DiscoveryMessageType? Type { get; set; }
 
-        [Key(2)]
+        [Key(3)]
         [DataMember]
         public string? ServiceName { get; set; }
 
-        [Key(3)]
+        [Key(4)]
         [DataMember]
         public string? ServiceDescription { get; set; }
 
-        [Key(4)]
+        [Key(5)]
         [DataMember]
         public string? Transport { get; set; }
 
-        [Key(5)]
+        [Key(6)]
         [DataMember]
         public Dictionary<string, string>? Data { get; set; }
 

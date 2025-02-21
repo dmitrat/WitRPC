@@ -1,0 +1,46 @@
+﻿<UserControl x:Class="OutWit.Examples.Discovery.Client.ClientsPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:OutWit.Examples.Discovery.Client"
+             xmlns:model="clr-namespace:OutWit.Examples.Discovery.Client.Model"
+             mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800">
+    <Grid >
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <ListBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" BorderThickness="0"
+                 ItemsSource="{Binding ServicesVm.Clients, Mode=OneWay}" 
+                 SelectedItem="{Binding ServicesVm.SelectedClient, Mode=TwoWay}">
+
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="{x:Type model:ClientInfo}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="ServiceName"/>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Transport"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="{Binding ServiceName, Mode=OneWay}" Margin="5 0 5 0"/>
+                        <TextBlock Grid.Column="1" Text="{Binding Transport, Mode=OneWay}" Margin="5 0 5 0"/>
+                    </Grid>
+
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+
+        </ListBox>
+
+        <Button Grid.Row="1" Grid.Column="2" Content="Disconnect" Margin="5" Padding="5"
+                IsEnabled="{Binding ServicesVm.HasSelectedClient}"
+                Command="{Binding ServicesVm.DisconnectCmd}"/>
+
+    </Grid>
+</UserControl>

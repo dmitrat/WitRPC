@@ -11,11 +11,21 @@ namespace OutWit.Communication.Client.Discovery
 {
     public class DiscoveryClientOptions : ModelBase
     {
+        #region Constants
+
+        private const string DEFAULT_DISCOVERY_IP = "239.255.255.250";
+        private const int DEFAULT_DISCOVERY_PORT = 3702;
+
+        #endregion
+
         #region Constructors
 
         public DiscoveryClientOptions()
         {
             Serializer = new MessageSerializerJson();
+
+            IpAddress = IPAddress.Parse(DEFAULT_DISCOVERY_IP);
+            Port = DEFAULT_DISCOVERY_PORT;
         }
 
         #endregion

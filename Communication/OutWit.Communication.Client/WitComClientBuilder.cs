@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using Castle.DynamicProxy;
 using Microsoft.Extensions.Logging;
 using OutWit.Common.Proxy.Interfaces;
@@ -15,13 +16,6 @@ namespace OutWit.Communication.Client
 {
     public static class WitComClientBuilder
     {
-        #region Constants
-
-        private const string DEFAULT_DISCOVERY_IP = "239.255.255.250";
-        private const int DEFAULT_DISCOVERY_PORT = 3702;
-
-        #endregion
-
         public static WitComClient Build(WitComClientBuilderOptions options)
         {
             if (options.Transport == null)
@@ -113,10 +107,23 @@ namespace OutWit.Communication.Client
             return me;
         }
 
+        public static DiscoveryClientOptions WithSerializer(this DiscoveryClientOptions me, IMessageSerializer serializer)
+        {
+            me.Serializer = serializer;
+            return me;
+        }
+
 
         public static WitComClientBuilderOptions WithJson(this WitComClientBuilderOptions me)
         {
             me.Converter = new ValueConverterJson();
+            me.Serializer = new MessageSerializerJson();
+            return me;
+        }
+
+
+        public static DiscoveryClientOptions WithJson(this DiscoveryClientOptions me)
+        {
             me.Serializer = new MessageSerializerJson();
             return me;
         }
@@ -127,6 +134,13 @@ namespace OutWit.Communication.Client
             me.Serializer = new MessageSerializerMessagePack();
             return me;
         }
+
+        public static DiscoveryClientOptions WithMessagePack(this DiscoveryClientOptions me)
+        {
+            me.Serializer = new MessageSerializerMessagePack();
+            return me;
+        }
+
 
         #endregion
 
@@ -146,11 +160,54 @@ namespace OutWit.Communication.Client
             return new DiscoveryClient(options);
         }
 
+        public static IDiscoveryClient Discovery(Action<DiscoveryClientOptions> optionsBuilder)
+        {
+            var options = new DiscoveryClientOptions();
+            optionsBuilder(options);
+
+            return Discovery(options);
+        }
+
+        public static DiscoveryClientOptions WithAddress(this DiscoveryClientOptions me, IPAddress ipAddress)
+        {
+            me.IpAddress = ipAddress;
+            return me;
+        }
+
+        public static DiscoveryClientOptions WithAddress(this DiscoveryClientOptions me, IPAddress ipAddress, int port)
+        {
+            me.IpAddress = ipAddress;
+            me.Port = port;
+            return me;
+        }
+
+        public static DiscoveryClientOptions WithAddress(this DiscoveryClientOptions me, string ipAddress)
+        {
+            if (!IPAddress.TryParse(ipAddress, out var address))
+                return me;
+
+            return me.WithAddress(address);
+        }
+
+        public static DiscoveryClientOptions WithAddress(this DiscoveryClientOptions me, string ipAddress, int port)
+        {
+            if (!IPAddress.TryParse(ipAddress, out var address))
+                return me;
+
+            return me.WithAddress(address, port);
+        }
+
         #endregion
 
         #region Logger
 
         public static WitComClientBuilderOptions WithLogger(this WitComClientBuilderOptions me, ILogger logger)
+        {
+            me.Logger = logger;
+            return me;
+        }
+
+        public static DiscoveryClientOptions WithLogger(this DiscoveryClientOptions me, ILogger logger)
         {
             me.Logger = logger;
             return me;

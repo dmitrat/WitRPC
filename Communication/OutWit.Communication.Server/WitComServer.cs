@@ -43,7 +43,8 @@ namespace OutWit.Communication.Server
             Timeout = timeout;
             Name = name;
             Description = description;
-
+            
+            Id = Guid.NewGuid();
             WaitForCallback = new SemaphoreSlim(1, 1);
 
             InitEvents();
@@ -282,6 +283,7 @@ namespace OutWit.Communication.Server
         {
             return new DiscoveryMessage
             {
+                ServiceId = Id,
                 Timestamp = DateTimeOffset.UtcNow,
                 Type = type,
                 ServiceName = Name,
@@ -385,9 +387,13 @@ namespace OutWit.Communication.Server
 
         private TimeSpan? Timeout { get; }
 
-        private string? Name { get; }
+        public string? Name { get; }
 
-        private string? Description { get; }
+        public string? Description { get; }
+
+        public Guid Id { get; }
+
+        public IServerOptions Options => TransportFactory.Options;
 
         #endregion
     }
