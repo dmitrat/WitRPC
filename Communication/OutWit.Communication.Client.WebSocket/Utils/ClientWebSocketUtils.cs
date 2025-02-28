@@ -6,7 +6,7 @@ namespace OutWit.Communication.Client.WebSocket.Utils
 {
     public static class ClientWebSocketUtils
     {
-        private const int DEFAULT_BUFFER_SIZE = 4096;
+        internal const int DEFAULT_BUFFER_SIZE = 4096;
 
         public static WitComClientBuilderOptions WithWebSocket(this WitComClientBuilderOptions me, WebSocketClientTransportOptions options)
         {
