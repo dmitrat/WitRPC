@@ -42,7 +42,7 @@
     <PackageReference Include="OutWit.Common.Logging" Version="1.0.2" />
     <PackageReference Include="OutWit.Common.Proxy" Version="1.1.0" />
     <PackageReference Include="OutWit.Common.Proxy.Generator" Version="1.1.0" />
-    <PackageReference Include="OutWit.Communication.Client.WebSocket" Version="1.1.1" />
+    <PackageReference Include="OutWit.Communication.Client.WebSocket" Version="1.2.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\OutWit.Examples.Contracts\OutWit.Examples.Contracts.NuGet.csproj" />

@@ -8,7 +8,7 @@
 
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <PackageId>OutWit.Communication.Server</PackageId>
-	  <Version>1.1.1</Version>
+	  <Version>1.2.0</Version>
 	  <Authors>Dmitry Ratner</Authors>
 	  <Company>OutWit</Company>
 	  <Product>OutWit.Communication.Server</Product>
@@ -26,7 +26,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OutWit.Communication" Version="1.1.2" />
+    <PackageReference Include="OutWit.Communication" Version="1.2.0" />
   </ItemGroup>
 
 	<ItemGroup>

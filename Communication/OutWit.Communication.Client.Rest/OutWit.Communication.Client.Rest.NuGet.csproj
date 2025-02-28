@@ -28,7 +28,7 @@
 
   <ItemGroup>
     <PackageReference Include="OutWit.Common.Rest" Version="1.0.0" />
-    <PackageReference Include="OutWit.Communication.Client" Version="1.1.1" />
+    <PackageReference Include="OutWit.Communication.Client" Version="1.2.0" />
   </ItemGroup>
 
 	<ItemGroup>
