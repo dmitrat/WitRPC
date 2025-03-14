@@ -27,6 +27,11 @@ namespace OutWit.Communication.Server
             var options = new WitComServerBuilderOptions();
             optionsBuilder(options);
 
+            return Build(options);
+        }
+
+        public static WitComServer Build(WitComServerBuilderOptions options)
+        {
             if (options.TransportFactory == null)
                 throw new WitComException("Transport cannot be empty");
 

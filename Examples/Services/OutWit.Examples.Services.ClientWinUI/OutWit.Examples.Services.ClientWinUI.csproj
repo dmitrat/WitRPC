@@ -37,12 +37,14 @@
     <ProjectCapability Include="Msix" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.250108002" />
-    <PackageReference Include="OutWit.Common.Logging" Version="1.0.2" />
+    <PackageReference Include="OutWit.Common.Logging" Version="1.0.3" />
+    <PackageReference Include="OutWit.Common.MessagePack" Version="1.0.3" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Common\OutWit.Common.Proxy.Generator\OutWit.Common.Proxy.Generator.csproj"  OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+    <ProjectReference Include="..\..\..\Common\OutWit.Common.Proxy.Generator\OutWit.Common.Proxy.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\..\Common\OutWit.Common.Proxy\OutWit.Common.Proxy.csproj" />
     <ProjectReference Include="..\..\..\Communication\OutWit.Communication.Client.WebSocket\OutWit.Communication.Client.WebSocket.csproj" />
     <ProjectReference Include="..\..\..\Communication\OutWit.Communication\OutWit.Communication.csproj" />

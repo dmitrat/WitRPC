@@ -11,12 +11,12 @@ namespace OutWit.Communication.Serializers
 
         public T? Deserialize<T>(byte[] bytes, ILogger? logger = null) where T: class
         {
-            return bytes.FromPackBytes<T>();
+            return bytes.FromPackBytes<T>(logger: logger);
         }
 
         public byte[] Serialize<T>(T message, ILogger? logger = null) where T : class
         {
-            return message.ToPackBytes();
+            return message.ToPackBytes(logger: logger);
         }
 
         #endregion

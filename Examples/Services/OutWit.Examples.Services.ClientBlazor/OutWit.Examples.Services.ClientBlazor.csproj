@@ -9,8 +9,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.11" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.11" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
     <PackageReference Include="MudBlazor" Version="7.15.0" />
-    <PackageReference Include="OutWit.Common.Logging" Version="1.0.2" />
+    <PackageReference Include="OutWit.Common.Logging" Version="1.0.3" />
+    <PackageReference Include="OutWit.Common.MessagePack" Version="1.0.3" />
   </ItemGroup>
 
   <ItemGroup>

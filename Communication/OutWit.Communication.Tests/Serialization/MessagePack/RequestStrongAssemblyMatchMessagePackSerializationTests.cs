@@ -45,6 +45,36 @@ namespace OutWit.Communication.Tests.Serialization.MessagePack
         }
 
         [Test]
+        public void BytesRequestSerializationTest()
+        {
+            var serializer = new MessageSerializerMessagePack();
+            var converter = new ValueConverterMessagePack();
+
+            var request1 = new WitComRequest
+            {
+                MethodName = "TestMethod",
+                Parameters = new object[]
+                {
+                    new byte[] { 1, 2, 3, 4, 5 },
+                },
+                ParameterTypes = new[]
+                {
+                    typeof(byte[])
+                },
+                GenericArguments = Array.Empty<Type>()
+            };
+
+            var bytes = serializer.Serialize(request1);
+            Assert.That(bytes, Is.Not.Null);
+            Assert.That(bytes, Is.Not.Empty);
+
+            var request2 = bytes.GetRequest(serializer, converter);
+            Assert.That(request2, Is.Not.Null);
+            Assert.That(request2, Is.Not.SameAs(request1));
+            Assert.That(((byte[])request2.Parameters[0]).Is((byte[])request1.Parameters[0]));
+        }
+
+        [Test]
         public void SimpleRequestComplexTypeSerializationTest()
         {
             var serializer = new MessageSerializerMessagePack();

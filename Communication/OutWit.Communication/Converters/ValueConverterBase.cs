@@ -118,6 +118,12 @@ namespace OutWit.Communication.Converters
                 return true;
             }
 
+            if (destType == typeof(byte[]))
+            {
+                destValue = Convert.FromBase64String(origValue);
+                return true;
+            }
+
             return false;
         }
 

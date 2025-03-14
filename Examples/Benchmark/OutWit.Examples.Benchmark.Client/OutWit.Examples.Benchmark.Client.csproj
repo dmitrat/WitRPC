@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="CsvHelper" Version="33.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
+		<PackageReference Include="OutWit.Common.Logging" Version="1.0.3" />
+		<PackageReference Include="OutWit.Common.MessagePack" Version="1.0.3" />
+		<PackageReference Include="OutWit.Common.MVVM" Version="1.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\Communication\OutWit.Communication.Client.MMF\OutWit.Communication.Client.MMF.csproj" />
+		<ProjectReference Include="..\..\..\Communication\OutWit.Communication.Client.Pipes\OutWit.Communication.Client.Pipes.csproj" />
+		<ProjectReference Include="..\..\..\Communication\OutWit.Communication.Client.Tcp\OutWit.Communication.Client.Tcp.csproj" />
+		<ProjectReference Include="..\..\..\Communication\OutWit.Communication.Client.WebSocket\OutWit.Communication.Client.WebSocket.csproj" />
+		<ProjectReference Include="..\..\OutWit.Examples.Contracts\OutWit.Examples.Contracts.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="GRPCSettingsTab.xaml.cs">
+	    <SubType>Code</SubType>
+	  </Compile>
+	  <Compile Update="SignalRSettingsTab.xaml.cs">
+	    <SubType>Code</SubType>
+	  </Compile>
+	  <Compile Update="WCFSettingsTab.xaml.cs">
+	    <SubType>Code</SubType>
+	  </Compile>
+	  <Compile Update="WitComSettingsTab.xaml.cs">
+	    <SubType>Code</SubType>
+	  </Compile>
+	</ItemGroup>
+
+</Project>
