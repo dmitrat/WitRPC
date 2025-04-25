@@ -9,6 +9,13 @@
   </PropertyGroup>
 
 	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+		<PackageReference Include="CoreWCF.Http" Version="1.7.0" />
+		<PackageReference Include="CoreWCF.NetNamedPipe" Version="1.7.0-preview" />
+		<PackageReference Include="CoreWCF.NetTcp" Version="1.7.0" />
+		<PackageReference Include="Microsoft.AspNetCore" Version="2.3.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.3.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
 		<PackageReference Include="OutWit.Common.Logging" Version="1.0.3" />
 		<PackageReference Include="OutWit.Common.MessagePack" Version="1.0.3" />

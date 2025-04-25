@@ -36,6 +36,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
         private void InitViewModels()
         {
             WitComVm = new WitComViewModel(this);
+            WCFVm = new WCFViewModel(this);
         }
 
         #endregion
@@ -43,6 +44,8 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
         #region Properties
 
         public WitComViewModel WitComVm { get; private set; }
+
+        public WCFViewModel WCFVm { get; private set; }
 
         #endregion
 

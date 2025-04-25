@@ -5,6 +5,8 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Security.Policy;
+using System.ServiceModel;
+using System.ServiceModel.Channels;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -20,7 +22,6 @@ using OutWit.Communication.Client;
 using OutWit.Communication.Client.MMF.Utils;
 using OutWit.Communication.Client.Pipes.Utils;
 using OutWit.Communication.Client.Tcp.Utils;
-using OutWit.Communication.Client.WebSocket.Utils;
 using OutWit.Examples.Benchmark.Client.Model;
 using OutWit.Examples.Benchmark.Client.Utils;
 using OutWit.Examples.Contracts;
@@ -28,7 +29,7 @@ using OutWit.Examples.Contracts.Utils;
 
 namespace OutWit.Examples.Benchmark.Client.ViewModels
 {
-    public class WitComViewModel: ViewModelBase<ApplicationViewModel>
+    public class WCFViewModel : ViewModelBase<ApplicationViewModel>
     {
         #region Constants
 
@@ -38,11 +39,11 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
         private const string DEFAULT_PIPE_NAME = "np";
 
-        private const string DEFAULT_WEB_SOCKET_PATH = "api";
+        private const string DEFAULT_HTTP_PATH = "api";
 
         private const int DEFAULT_TCP_PORT = 8081;
 
-        private const int DEFAULT_WEB_SOCKET_PORT = 8082;
+        private const int DEFAULT_HTTP_PORT = 8082;
 
         private const int DEFAULT_BENCHMARK_ATTEMPTS = 10;
 
@@ -52,7 +53,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
         #region Constructors
 
-        public WitComViewModel(ApplicationViewModel applicationVm) 
+        public WCFViewModel(ApplicationViewModel applicationVm) 
             : base(applicationVm)
         {
             InitDefaults();
@@ -70,31 +71,30 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
             TransportTypes =
             [
-                WitComTransportType.MemoryMappedFile,
-                WitComTransportType.NamedPipe,
-                WitComTransportType.TCP,
-                WitComTransportType.WebSocket
+                WCFTransportType.NamedPipe,
+                WCFTransportType.TCP,
+                WCFTransportType.HTTP
             ];
 
-            TransportType = WitComTransportType.MemoryMappedFile;
+            TransportType = WCFTransportType.HTTP;
 
             SerializerTypes =
             [
-                WitComSerializerType.Json,
-                WitComSerializerType.MessagePack
+                WCFSerializerType.Json,
+                WCFSerializerType.XML,
+                WCFSerializerType.ProtoBuf
             ];
 
-            SerializerType = WitComSerializerType.Json;
+            SerializerType = WCFSerializerType.Json;
 
             UseEncryption = true;
             UseAuthorization = true;
             AuthorizationToken = DEFAULT_TOKEN;
 
-            MemoryMappedFileName = DEFAULT_MEMORY_MAPPED_FILE_NAME;
             PipeName = DEFAULT_PIPE_NAME;
             TcpPort = DEFAULT_TCP_PORT;
-            WebSocketPort = DEFAULT_WEB_SOCKET_PORT;
-            WebSocketPath = DEFAULT_WEB_SOCKET_PATH;
+            HttpPort = DEFAULT_HTTP_PORT;
+            HttpPath = DEFAULT_HTTP_PATH;
 
             BenchmarkAttempts = DEFAULT_BENCHMARK_ATTEMPTS;
             DataSize = DEFAULT_DATA_SIZE;
@@ -129,59 +129,50 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
             if(!CanConnectClient)
                 return;
 
-            var options = new WitComClientBuilderOptions();
-            if(UseEncryption)
-                options.WithEncryption();
-            else
-                options.WithoutEncryption();
-
-            if (UseAuthorization && !string.IsNullOrEmpty(AuthorizationToken))
-                options.WithAccessToken(AuthorizationToken);
-            else
-                options.WithoutAuthorization();
-
-            options.WithTimeout(TimeSpan.FromMinutes(1));
-
-            switch (SerializerType)
-            {
-                case WitComSerializerType.Json:
-                    options.WithJson();
-                    break;
-
-                case WitComSerializerType.MessagePack:
-                    options.WithMessagePack();
-                    break;
-            }
+            Binding? binding = null;
+            EndpointAddress? address = null;
 
             switch (TransportType)
             {
-                case WitComTransportType.MemoryMappedFile:
-                    if(!string.IsNullOrEmpty(MemoryMappedFileName))
-                        options.WithMemoryMappedFile(MemoryMappedFileName);
+                case WCFTransportType.HTTP:
+                    binding = new BasicHttpBinding
+                    {
+                        MaxReceivedMessageSize = 10*1024*1024
+                    };
+                    address = new EndpointAddress($"http://localhost:{HttpPort}/{HttpPath}");
                     break;
 
-                case WitComTransportType.NamedPipe:
-                    if (!string.IsNullOrEmpty(PipeName))
-                        options.WithNamedPipe(PipeName);
+                case WCFTransportType.TCP:
+                    binding = new NetTcpBinding
+                    {
+                        MaxReceivedMessageSize = 10 * 1024 * 1024
+                    };
+                    address = new EndpointAddress($"net.tcp://localhost:{TcpPort}/{HttpPath}");
                     break;
 
-                case WitComTransportType.TCP:
-                    options.WithTcp("localhost", TcpPort);
+                case WCFTransportType.NamedPipe:
+                    binding = new NetNamedPipeBinding
+                    {
+                        MaxReceivedMessageSize = 10 * 1024 * 1024
+                    };
+                    address = new EndpointAddress($"net.pipe://localhost/{PipeName}");
                     break;
 
-
-                case WitComTransportType.WebSocket:
-                    options.WithWebSocket($"ws://localhost:{WebSocketPort}/{WebSocketPath}");
+                default:
+                    binding = new BasicHttpBinding
+                    {
+                        MaxReceivedMessageSize = 10 * 1024 * 1024
+                    };
+                    address = new EndpointAddress($"http://localhost:{HttpPort}/{HttpPath}");
                     break;
             }
 
-            if(options.Transport == null)
-                return;
 
-            Client = WitComClientBuilder.Build(options);
-            await Client.ConnectAsync(TimeSpan.FromSeconds(1), CancellationToken.None);
+            var factory = new ChannelFactory<IBenchmarkService>(binding, address);
 
-            Service = Client.GetService<IBenchmarkService>();
+            Service = factory.CreateChannel();
+            Factory = factory;
+
 
             CanConnectClient = false;
             CanDisconnectClient = true;
@@ -192,8 +183,11 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
             if(!CanDisconnectClient)
                 return;
 
-            Client?.Disconnect();
-            Client = null;
+            if(Service != null)
+                ((ICommunicationObject)Service).Close();
+
+            if(Factory != null) 
+                Factory.Close();
 
             CanConnectClient = true;
             CanDisconnectClient = false;
@@ -313,10 +307,9 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
         private void UpdateStatus()
         {
-            IsMemoryMappedFile = TransportType == WitComTransportType.MemoryMappedFile;
-            IsNamedPipe = TransportType == WitComTransportType.NamedPipe;
-            IsTcp = TransportType == WitComTransportType.TCP;
-            IsWebSocket = TransportType == WitComTransportType.WebSocket;
+            IsNamedPipe = TransportType == WCFTransportType.NamedPipe;
+            IsTcp = TransportType == WCFTransportType.TCP;
+            IsHttp = TransportType == WCFTransportType.HTTP;
         }
 
         #endregion
@@ -334,23 +327,20 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
         #region Properties
 
         [Notify] 
-        public IReadOnlyList<WitComTransportType> TransportTypes { get; private set; } = null!;
+        public IReadOnlyList<WCFTransportType> TransportTypes { get; private set; } = null!;
 
         [Notify]
-        public WitComTransportType? TransportType { get; set; }
+        public WCFTransportType? TransportType { get; set; }
 
         [Notify] 
-        public IReadOnlyList<WitComSerializerType> SerializerTypes { get; private set; } = null!;
+        public IReadOnlyList<WCFSerializerType> SerializerTypes { get; private set; } = null!;
 
         [Notify]
-        public WitComSerializerType? SerializerType { get; set; }
+        public WCFSerializerType? SerializerType { get; set; }
 
         [Notify]
         public ObservableCollection<BenchmarkResult> BenchmarkResults { get; private set; } = null!;
-
-        [Notify]
-        public string? MemoryMappedFileName { get; set; }
-
+        
         [Notify]
         public string? PipeName { get; set; }
 
@@ -358,10 +348,10 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
         public int TcpPort { get; set; }
 
         [Notify]
-        public int WebSocketPort { get; set; }
+        public int HttpPort { get; set; }
 
         [Notify]
-        public string? WebSocketPath { get; set; }
+        public string? HttpPath { get; set; }
 
         [Notify]
         public bool UseEncryption { get; set; }
@@ -379,16 +369,13 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
         public bool CanDisconnectClient { get; private set; }
 
         [Notify]
-        public bool IsMemoryMappedFile { get; private set; }
-
-        [Notify]
         public bool IsNamedPipe { get; private set; }
 
         [Notify]
         public bool IsTcp { get; private set; }
 
         [Notify]
-        public bool IsWebSocket { get; private set; }
+        public bool IsHttp { get; private set; }
 
         [Notify]
         public int BenchmarkAttempts { get; set; }
@@ -396,7 +383,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
         [Notify]
         public long DataSize { get; set; }
 
-        private WitComClient? Client { get; set; }
+        private ChannelFactory? Factory { get; set; }
 
         private IBenchmarkService? Service { get; set; }
 

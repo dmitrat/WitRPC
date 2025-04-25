@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace OutWit.Examples.Benchmark.Server.Model
 {
-    public enum WitComSerializerType
+    public enum WCFSerializerType
     {
+        XML,
         Json,
-        MessagePack
+        ProtoBuf
     }
 }

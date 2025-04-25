@@ -9,7 +9,6 @@ namespace OutWit.Examples.Benchmark.Client.Model
     public enum WitComSerializerType
     {
         Json,
-        MessagePack,
-        ProtoBuf
+        MessagePack
     }
 }
