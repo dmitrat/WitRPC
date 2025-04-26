@@ -1,5 +1,4 @@
-﻿using OutWit.Communication.Converters;
-using OutWit.Communication.Serializers;
+﻿using OutWit.Communication.Serializers;
 using OutWit.Communication.Server.Authorization;
 using OutWit.Communication.Server.Encryption;
 using OutWit.Communication.Server;
@@ -297,7 +296,6 @@ namespace OutWit.Communication.Tests.Communication.ServiceWithDynamicProxy
                 new EncryptorServerFactory<EncryptorServerGeneral>(),
                 new AccessTokenValidatorStatic(AUTHORIZATION_TOKEN),
                 new MessageSerializerJson(),
-                new ValueConverterJson(),
                 new RequestProcessor<IService>(service),
                 new DiscoveryServer(new DiscoveryServerOptions
                 {
@@ -318,8 +316,7 @@ namespace OutWit.Communication.Tests.Communication.ServiceWithDynamicProxy
             return new WitComClient(clientTransport,
                 new EncryptorClientGeneral(),
                 new AccessTokenProviderStatic(AUTHORIZATION_TOKEN),
-                new MessageSerializerJson(),
-                new ValueConverterJson(), null, null);
+                new MessageSerializerJson(), null, null);
         }
 
     }

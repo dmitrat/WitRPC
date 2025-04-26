@@ -6,6 +6,19 @@ namespace OutWit.Common.MemoryPack
 {
     public static class MemoryPackUtils
     {
+        public static byte[]? ToMemoryPackBytes(this object me, StringEncoding encoding = StringEncoding.Utf8, ILogger? logger = null)
+        {
+            try
+            {
+                return MemoryPackSerializer.Serialize(me.GetType(), me, new MemoryPackSerializerOptions { StringEncoding = encoding });
+            }
+            catch (Exception e)
+            {
+                logger?.LogError(e, "Failed to serialize to MessagePack");
+                return null;
+            }
+        }
+        
         public static byte[]? ToMemoryPackBytes<TObject>(this TObject me, StringEncoding encoding = StringEncoding.Utf8, ILogger? logger = null)
         {
             try

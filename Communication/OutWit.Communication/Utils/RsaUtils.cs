@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Text;
-using Newtonsoft.Json;
+using System.Text.Json;
+using OutWit.Common.Json;
 
 namespace OutWit.Communication.Utils
 {
@@ -9,8 +10,7 @@ namespace OutWit.Communication.Utils
     {
         public static byte[] ToBytes(this RSAParameters rsaParams)
         {
-            string json = JsonConvert.SerializeObject(rsaParams);
-            return Encoding.UTF8.GetBytes(json);
+            return rsaParams.ToJsonBytes();
         }
 
         public static RSAParameters? ToRsaParameters(this byte[] data)
@@ -18,8 +18,7 @@ namespace OutWit.Communication.Utils
             if(data.Length <= 1)
                 return null;
 
-            string json = Encoding.UTF8.GetString(data);
-            return JsonConvert.DeserializeObject<RSAParameters>(json);
+            return data.FromJsonBytes<RSAParameters>();
         }
 
         public static byte[] EncryptRsa(this byte[] me, RSAParameters? key)

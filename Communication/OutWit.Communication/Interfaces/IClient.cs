@@ -11,8 +11,9 @@ namespace OutWit.Communication.Interfaces
 
 
         public Task<WitComResponse> SendRequest(WitComRequest? request);
-
-        public IValueConverter Converter { get; }
+        
+        
+        public IMessageSerializer Serializer { get; }
     }
 
     public delegate void ClientEventHandler(WitComRequest? request);

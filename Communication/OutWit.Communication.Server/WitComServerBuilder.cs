@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using Microsoft.Extensions.Logging;
-using OutWit.Communication.Converters;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Model;
@@ -39,7 +38,7 @@ namespace OutWit.Communication.Server
                 throw new WitComException("Request processor cannot be empty");
 
             return new WitComServer(options.TransportFactory, options.EncryptorFactory, options.TokenValidator, options.Serializer,
-                options.Converter, options.RequestProcessor, options.DiscoveryServer, options.Logger, options.Timeout, options.Name, options.Description);
+                options.RequestProcessor, options.DiscoveryServer, options.Logger, options.Timeout, options.Name, options.Description);
         }
 
         #region Processor
@@ -118,14 +117,7 @@ namespace OutWit.Communication.Server
         #endregion
 
         #region Serialization
-
-        public static WitComServerBuilderOptions WithConverter(this WitComServerBuilderOptions me, IValueConverter converter)
-        {
-            me.Converter = converter;
-            return me;
-        }
-
-
+        
         public static WitComServerBuilderOptions WithSerializer(this WitComServerBuilderOptions me, IMessageSerializer serializer)
         {
             me.Serializer = serializer;
@@ -135,14 +127,12 @@ namespace OutWit.Communication.Server
 
         public static WitComServerBuilderOptions WithJson(this WitComServerBuilderOptions me)
         {
-            me.Converter = new ValueConverterJson();
             me.Serializer = new MessageSerializerJson();
             return me;
         }
 
         public static WitComServerBuilderOptions WithMessagePack(this WitComServerBuilderOptions me)
         {
-            me.Converter = new ValueConverterMessagePack();
             me.Serializer = new MessageSerializerMessagePack();
             return me;
         }

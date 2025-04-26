@@ -1,12 +1,14 @@
 ﻿using MessagePack;
 using OutWit.Common.Abstract;
 using System.Runtime.Serialization;
+using MemoryPack;
 
 namespace OutWit.Communication.Tests.Mock.Model
 {
     [MessagePackObject]
     [DataContract]
-    public class ComplexNumber<T1, T2> : ModelBase
+    [MemoryPackable]
+    public partial class ComplexNumber<T1, T2> : ModelBase
     {
 
         public ComplexNumber(T1 a, T2 b)

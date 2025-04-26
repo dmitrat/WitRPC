@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.Serialization;
+using MemoryPack;
 using MessagePack;
 using OutWit.Common.Abstract;
 using OutWit.Common.Collections;
@@ -10,7 +11,8 @@ namespace OutWit.Communication.Messages
 {
     [MessagePackObject]
     [DataContract]
-    public class WitComMessage: ModelBase
+    [MemoryPackable]
+    public partial class WitComMessage: ModelBase
     {
         #region Functions
 

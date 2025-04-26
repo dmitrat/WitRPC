@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OutWit.Communication.Client.Authorization;
 using OutWit.Communication.Client.Encryption;
-using OutWit.Communication.Converters;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Serializers;
 
@@ -19,7 +18,7 @@ namespace OutWit.Communication.Client
         public WitComClientBuilderOptions()
         {
             Serializer = new MessageSerializerJson();
-            Converter = new ValueConverterJson();
+            //Converter = new ValueConverterJson();
             Encryptor = new EncryptorClientPlain();
             TokenProvider = new AccessTokenProviderPlain();
 
@@ -34,8 +33,6 @@ namespace OutWit.Communication.Client
         public ITransportClient? Transport { get; set; }
 
         public IMessageSerializer Serializer { get; set; }
-
-        public IValueConverter Converter { get; set; }
 
         public IEncryptorClient Encryptor { get; set; }
 

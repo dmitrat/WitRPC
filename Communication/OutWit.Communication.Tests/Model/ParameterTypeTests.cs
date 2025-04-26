@@ -1,3 +1,4 @@
+using OutWit.Common.Json;
 using OutWit.Common.MessagePack;
 using OutWit.Communication.Model;
 using OutWit.Communication.Tests.Mock.Model;

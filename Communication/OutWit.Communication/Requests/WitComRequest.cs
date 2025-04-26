@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using MemoryPack;
 using MessagePack;
 using OutWit.Common.Abstract;
 using OutWit.Common.Collections;
@@ -11,7 +12,8 @@ namespace OutWit.Communication.Requests
 {
     [MessagePackObject]
     [DataContract]
-    public class WitComRequest : ModelBase
+    [MemoryPackable]
+    public partial class WitComRequest : ModelBase
     {
         #region Constructors
 
@@ -19,7 +21,7 @@ namespace OutWit.Communication.Requests
         {
             Token = "";
             MethodName = "";
-            Parameters = Array.Empty<object>();
+            Parameters = Array.Empty<byte[]>();
             ParameterTypes = Array.Empty<Type>();
             ParameterTypesByName = Array.Empty<ParameterType>();
             GenericArguments = Array.Empty<Type>();
@@ -81,7 +83,7 @@ namespace OutWit.Communication.Requests
 
         [Key(2)]
         [DataMember]
-        public object[] Parameters { get; set; }
+        public IList<byte[]> Parameters { get; set; }
 
         [Key(3)]
         [DataMember]

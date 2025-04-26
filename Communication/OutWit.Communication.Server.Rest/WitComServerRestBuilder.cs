@@ -1,13 +1,10 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
-using OutWit.Communication.Converters;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Model;
 using OutWit.Communication.Processors;
-using OutWit.Communication.Serializers;
 using OutWit.Communication.Server.Authorization;
-using OutWit.Communication.Server.Encryption;
 
 namespace OutWit.Communication.Server.Rest
 {

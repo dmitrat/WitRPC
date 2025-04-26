@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
-using OutWit.Communication.Converters;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Serializers;
 using OutWit.Communication.Server.Authorization;
@@ -15,7 +14,6 @@ namespace OutWit.Communication.Server
         public WitComServerBuilderOptions()
         {
             Serializer = new MessageSerializerJson();
-            Converter = new ValueConverterJson();
             EncryptorFactory = new EncryptorServerFactory<EncryptorServerPlain>();
             TokenValidator = new AccessTokenValidatorPlain();
 
@@ -37,8 +35,6 @@ namespace OutWit.Communication.Server
         public IEncryptorServerFactory EncryptorFactory { get; set; }
 
         public IMessageSerializer Serializer { get; set; }
-
-        public IValueConverter Converter { get; set; }
 
         public IAccessTokenValidator TokenValidator { get; set; }
 

@@ -4,7 +4,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using OutWit.Communication.Converters;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Requests;
 using OutWit.Communication.Responses;
@@ -30,6 +29,8 @@ namespace OutWit.Communication.Server.Rest
             Serializer = new MessageSerializerJson();
             TokenValidator = tokenValidator;
             RequestProcessor = requestProcessor;
+            
+            RequestProcessor.ResetSerializer(Serializer);
 
             Logger = logger;
             Timeout = timeout;
@@ -76,8 +77,8 @@ namespace OutWit.Communication.Server.Rest
 
             try
             {
-                request = httpRequest.RestoreFromGet(TokenValidator)
-                          ?? httpRequest.RestoreFromPost(TokenValidator);
+                request = httpRequest.RestoreFromGet(TokenValidator, Serializer)
+                          ?? httpRequest.RestoreFromPost(TokenValidator, Serializer);
             }
             catch (WitComExceptionRest e)
             {

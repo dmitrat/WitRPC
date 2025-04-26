@@ -27,13 +27,12 @@ namespace OutWit.Communication.Client
         #region Constructors
 
         public WitComClient(ITransportClient transport, IEncryptorClient encryptor, IAccessTokenProvider tokenProvider,
-            IMessageSerializer serializer, IValueConverter valueConverter, ILogger? logger, TimeSpan? timeout)
+            IMessageSerializer serializer, ILogger? logger, TimeSpan? timeout)
         {
             Transport = transport;
             Serializer = serializer;
             Encryptor = encryptor;
             TokenProvider = tokenProvider;
-            Converter = valueConverter;
             Logger = logger;
 
             Timeout = timeout;
@@ -326,7 +325,7 @@ namespace OutWit.Communication.Client
             var decryptedMessage = await Decrypt(message);
 
             if (message.Type == WitComMessageType.Callback)
-                CallbackReceived(decryptedMessage.Data.GetRequest(Serializer, Converter));
+                CallbackReceived(decryptedMessage.Data.GetRequest(Serializer));
 
             else
             {
@@ -367,8 +366,6 @@ namespace OutWit.Communication.Client
         private ITransportClient Transport { get; }
 
         public IMessageSerializer Serializer { get; }
-
-        public IValueConverter Converter { get; }
 
         private IEncryptorClient Encryptor { get; }
 

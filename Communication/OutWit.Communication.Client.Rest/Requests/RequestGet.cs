@@ -94,7 +94,7 @@ namespace OutWit.Communication.Client.Rest.Requests
         {
             var builder = new QueryBuilder();
 
-            for (int i = 0; i < RequestBase.Parameters.Length; i++)
+            for (int i = 0; i < RequestBase.Parameters.Count; i++)
                 builder = builder.AddParameter($"param{(i + 1)}", RequestBase.Parameters[i]);
 
             return builder.AsStringAsync()

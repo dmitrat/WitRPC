@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using System.Runtime.CompilerServices;
-using OutWit.Communication.Converters;
 using OutWit.Communication.Model;
 using OutWit.Communication.Processors;
 using OutWit.Communication.Serializers;
@@ -103,7 +102,6 @@ namespace OutWit.Communication.Tests.Discovery
                 new EncryptorServerFactory<EncryptorServerGeneral>(),
                 new AccessTokenValidatorStatic(AUTHORIZATION_TOKEN),
                 new MessageSerializerJson(),
-                new ValueConverterJson(),
                 new RequestProcessor<IService>(service),
                 new DiscoveryServer(new DiscoveryServerOptions
                 {

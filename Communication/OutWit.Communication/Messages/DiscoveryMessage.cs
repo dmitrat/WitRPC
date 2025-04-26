@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using MessagePack;
 using System.Runtime.Serialization;
+using MemoryPack;
 using OutWit.Common.Abstract;
 using OutWit.Common.Collections;
 using OutWit.Common.Values;
@@ -12,7 +13,8 @@ namespace OutWit.Communication.Messages
 {
     [MessagePackObject]
     [DataContract]
-    public class DiscoveryMessage : ModelBase
+    [MemoryPackable]
+    public partial class DiscoveryMessage : ModelBase
     {
         #region Functions
 

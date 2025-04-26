@@ -1,5 +1,6 @@
 ﻿using System;
 using OutWit.Common.Collections;
+using OutWit.Common.Json;
 using OutWit.Communication.Model;
 using OutWit.Common.MessagePack;
 using OutWit.Common.Utils;
@@ -27,7 +28,7 @@ namespace OutWit.Communication.Tests.Requests
             {
                 Token = "0",
                 MethodName = "1",
-                Parameters = new object[] { 2, "3" },
+                Parameters = new List<byte[]> { new byte[]{2, 2}, new byte[] {3, 3, 3} },
                 ParameterTypes = new[] { typeof(int), typeof(string) },
                 ParameterTypesByName = new[] { (ParameterType)typeof(int), (ParameterType)typeof(string) },
                 GenericArguments = new[] { typeof(double), typeof(string) },
@@ -36,7 +37,7 @@ namespace OutWit.Communication.Tests.Requests
 
             Assert.That(request.Token, Is.EqualTo("0"));
             Assert.That(request.MethodName, Is.EqualTo("1"));
-            Assert.That(request.Parameters.Is(2, "3"), Is.EqualTo(true));
+            Assert.That(request.Parameters.Is(new byte[] { 2, 2 }, new byte[] { 3, 3, 3 }), Is.EqualTo(true));
             Assert.That(request.ParameterTypes.Is(typeof(int), typeof(string)), Is.EqualTo(true));
             Assert.That(request.ParameterTypesByName.Is((ParameterType)typeof(int), (ParameterType)typeof(string)), Is.EqualTo(true));
             Assert.That(request.GenericArguments.Is(typeof(double), typeof(string)), Is.EqualTo(true));
@@ -50,7 +51,7 @@ namespace OutWit.Communication.Tests.Requests
             {
                 Token = "0",
                 MethodName = "1",
-                Parameters = new object[] { 2, "3" },
+                Parameters = new List<byte[]> { new byte[]{2, 2}, new byte[] {3, 3, 3} },
                 ParameterTypes = new[] { typeof(int), typeof(string) },
                 ParameterTypesByName = new[] { (ParameterType)typeof(int), (ParameterType)typeof(string) },
                 GenericArguments = new[] { typeof(double), typeof(string) },
@@ -61,7 +62,7 @@ namespace OutWit.Communication.Tests.Requests
 
             Assert.That(request.Is(request.With(x => x.Token = "1")), Is.False);
             Assert.That(request.Is(request.With(x => x.MethodName = "2")), Is.False);
-            Assert.That(request.Is(request.With(x => x.Parameters = new object[] { 3, "3" })), Is.False);
+            Assert.That(request.Is(request.With(x => x.Parameters = new List<byte[]> { new byte[] { 2, 2 } })), Is.False);
             Assert.That(request.Is(request.With(x => x.ParameterTypes = new[] { typeof(double), typeof(string) })), Is.False);
             Assert.That(request.Is(request.With(x => x.ParameterTypesByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) })), Is.False);
             Assert.That(request.Is(request.With(x => x.GenericArguments = new[] { typeof(int), typeof(string) })), Is.False);
@@ -75,7 +76,7 @@ namespace OutWit.Communication.Tests.Requests
             {
                 Token = "0",
                 MethodName = "1",
-                Parameters = new object[] { 2, "3" },
+                Parameters = new List<byte[]> { new byte[]{2, 2}, new byte[] {3, 3, 3} },
                 ParameterTypes = new[] { typeof(int), typeof(string) },
                 ParameterTypesByName = new[] { (ParameterType)typeof(int), (ParameterType)typeof(string) },
                 GenericArguments = new[] { typeof(double), typeof(string) },
@@ -88,7 +89,7 @@ namespace OutWit.Communication.Tests.Requests
 
             Assert.That(request2.Token, Is.EqualTo("0"));
             Assert.That(request2.MethodName, Is.EqualTo("1"));
-            Assert.That(request2.Parameters.Is(2, "3"), Is.EqualTo(true));
+            Assert.That(request2.Parameters.Is(new byte[] { 2, 2 }, new byte[] { 3, 3, 3 }), Is.EqualTo(true));
             Assert.That(request2.ParameterTypes.Is(typeof(int), typeof(string)), Is.EqualTo(true));
             Assert.That(request2.ParameterTypesByName.Is((ParameterType)typeof(int), (ParameterType)typeof(string)), Is.EqualTo(true));
             Assert.That(request2.GenericArguments.Is(typeof(double), typeof(string)), Is.EqualTo(true));
@@ -102,7 +103,7 @@ namespace OutWit.Communication.Tests.Requests
             {
                 Token = "0",
                 MethodName = "1",
-                Parameters = new object[] { 2.0, "3" },
+                Parameters = new List<byte[]> { new byte[] { 2, 2 }, new byte[] { 3, 3, 3 } },
                 ParameterTypes = new[] { typeof(int), typeof(string) },
                 ParameterTypesByName = new[] { (ParameterType)typeof(int), (ParameterType)typeof(string) },
                 GenericArguments = new[] { typeof(double), typeof(string) },
@@ -114,7 +115,7 @@ namespace OutWit.Communication.Tests.Requests
             Assert.That(request1, Is.Not.SameAs(request2));
 
             Assert.That(request2.MethodName, Is.EqualTo("1"));
-            Assert.That(request2.Parameters.Is(2.0, "3"), Is.EqualTo(true));
+            Assert.That(request2.Parameters.Is(new byte[] { 2, 2 }, new byte[] { 3, 3, 3 }), Is.EqualTo(true));
             Assert.That(request2.ParameterTypes.Is(typeof(int), typeof(string)), Is.EqualTo(true));
             Assert.That(request2.ParameterTypesByName.Is((ParameterType)typeof(int), (ParameterType)typeof(string)), Is.EqualTo(true));
             Assert.That(request2.GenericArguments.Is(typeof(double), typeof(string)), Is.EqualTo(true));
@@ -129,7 +130,7 @@ namespace OutWit.Communication.Tests.Requests
             {
                 Token = "0",
                 MethodName = "1",
-                Parameters = new object[] { 2, "3" },
+                Parameters = new List<byte[]> { new byte[]{2, 2}, new byte[] {3, 3, 3} },
                 ParameterTypes = new[] { typeof(int), typeof(string) },
                 ParameterTypesByName = new[] { (ParameterType)typeof(int), (ParameterType)typeof(string) },
                 GenericArguments = new[] { typeof(double), typeof(string) },
@@ -153,7 +154,7 @@ namespace OutWit.Communication.Tests.Requests
             {
                 Token = "0",
                 MethodName = "1",
-                Parameters = new object[] { 2.0, "3" },
+                Parameters = new List<byte[]> { new byte[] { 2, 2 }, new byte[] { 3, 3, 3 } },
                 ParameterTypes = new[] { typeof(int), typeof(string) },
                 ParameterTypesByName = new[] { (ParameterType)typeof(int), (ParameterType)typeof(string) },
                 GenericArguments = new[] { typeof(double), typeof(string) },

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
+using MemoryPack;
 using MessagePack;
 using OutWit.Common.Abstract;
 using OutWit.Common.Values;
@@ -9,7 +10,8 @@ namespace OutWit.Communication.Tests.Mock.Model
 {
     [MessagePackObject]
     [DataContract]
-    public class ComplexType : ModelBase, IComplexType
+    [MemoryPackable]
+    public partial class ComplexType : ModelBase, IComplexType
     {
         public override bool Is(ModelBase modelBase, double tolerance = DEFAULT_TOLERANCE)
         {

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OutWit.Common.Json;
 using OutWit.Common.MessagePack;
 using OutWit.Common.Utils;
 using OutWit.Communication.Utils;

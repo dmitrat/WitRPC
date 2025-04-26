@@ -1,4 +1,5 @@
-﻿using OutWit.Common.MessagePack;
+﻿using OutWit.Common.Json;
+using OutWit.Common.MessagePack;
 using OutWit.Communication.Utils;
 using OutWit.Communication.Messages;
 using OutWit.Common.Utils;

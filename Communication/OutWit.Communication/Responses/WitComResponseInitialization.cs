@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
+using MemoryPack;
 using MessagePack;
 using OutWit.Common.Abstract;
 using OutWit.Common.Collections;
@@ -8,7 +9,8 @@ namespace OutWit.Communication.Responses
 {
     [MessagePackObject]
     [DataContract]
-    public class WitComResponseInitialization : ModelBase
+    [MemoryPackable]
+    public partial class WitComResponseInitialization : ModelBase
     {
         #region Model Base
 

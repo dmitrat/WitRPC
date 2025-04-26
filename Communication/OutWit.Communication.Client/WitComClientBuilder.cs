@@ -6,7 +6,6 @@ using OutWit.Common.Proxy.Interfaces;
 using OutWit.Communication.Client.Authorization;
 using OutWit.Communication.Client.Discovery;
 using OutWit.Communication.Client.Encryption;
-using OutWit.Communication.Converters;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interceptors;
 using OutWit.Communication.Interfaces;
@@ -22,7 +21,7 @@ namespace OutWit.Communication.Client
                 throw new WitComException("Transport cannot be empty");
 
             return new WitComClient(options.Transport, options.Encryptor, options.TokenProvider, options.Serializer,
-                options.Converter, options.Logger, options.Timeout);
+                options.Logger, options.Timeout);
         }
 
         public static WitComClient Build(Action<WitComClientBuilderOptions> optionsBuilder)
@@ -93,14 +92,7 @@ namespace OutWit.Communication.Client
         #endregion
 
         #region Serialization
-
-        public static WitComClientBuilderOptions WithConverter(this WitComClientBuilderOptions me, IValueConverter converter)
-        {
-            me.Converter = converter;
-            return me;
-        }
-
-
+        
         public static WitComClientBuilderOptions WithSerializer(this WitComClientBuilderOptions me, IMessageSerializer serializer)
         {
             me.Serializer = serializer;
@@ -116,7 +108,7 @@ namespace OutWit.Communication.Client
 
         public static WitComClientBuilderOptions WithJson(this WitComClientBuilderOptions me)
         {
-            me.Converter = new ValueConverterJson();
+            //me.Converter = new ValueConverterJson();
             me.Serializer = new MessageSerializerJson();
             return me;
         }
@@ -130,7 +122,6 @@ namespace OutWit.Communication.Client
 
         public static WitComClientBuilderOptions WithMessagePack(this WitComClientBuilderOptions me)
         {
-            me.Converter = new ValueConverterMessagePack();
             me.Serializer = new MessageSerializerMessagePack();
             return me;
         }

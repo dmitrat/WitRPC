@@ -12,12 +12,20 @@ namespace OutWit.Communication.Tests.Mock
         public async Task<WitComResponse> Process(WitComRequest? request)
         {
             Thread.Sleep(50);
-            return WitComResponse.Success(request?.MethodName);
+            
+            return WitComResponse.Success(Array.Empty<byte>());
+        }
+
+        public void ResetSerializer(IMessageSerializer serializer)
+        {
+            Serializer = serializer;
         }
 
         public void InvokeCallback(WitComRequest request)
         {
             Callback(request);
         }
+        
+        public IMessageSerializer? Serializer { get; set; }
     }
 }

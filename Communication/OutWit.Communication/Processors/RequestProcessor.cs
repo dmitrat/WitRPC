@@ -44,9 +44,17 @@ namespace OutWit.Communication.Processors
 
         #region IProcessor
 
+        public void ResetSerializer(IMessageSerializer serializer)
+        {
+            Serializer = serializer;
+        }
+
         public async Task<WitComResponse> Process(WitComRequest? request)
         {
-            if(request == null)
+            if(Serializer == null)
+                return WitComResponse.InternalServerError("Serializer is missing");
+            
+            if (request == null)
                 return WitComResponse.BadRequest("Request is empty");
 
             var method = request.GetMethod(Service);
@@ -57,12 +65,12 @@ namespace OutWit.Communication.Processors
             {
                 var returnType = method.ReturnType;
                 if (returnType == typeof(Task))
-                    return await ProcessAsync(method, request.Parameters);
+                    return await ProcessAsync(method, request.GetParameters(Serializer));
                 
                 if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))
-                    return await ProcessGenericAsync(method, request.Parameters);
+                    return await ProcessGenericAsync(method, request.GetParameters(Serializer));
                 else 
-                    return WitComResponse.Success(method.Invoke(Service, request.Parameters));
+                    return method.Invoke(Service, request.GetParameters(Serializer)).Success(Serializer);
             }
             catch (Exception e)
             {
@@ -71,7 +79,7 @@ namespace OutWit.Communication.Processors
             
         }
 
-        private async Task<WitComResponse> ProcessAsync(MethodInfo method, object[] parameters)
+        private async Task<WitComResponse> ProcessAsync(MethodInfo method, object?[] parameters)
         {
             try
             {
@@ -89,17 +97,20 @@ namespace OutWit.Communication.Processors
             }
         }
 
-        private async Task<WitComResponse> ProcessGenericAsync(MethodInfo method, object[] parameters)
+        private async Task<WitComResponse> ProcessGenericAsync(MethodInfo method, object?[] parameters)
         {
             try
             {
+                if(Serializer == null)
+                    return WitComResponse.InternalServerError("Serializer is missing");
+
                 var task = method.Invoke(Service, parameters) as Task;
                 if (task == null)
                     return WitComResponse.InternalServerError("Failed to process request");
 
                 object? result = await task.ContinueWith(t => (object)((dynamic)t).Result);
 
-                return WitComResponse.Success(result);
+                return result.Success(Serializer);
             }
             catch (Exception e)
             {
@@ -122,11 +133,10 @@ namespace OutWit.Communication.Processors
 
         private static void HandleEvent(RequestProcessor<TService> sender, string eventName, object[] parameters)
         {
-            var request = new WitComRequest
-            {
-                MethodName = eventName,
-                Parameters = parameters
-            };
+            if(sender.Serializer == null)
+                return;
+
+            var request = eventName.CreateRequest(parameters, sender.Serializer);
 
             if (sender.IsStrongAssemblyMatch)
             {
@@ -144,7 +154,7 @@ namespace OutWit.Communication.Processors
             {
                 var parameter = parameters[i];
                 if (parameter is TService)
-                    request.Parameters[i] = null;
+                    request.Parameters[i] = Array.Empty<byte>();
             }
 
             sender.RaiseCallback(request);
@@ -157,6 +167,8 @@ namespace OutWit.Communication.Processors
         private TService Service { get; }
 
         private bool IsStrongAssemblyMatch { get; }
+        
+        private IMessageSerializer? Serializer { get; set; }
 
         #endregion
     }

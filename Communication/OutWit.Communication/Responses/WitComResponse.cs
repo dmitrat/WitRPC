@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
+using MemoryPack;
 using MessagePack;
-using Newtonsoft.Json;
 using OutWit.Common.Abstract;
+using OutWit.Common.Collections;
 using OutWit.Common.Values;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Model;
@@ -12,13 +14,15 @@ namespace OutWit.Communication.Responses
 {
     [MessagePackObject]
     [DataContract]
-    public class WitComResponse : ModelBase
+    [MemoryPackable]
+    public partial class WitComResponse : ModelBase
     {
         #region Constructors
 
         [SerializationConstructor]
         [JsonConstructor]
-        public WitComResponse(CommunicationStatus status, object? data, string? errorMessage, string? errorDetails)
+        [MemoryPackConstructor]
+        public WitComResponse(CommunicationStatus status, byte[]? data, string? errorMessage, string? errorDetails)
         {
             Status = status;
             Data = data;
@@ -36,7 +40,7 @@ namespace OutWit.Communication.Responses
                 return false;
 
             return Status.Is(response.Status) &&
-                   Data.IsEqual(response.Data) &&
+                   Data.Is(response.Data) &&
                    ErrorMessage.Is(response.ErrorMessage) &&
                    ErrorDetails.Is(response.ErrorDetails);
         }
@@ -69,7 +73,7 @@ namespace OutWit.Communication.Responses
 
         #region Static
 
-        public static WitComResponse Success(object? data)
+        public static WitComResponse Success(byte[]? data)
         {
             return new WitComResponse(CommunicationStatus.Ok, data, null, null);
         }
@@ -129,7 +133,7 @@ namespace OutWit.Communication.Responses
 
         [Key(1)]
         [DataMember]
-        public object? Data { get; }
+        public byte[]? Data { get; }
 
         [Key(2)]
         [DataMember]

@@ -2,7 +2,6 @@
 using OutWit.Common.Rest;
 using OutWit.Common.Rest.Interfaces;
 using OutWit.Communication.Client.Rest.Utils;
-using OutWit.Communication.Converters;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Requests;
@@ -29,7 +28,7 @@ namespace OutWit.Communication.Client.Rest
             Options = options;
             Serializer = new MessageSerializerJson();
             TokenProvider = tokenProvider;
-            Converter = new ValueConverterJson();
+            //Converter = new ValueConverterJson();
 
             Client = RestClientBuilder.Create();
         }
@@ -61,8 +60,6 @@ namespace OutWit.Communication.Client.Rest
         public RestClientTransportOptions Options { get; }
 
         public IMessageSerializer Serializer { get; }
-
-        public IValueConverter Converter { get; }
 
         public IAccessTokenProvider TokenProvider { get; }
 

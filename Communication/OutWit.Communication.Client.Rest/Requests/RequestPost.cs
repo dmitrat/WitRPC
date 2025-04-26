@@ -50,7 +50,7 @@ namespace OutWit.Communication.Client.Rest.Requests
         {
             var parameters = new Dictionary<string, object>();
 
-            for (int i = 0; i < RequestBase.Parameters.Length; i++)
+            for (int i = 0; i < RequestBase.Parameters.Count; i++)
                 parameters.Add($"param{(i + 1)}", RequestBase.Parameters[i]);
 
             return parameters.JsonContent();

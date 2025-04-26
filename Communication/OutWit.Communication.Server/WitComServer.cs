@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Castle.Components.DictionaryAdapter.Xml;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using OutWit.Common.Utils;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
@@ -28,14 +27,13 @@ namespace OutWit.Communication.Server
         #region Constructors
 
         public WitComServer(ITransportServerFactory transportFactory, IEncryptorServerFactory encryptorFactory,
-            IAccessTokenValidator tokenValidator, IMessageSerializer serializer, IValueConverter valueConverter, 
+            IAccessTokenValidator tokenValidator, IMessageSerializer serializer,
             IRequestProcessor requestProcessor, IDiscoveryServer? discoveryServer,
             ILogger? logger, TimeSpan? timeout, string? name, string? description)
         {
             TransportFactory = transportFactory;
             EncryptorFactory = encryptorFactory;
             Serializer = serializer;
-            Converter = valueConverter;
             TokenValidator = tokenValidator;
             RequestProcessor = requestProcessor;
             DiscoveryServer = discoveryServer;
@@ -43,6 +41,8 @@ namespace OutWit.Communication.Server
             Timeout = timeout;
             Name = name;
             Description = description;
+            
+            RequestProcessor.ResetSerializer(Serializer);
             
             Id = Guid.NewGuid();
             WaitForCallback = new SemaphoreSlim(1, 1);
@@ -183,7 +183,7 @@ namespace OutWit.Communication.Server
 
         protected async Task<WitComMessage> ProcessMessage(Guid client, WitComMessage message)
         {
-            var request = message.Data.GetRequest(Serializer, Converter);
+            var request = message.Data.GetRequest(Serializer);
 
             WitComResponse? response = null;
             if (request == null)
@@ -374,8 +374,6 @@ namespace OutWit.Communication.Server
         private IEncryptorServerFactory EncryptorFactory { get; }
 
         private IMessageSerializer Serializer { get; }
-
-        private IValueConverter Converter { get; }
 
         private IAccessTokenValidator TokenValidator { get; }
 

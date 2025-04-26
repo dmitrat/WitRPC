@@ -7,7 +7,7 @@ using OutWit.Communication.Responses;
 using System.Reflection;
 using System.Threading.Tasks;
 using OutWit.Common.Reflection;
-using OutWit.Communication.Converters;
+using OutWit.Communication.Utils;
 
 namespace OutWit.Communication.Server.Rest.Processors
 {
@@ -25,7 +25,7 @@ namespace OutWit.Communication.Server.Rest.Processors
         public RequestProcessorRest(TService service)
         {
             Service = service;
-            ValueConverter = new ValueConverterJson();
+            //ValueConverter = new ValueConverterJson();
         }
 
         #endregion
@@ -35,9 +35,17 @@ namespace OutWit.Communication.Server.Rest.Processors
         #endregion
 
         #region IProcessor
-
+        
+        public void ResetSerializer(IMessageSerializer serializer)
+        {
+            Serializer = serializer;
+        }
+        
         public async Task<WitComResponse> Process(WitComRequest? request)
         {
+            if(Serializer == null)
+                return WitComResponse.InternalServerError("Serializer is empty");
+
             if (request == null)
                 return WitComResponse.BadRequest("Request is empty");
 
@@ -51,9 +59,9 @@ namespace OutWit.Communication.Server.Rest.Processors
                 if (returnType == typeof(Task))
                     return await ProcessAsync(method, parameters?.ToArray());
                 if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))
-                    return await ProcessGenericAsync(method, request.Parameters);
+                    return await ProcessGenericAsync(method, request.GetParameters(Serializer));
                 else
-                    return WitComResponse.Success(method.Invoke(Service, parameters?.ToArray()));
+                    return method.Invoke(Service, parameters?.ToArray()).Success(Serializer);
             }
             catch (Exception e)
             {
@@ -61,7 +69,6 @@ namespace OutWit.Communication.Server.Rest.Processors
             }
 
         }
-
 
         private async Task<WitComResponse> ProcessAsync(MethodInfo method, object?[]? parameters)
         {
@@ -85,13 +92,16 @@ namespace OutWit.Communication.Server.Rest.Processors
         {
             try
             {
+                if (Serializer == null)
+                    return WitComResponse.InternalServerError("Serializer is missing");
+                
                 var task = method.Invoke(Service, parameters) as Task;
                 if (task == null)
                     return WitComResponse.InternalServerError("Failed to process request");
 
                 object? result = await task.ContinueWith(t => (object)((dynamic)t).Result);
 
-                return WitComResponse.Success(result);
+                return result.Success(Serializer);
             }
             catch (Exception e)
             {
@@ -124,7 +134,7 @@ namespace OutWit.Communication.Server.Rest.Processors
 
                     IReadOnlyList<ParameterInfo> candidateParameters = method.GetParameters();
 
-                    if (candidateParameters.Count != me.Parameters.Length)
+                    if (candidateParameters.Count != me.Parameters.Count)
                         continue;
 
                     if(TryRestoreParameters(me.Parameters, candidateParameters, out parameters))
@@ -139,19 +149,19 @@ namespace OutWit.Communication.Server.Rest.Processors
             }
         }
 
-        private bool TryRestoreParameters(IReadOnlyList<object> sourceParameters, IReadOnlyList<ParameterInfo> candidateParameters, out List<object?> parameters)
+        private bool TryRestoreParameters(IList<byte[]> sourceParameters, IReadOnlyList<ParameterInfo> candidateParameters, out List<object?> parameters)
         {
             parameters = new List<object?>();
+
+            if (Serializer == null)
+                return false;
 
             for (int i = 0; i < candidateParameters.Count; i++)
             {
                 var type = candidateParameters[i].ParameterType;
                 var origValue = sourceParameters[i];
 
-                if(!ValueConverter.TryConvert(origValue, type, out object? destValue))
-                    return false;
-
-                parameters.Add(destValue);
+                parameters.Add(Serializer.Deserialize(origValue, type));
             }
 
             return true;
@@ -162,8 +172,8 @@ namespace OutWit.Communication.Server.Rest.Processors
         #region Properties
 
         private TService Service { get; }
-
-        private IValueConverter ValueConverter { get; }
+        
+        private IMessageSerializer? Serializer { get; set; }
 
         #endregion
     }

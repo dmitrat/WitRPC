@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OutWit.Common.Collections;
 using NUnit.Framework;
+using OutWit.Common.MemoryPack.Tests.Utils;
 
 namespace OutWit.Common.MemoryPack.Tests
 {
@@ -44,5 +45,7 @@ namespace OutWit.Common.MemoryPack.Tests
                 Assert.That(values.Is(values1), Is.True);
             }
         }
+
+
     }
 }

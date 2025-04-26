@@ -7,6 +7,7 @@ using OutWit.Common.Proxy.Utils;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Model;
 using OutWit.Communication.Requests;
+using OutWit.Communication.Utils;
 
 namespace OutWit.Communication.Interceptors
 {
@@ -70,11 +71,7 @@ namespace OutWit.Communication.Interceptors
 
         public async Task<object?> InterceptMethodAsync(IProxyInvocation invocation)
         {
-            var request = new WitComRequest
-            {
-                MethodName = invocation.MethodName,
-                Parameters = invocation.Parameters,
-            };
+            var request = invocation.MethodName.CreateRequest(invocation.Parameters, Client.Serializer);
 
             if (IsStrongAssemblyMatch)
             {
@@ -100,10 +97,17 @@ namespace OutWit.Communication.Interceptors
             if (invocation.ReturnsTaskWithResult)
                 returnType = returnType.GetGenericArguments()[0];
 
-            if (!Client.Converter.TryConvert(response.Data, returnType, out var value))
+            try
+            {
+                if(response.Data == null)
+                    throw response.CreateFaultException();
+                
+                return Client.Serializer.Deserialize(response.Data, returnType);
+            }
+            catch (Exception e)
+            {
                 throw response.CreateFaultException();
-
-            return value;
+            }
         }
 
         public object? InterceptMethod(IProxyInvocation invocation)
@@ -155,7 +159,7 @@ namespace OutWit.Communication.Interceptors
             if(!m_eventDelegates.TryGetValue(request.MethodName, out Delegate? handlers))
                 return;
 
-            handlers.DynamicInvoke(request.Parameters);
+            handlers.DynamicInvoke(request.GetParameters(Client.Serializer));
         }
 
         #endregion

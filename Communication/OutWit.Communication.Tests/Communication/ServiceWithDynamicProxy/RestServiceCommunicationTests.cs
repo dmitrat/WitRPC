@@ -1,5 +1,4 @@
-﻿using OutWit.Communication.Converters;
-using OutWit.Communication.Server.Authorization;
+﻿using OutWit.Communication.Server.Authorization;
 using OutWit.Communication.Tests.Mock;
 using OutWit.Communication.Client.Authorization;
 using System.Runtime.CompilerServices;

@@ -1,5 +1,6 @@
 ﻿using OutWit.Communication.Requests;
 using System;
+using OutWit.Common.Json;
 using OutWit.Common.MessagePack;
 using OutWit.Common.Utils;
 using OutWit.Communication.Responses;

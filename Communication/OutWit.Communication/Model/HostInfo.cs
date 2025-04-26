@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using MemoryPack;
 using MessagePack;
-using Newtonsoft.Json;
 using OutWit.Common.Abstract;
 using OutWit.Common.Aspects;
 using OutWit.Common.Utils;
@@ -13,8 +14,8 @@ using OutWit.Common.Values;
 namespace OutWit.Communication.Model
 {
     [MessagePackObject]
-    [JsonObject]
-    public class HostInfo : ModelBase
+    [MemoryPackable]
+    public partial class HostInfo : ModelBase
     {
         #region Constructors
 
@@ -179,27 +180,23 @@ namespace OutWit.Communication.Model
         #region Properties
 
         [Key(0)]
-        [JsonProperty]
         public string Host { get; set; }
 
         [Key(1)]
-        [JsonProperty]
         public int? Port { get; set; }
 
         [Key(2)]
-        [JsonProperty]
         public bool UseSsl { get; set; }
 
         [Key(3)]
-        [JsonProperty]
         public bool UseWebSocket { get; set; }
 
         [Key(4)]
-        [JsonProperty]
         public string Path { get; set; }
 
         [JsonIgnore]
         [IgnoreMember]
+        [MemoryPackIgnore]
         public string Connection => BuildConnection();
 
         #endregion

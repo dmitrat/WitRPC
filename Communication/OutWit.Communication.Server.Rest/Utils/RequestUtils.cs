@@ -5,17 +5,18 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using Newtonsoft.Json;
+using System.Text.Json;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Requests;
 using OutWit.Communication.Server.Rest.Exceptions;
+using OutWit.Communication.Utils;
 
 namespace OutWit.Communication.Server.Rest.Utils
 {
     public static class RequestUtils
     {
         public static WitComRequest? RestoreFromGet(this HttpListenerRequest? request,
-            IAccessTokenValidator tokenValidator)
+            IAccessTokenValidator tokenValidator, IMessageSerializer serializer)
         {
             if(request == null || request.Url == null || request.HttpMethod != HttpMethod.Get.Method)
                 return null;
@@ -34,15 +35,11 @@ namespace OutWit.Communication.Server.Rest.Utils
                     parameters.Add(parameter);
             }
 
-            return new WitComRequest
-            {
-                MethodName = methodName,
-                Parameters = parameters.ToArray()
-            };
+            return methodName.CreateRequest(parameters, serializer);
 
         }
 
-        public static WitComRequest? RestoreFromPost(this HttpListenerRequest? request, IAccessTokenValidator tokenValidator)
+        public static WitComRequest? RestoreFromPost(this HttpListenerRequest? request, IAccessTokenValidator tokenValidator, IMessageSerializer serializer)
         {
             if (request == null || request.Url == null || request.HttpMethod != HttpMethod.Post.Method)
                 return null;
@@ -57,21 +54,13 @@ namespace OutWit.Communication.Server.Rest.Utils
             {
                 var data = reader.ReadToEnd();
 
-                var dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(data);
+                var dictionary = JsonSerializer.Deserialize<Dictionary<string, object>>(data);
                 if (dictionary != null)
-                    return new WitComRequest
-                    {
-                        MethodName = methodName,
-                        Parameters = dictionary.Values.ToArray()
-                    };
+                    return methodName.CreateRequest(dictionary.Values.ToArray(), serializer); 
 
-                var list = JsonConvert.DeserializeObject<List<object>>(data);
+                var list = JsonSerializer.Deserialize<List<object>>(data);
                 if (list != null)
-                    return new WitComRequest
-                    {
-                        MethodName = methodName,
-                        Parameters = list.ToArray()
-                    };
+                    return methodName.CreateRequest(list, serializer);
             }
 
             return null;

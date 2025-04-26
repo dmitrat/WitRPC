@@ -14,6 +14,8 @@ namespace OutWit.Communication.Interfaces
         public event RequestProcessorEventHandler Callback;
 
         public Task<WitComResponse> Process(WitComRequest? request);
+        
+        public void ResetSerializer(IMessageSerializer serializer);
     }
 
     public delegate void RequestProcessorEventHandler(WitComRequest? request);

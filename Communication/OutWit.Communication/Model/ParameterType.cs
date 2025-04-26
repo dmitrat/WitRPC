@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
+using MemoryPack;
 using MessagePack;
-using Newtonsoft.Json;
 using OutWit.Common.Abstract;
 using OutWit.Common.Values;
 
@@ -9,7 +10,8 @@ namespace OutWit.Communication.Model
 {
     [MessagePackObject]
     [DataContract]
-    public class ParameterType : ModelBase
+    [MemoryPackable]
+    public partial class ParameterType : ModelBase
     {
         #region Constructors
 
@@ -27,6 +29,7 @@ namespace OutWit.Communication.Model
 
         [SerializationConstructor]
         [JsonConstructor]
+        [MemoryPackConstructor]
         public ParameterType(string type, string assembly)
         {
             Type = type;

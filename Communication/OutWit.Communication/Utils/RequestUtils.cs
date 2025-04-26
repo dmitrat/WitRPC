@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using Microsoft.Extensions.Logging;
 using OutWit.Common.Reflection;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
@@ -32,7 +33,41 @@ namespace OutWit.Communication.Utils
             }
         }
 
-        public static WitComRequest? GetRequest(this byte[]? data, IMessageSerializer serializer, IValueConverter valueConverter)
+        public static WitComRequest CreateRequest(this string me, IReadOnlyList<object> parameters,
+            IMessageSerializer serializer, ILogger? logger = null)
+        {
+            return new WitComRequest
+            {
+                MethodName = me,
+                Parameters = parameters.Select(parameter => serializer.Serialize(parameter, parameter.GetType(), logger)).ToArray()
+            };
+        }
+
+        public static object?[] GetParameters(this WitComRequest me, IMessageSerializer serializer, ILogger? logger = null)
+        {
+            if (me.Parameters.Count == 0)
+                return Array.Empty<object>();
+
+            IList<byte[]> bytes = me.Parameters;
+            IReadOnlyList<Type> types;
+
+            if (me.ParameterTypes.Count > 0)
+                types = me.ParameterTypes;
+
+            else if(me.ParameterTypesByName.Count > 0)
+                types = me.ParameterTypesByName.Select(type => (Type)type!).ToList();
+            else
+                throw new WitComExceptionSerialization("Cannot deserialize request: parameter types missing");
+
+            var result = new List<object?>();
+
+            for (int i = 0; i < Math.Min(bytes.Count, types.Count); i++)
+                result.Add(serializer.Deserialize(bytes[i], types[i]));
+
+            return result.ToArray();
+        }
+
+        public static WitComRequest? GetRequest(this byte[]? data, IMessageSerializer serializer)
         {
             if (data == null)
                 return null;
@@ -43,22 +78,22 @@ namespace OutWit.Communication.Utils
                 if (request == null)
                     return null;
 
-                for (int i = 0; i < request.Parameters.Length; i++)
-                {
-                    var parameter = request.Parameters[i];
+                //for (int i = 0; i < request.Parameters.Count; i++)
+                //{
+                //    var parameter = request.Parameters[i];
 
-                    Type parameterType;
-                    if (request.ParameterTypes.Count > 0)
-                        parameterType = request.ParameterTypes[i];
-                    else if (request.ParameterTypesByName.Count > 0)
-                        parameterType = (Type)request.ParameterTypesByName[i]!;
-                    else
-                        throw new WitComExceptionSerialization("Cannot deserialize request: parameter types missing");
+                //    Type parameterType;
+                //    if (request.ParameterTypes.Count > 0)
+                //        parameterType = request.ParameterTypes[i];
+                //    else if (request.ParameterTypesByName.Count > 0)
+                //        parameterType = (Type)request.ParameterTypesByName[i]!;
+                //    else
+                //        throw new WitComExceptionSerialization("Cannot deserialize request: parameter types missing");
 
-                    if (valueConverter.TryConvert(parameter, parameterType, out object? value) && value != null)
-                        request.Parameters[i] = value;
+                //    if (valueConverter.TryConvert(parameter, parameterType, out object? value) && value != null)
+                //        request.Parameters[i] = value;
 
-                }
+                //}
 
                 return request;
             }
