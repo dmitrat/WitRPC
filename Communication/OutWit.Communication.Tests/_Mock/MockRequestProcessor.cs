@@ -1,4 +1,5 @@
 ﻿using System;
+using OutWit.Common.Json;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Requests;
 using OutWit.Communication.Responses;
@@ -13,7 +14,7 @@ namespace OutWit.Communication.Tests.Mock
         {
             Thread.Sleep(50);
             
-            return WitComResponse.Success(Array.Empty<byte>());
+            return WitComResponse.Success(request?.MethodName.ToJsonBytes());
         }
 
         public void ResetSerializer(IMessageSerializer serializer)

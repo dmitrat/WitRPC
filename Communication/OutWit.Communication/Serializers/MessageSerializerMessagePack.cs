@@ -23,7 +23,7 @@ namespace OutWit.Communication.Serializers
 
         public object? Deserialize(byte[] bytes, Type type, ILogger? logger = null)
         {
-            return bytes.Length == 0
+            return bytes == null || bytes.Length == 0
                 ? null
                 : bytes.FromPackBytes(type, logger: logger);
         }
