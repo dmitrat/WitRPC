@@ -108,11 +108,9 @@ namespace OutWit.Communication.Client
 
         public static WitComClientBuilderOptions WithJson(this WitComClientBuilderOptions me)
         {
-            //me.Converter = new ValueConverterJson();
             me.Serializer = new MessageSerializerJson();
             return me;
         }
-
 
         public static DiscoveryClientOptions WithJson(this DiscoveryClientOptions me)
         {
@@ -132,6 +130,17 @@ namespace OutWit.Communication.Client
             return me;
         }
 
+        public static WitComClientBuilderOptions WithMemoryPack(this WitComClientBuilderOptions me)
+        {
+            me.Serializer = new MessageSerializerMemoryPack();
+            return me;
+        }
+
+        public static DiscoveryClientOptions WithMemoryPack(this DiscoveryClientOptions me)
+        {
+            me.Serializer = new MessageSerializerMemoryPack();
+            return me;
+        }
 
         #endregion
 

@@ -119,23 +119,23 @@ namespace OutWit.Communication.Tests.Communication
 
         [TestCase(TransportType.MMF, SerializerType.Json)]
         //[TestCase(TransportType.MMF, SerializerType.MessagePack)]
-        //[TestCase(TransportType.MMF, SerializerType.MemoryPack)]
+        [TestCase(TransportType.MMF, SerializerType.MemoryPack)]
 
         [TestCase(TransportType.Pipes, SerializerType.Json)]
         //[TestCase(TransportType.Pipes, SerializerType.MessagePack)]
-        //[TestCase(TransportType.Pipes, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Pipes, SerializerType.MemoryPack)]
 
         [TestCase(TransportType.Tcp, SerializerType.Json)]
         //[TestCase(TransportType.Tcp, SerializerType.MessagePack)]
-        //[TestCase(TransportType.Tcp, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Tcp, SerializerType.MemoryPack)]
 
         [TestCase(TransportType.TcpSecure, SerializerType.Json)]
         //[TestCase(TransportType.TcpSecure, SerializerType.MessagePack)]
-        //[TestCase(TransportType.TcpSecure, SerializerType.MemoryPack)]
+        [TestCase(TransportType.TcpSecure, SerializerType.MemoryPack)]
 
         [TestCase(TransportType.WebSocket, SerializerType.Json)]
         //[TestCase(TransportType.WebSocket, SerializerType.MessagePack)]
-        //[TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
+        [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
         public async Task PropertyChangedCallbackTest(TransportType transportType, SerializerType serializerType)
         {
             var testName = $"{nameof(PropertyChangedCallbackTest)}_{transportType}_{serializerType}";

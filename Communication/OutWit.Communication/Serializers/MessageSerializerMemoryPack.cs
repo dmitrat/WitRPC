@@ -14,7 +14,7 @@ namespace OutWit.Communication.Serializers
 
         public byte[] Serialize(object message, Type type, ILogger? logger = null)
         {
-            return message.ToMemoryPackBytes(logger: logger) ?? Array.Empty<byte>();
+            return message.ToMemoryPackBytes(type, logger: logger) ?? Array.Empty<byte>();
         }
 
         public T? Deserialize<T>(byte[] bytes, ILogger? logger = null) where T: class

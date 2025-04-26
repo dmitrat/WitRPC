@@ -137,6 +137,12 @@ namespace OutWit.Communication.Server
             return me;
         }
 
+        public static WitComServerBuilderOptions WithMemoryPack(this WitComServerBuilderOptions me)
+        {
+            me.Serializer = new MessageSerializerMemoryPack();
+            return me;
+        }
+
         #endregion
 
         #region Logger

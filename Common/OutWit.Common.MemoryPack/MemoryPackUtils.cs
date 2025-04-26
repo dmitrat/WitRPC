@@ -1,22 +1,15 @@
 ﻿using System;
 using MemoryPack;
 using Microsoft.Extensions.Logging;
+using OutWit.Common.MemoryPack.Formatters;
 
 namespace OutWit.Common.MemoryPack
 {
     public static class MemoryPackUtils
     {
-        public static byte[]? ToMemoryPackBytes(this object me, StringEncoding encoding = StringEncoding.Utf8, ILogger? logger = null)
+        static MemoryPackUtils()
         {
-            try
-            {
-                return MemoryPackSerializer.Serialize(me.GetType(), me, new MemoryPackSerializerOptions { StringEncoding = encoding });
-            }
-            catch (Exception e)
-            {
-                logger?.LogError(e, "Failed to serialize to MessagePack");
-                return null;
-            }
+            MemoryPackFormatterProvider.Register(new PropertyChangedEventArgsFormatter());
         }
         
         public static byte[]? ToMemoryPackBytes<TObject>(this TObject me, StringEncoding encoding = StringEncoding.Utf8, ILogger? logger = null)
@@ -47,6 +40,11 @@ namespace OutWit.Common.MemoryPack
 
         public static TObject? FromMemoryPackBytes<TObject>(this byte[] me, ILogger? logger = null)
         {
+            return ((ReadOnlySpan<byte>)me.AsSpan()).FromMemoryPackBytes<TObject>(logger);
+        }
+
+        public static TObject? FromMemoryPackBytes<TObject>(this ReadOnlySpan<byte> me, ILogger? logger = null)
+        {
             try
             {
                 return MemoryPackSerializer.Deserialize<TObject>(me);
@@ -60,6 +58,11 @@ namespace OutWit.Common.MemoryPack
         }
 
         public static object? FromMemoryPackBytes(this byte[] me, Type type, ILogger? logger = null)
+        {
+            return ((ReadOnlySpan<byte>)me.AsSpan()).FromMemoryPackBytes(type, logger);
+        }
+        
+        public static object? FromMemoryPackBytes(this ReadOnlySpan<byte> me, Type type, ILogger? logger = null)
         {
             try
             {
@@ -80,7 +83,7 @@ namespace OutWit.Common.MemoryPack
             var bytes = me.ToMemoryPackBytes(logger: logger);
             return bytes == null
                 ? default(TObject)
-                : bytes.FromMemoryPackBytes<TObject>(logger: logger);
+                : ((ReadOnlySpan<byte>)bytes.AsSpan()).FromMemoryPackBytes<TObject>(logger: logger);
         }
 
     }

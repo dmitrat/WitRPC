@@ -68,7 +68,8 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
             SerializerTypes =
             [
                 WitComSerializerType.Json,
-                WitComSerializerType.MessagePack
+                WitComSerializerType.MessagePack,
+                WitComSerializerType.MemoryPack
             ];
 
             SerializerType = WitComSerializerType.Json;
@@ -138,6 +139,11 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
 
                 case WitComSerializerType.MessagePack:
                     options.WithMessagePack();
+                    break;
+
+
+                case WitComSerializerType.MemoryPack:
+                    options.WithMemoryPack();
                     break;
             }
 

@@ -9,6 +9,7 @@ namespace OutWit.Examples.Benchmark.Client.Model
     public enum WitComSerializerType
     {
         Json,
-        MessagePack
+        MessagePack,
+        MemoryPack
     }
 }

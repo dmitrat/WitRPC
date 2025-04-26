@@ -52,7 +52,7 @@ namespace OutWit.Communication.Client
 
         private void InitDefaults()
         {
-            AOTUtils.EnsureTypesRegistered();
+            
         }
 
         private void InitEvents()
