@@ -134,7 +134,7 @@ namespace OutWit.Communication.Server.Rest.Processors
 
                     IReadOnlyList<ParameterInfo> candidateParameters = method.GetParameters();
 
-                    if (candidateParameters.Count != me.Parameters.Count)
+                    if (candidateParameters.Count != me.Parameters.Length)
                         continue;
 
                     if(TryRestoreParameters(me.Parameters, candidateParameters, out parameters))

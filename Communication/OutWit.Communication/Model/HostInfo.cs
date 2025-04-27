@@ -10,11 +10,13 @@ using OutWit.Common.Abstract;
 using OutWit.Common.Aspects;
 using OutWit.Common.Utils;
 using OutWit.Common.Values;
+using ProtoBuf;
 
 namespace OutWit.Communication.Model
 {
     [MessagePackObject]
     [MemoryPackable]
+    [ProtoContract]
     public partial class HostInfo : ModelBase
     {
         #region Constructors
@@ -180,23 +182,29 @@ namespace OutWit.Communication.Model
         #region Properties
 
         [Key(0)]
+        [ProtoMember(1)]
         public string Host { get; set; }
 
         [Key(1)]
+        [ProtoMember(2)]
         public int? Port { get; set; }
 
         [Key(2)]
+        [ProtoMember(3)]
         public bool UseSsl { get; set; }
 
         [Key(3)]
+        [ProtoMember(4)]
         public bool UseWebSocket { get; set; }
 
         [Key(4)]
+        [ProtoMember(5)]
         public string Path { get; set; }
 
         [JsonIgnore]
         [IgnoreMember]
         [MemoryPackIgnore]
+        [ProtoIgnore]
         public string Connection => BuildConnection();
 
         #endregion

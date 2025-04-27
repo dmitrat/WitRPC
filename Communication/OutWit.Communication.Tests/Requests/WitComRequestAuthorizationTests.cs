@@ -1,6 +1,8 @@
 ﻿using System;
 using OutWit.Common.Json;
+using OutWit.Common.MemoryPack;
 using OutWit.Common.MessagePack;
+using OutWit.Common.ProtoBuf;
 using OutWit.Common.Utils;
 using OutWit.Communication.Utils;
 using OutWit.Communication.Requests;
@@ -96,6 +98,42 @@ namespace OutWit.Communication.Tests.Requests
             Assert.That(json, Is.Not.Null);
 
             var request2 = json.FromJsonBytes<WitComRequestAuthorization>();
+            Assert.That(request2, Is.Not.Null);
+            Assert.That(request1, Is.Not.SameAs(request2));
+            Assert.That(request1.Is(request2), Is.True);
+        }
+
+
+        [Test]
+        public void MemoryPackSerializationTest()
+        {
+            var request1 = new WitComRequestAuthorization
+            {
+                Token = "token"
+            };
+
+            var json = request1.ToMemoryPackBytes();
+            Assert.That(json, Is.Not.Null);
+
+            var request2 = json.FromMemoryPackBytes<WitComRequestAuthorization>();
+            Assert.That(request2, Is.Not.Null);
+            Assert.That(request1, Is.Not.SameAs(request2));
+            Assert.That(request1.Is(request2), Is.True);
+        }
+
+
+        [Test]
+        public void ProtoBufSerializationTest()
+        {
+            var request1 = new WitComRequestAuthorization
+            {
+                Token = "token"
+            };
+
+            var json = request1.ToProtoBytes();
+            Assert.That(json, Is.Not.Null);
+
+            var request2 = json.FromProtoBytes<WitComRequestAuthorization>();
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
             Assert.That(request1.Is(request2), Is.True);

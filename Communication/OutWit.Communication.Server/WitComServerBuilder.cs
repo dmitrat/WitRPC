@@ -143,6 +143,13 @@ namespace OutWit.Communication.Server
             return me;
         }
 
+        public static WitComServerBuilderOptions WithProtoBuf(this WitComServerBuilderOptions me)
+        {
+            me.Serializer = new MessageSerializerProtoBuf();
+            return me;
+        }
+
+
         #endregion
 
         #region Logger

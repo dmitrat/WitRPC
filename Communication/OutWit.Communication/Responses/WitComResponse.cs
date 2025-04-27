@@ -9,15 +9,22 @@ using OutWit.Common.Values;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Model;
 using OutWit.Communication.Utils;
+using ProtoBuf;
 
 namespace OutWit.Communication.Responses
 {
     [MessagePackObject]
     [DataContract]
     [MemoryPackable]
+    [ProtoContract]
     public partial class WitComResponse : ModelBase
     {
         #region Constructors
+
+        private WitComResponse()
+        {
+            
+        }
 
         [SerializationConstructor]
         [JsonConstructor]
@@ -129,18 +136,22 @@ namespace OutWit.Communication.Responses
 
         [Key(0)]
         [DataMember]
+        [ProtoMember(1)]
         public CommunicationStatus Status { get; }
 
         [Key(1)]
         [DataMember]
+        [ProtoMember(2)]
         public byte[]? Data { get; }
 
         [Key(2)]
         [DataMember]
+        [ProtoMember(3)]
         public string? ErrorMessage { get; set; }
 
         [Key(3)]
         [DataMember]
+        [ProtoMember(4)]
         public string? ErrorDetails { get; }
 
         #endregion

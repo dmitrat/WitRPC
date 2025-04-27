@@ -45,16 +45,16 @@ namespace OutWit.Communication.Utils
 
         public static object?[] GetParameters(this WitComRequest me, IMessageSerializer serializer, ILogger? logger = null)
         {
-            if (me.Parameters.Count == 0)
+            if (me.Parameters.Length == 0)
                 return Array.Empty<object>();
 
             IList<byte[]> bytes = me.Parameters;
             IReadOnlyList<Type> types;
 
-            if (me.ParameterTypes.Count > 0)
+            if (me.ParameterTypes.Length > 0)
                 types = me.ParameterTypes;
 
-            else if(me.ParameterTypesByName.Count > 0)
+            else if(me.ParameterTypesByName.Length > 0)
                 types = me.ParameterTypesByName.Select(type => (Type)type!).ToList();
             else
                 throw new WitComExceptionSerialization("Cannot deserialize request: parameter types missing");
@@ -118,11 +118,11 @@ namespace OutWit.Communication.Utils
                     .ToList();
 
                 var parameterTypes = me.ParameterTypes.ToArray();
-                if (me.ParameterTypesByName.Count > 0)
+                if (me.ParameterTypesByName.Length > 0)
                     parameterTypes = me.ParameterTypesByName.Select(type => (Type)type!).ToArray();
 
                 var genericArguments = me.GenericArguments.ToArray();
-                if (me.GenericArgumentsByName.Count > 0)
+                if (me.GenericArgumentsByName.Length > 0)
                     genericArguments = me.GenericArgumentsByName.Select(type => (Type)type!).ToArray();
 
                 foreach (MethodInfo method in candidates)

@@ -1,5 +1,7 @@
 ﻿using OutWit.Common.Json;
+using OutWit.Common.MemoryPack;
 using OutWit.Common.MessagePack;
+using OutWit.Common.ProtoBuf;
 using OutWit.Communication.Model;
 using OutWit.Communication.Responses;
 using OutWit.Communication.Utils;
@@ -89,6 +91,34 @@ namespace OutWit.Communication.Tests.Responses
             Assert.That(json, Is.Not.Null);
 
             var response2 = json.FromJsonString<WitComResponse>();
+            Assert.That(response2, Is.Not.Null);
+            Assert.That(response1, Is.Not.SameAs(response2));
+            Assert.That(response1.Is(response2), Is.True);
+        }
+
+        [Test]
+        public void MemoryPackSerializationTest()
+        {
+            var response1 = new WitComResponse(CommunicationStatus.Ok, new byte[] { 0, 1 }, "2", "3");
+
+            var json = response1.ToMemoryPackBytes();
+            Assert.That(json, Is.Not.Null);
+
+            var response2 = json.FromMemoryPackBytes<WitComResponse>();
+            Assert.That(response2, Is.Not.Null);
+            Assert.That(response1, Is.Not.SameAs(response2));
+            Assert.That(response1.Is(response2), Is.True);
+        }
+
+        [Test]
+        public void ProtoBufSerializationTest()
+        {
+            var response1 = new WitComResponse(CommunicationStatus.Ok, new byte[] { 0, 1 }, "2", "3");
+
+            var json = response1.ToProtoBytes();
+            Assert.That(json, Is.Not.Null);
+
+            var response2 = json.FromProtoBytes<WitComResponse>();
             Assert.That(response2, Is.Not.Null);
             Assert.That(response1, Is.Not.SameAs(response2));
             Assert.That(response1.Is(response2), Is.True);

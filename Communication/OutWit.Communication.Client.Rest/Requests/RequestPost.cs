@@ -32,7 +32,7 @@ namespace OutWit.Communication.Client.Rest.Requests
 
         private void CheckRequest()
         {
-            if (RequestBase.GenericArguments.Count > 0 || RequestBase.GenericArgumentsByName.Count > 0)
+            if (RequestBase.GenericArguments.Length > 0 || RequestBase.GenericArgumentsByName.Length > 0)
                 throw new WitComExceptionRestRequest(RequestBase,
                     "Rest Post request cannot be constructed from generic method parameters");
         }
@@ -50,7 +50,7 @@ namespace OutWit.Communication.Client.Rest.Requests
         {
             var parameters = new Dictionary<string, object>();
 
-            for (int i = 0; i < RequestBase.Parameters.Count; i++)
+            for (int i = 0; i < RequestBase.Parameters.Length; i++)
                 parameters.Add($"param{(i + 1)}", RequestBase.Parameters[i]);
 
             return parameters.JsonContent();

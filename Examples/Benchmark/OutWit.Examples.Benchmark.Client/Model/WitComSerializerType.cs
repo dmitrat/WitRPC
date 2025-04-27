@@ -10,6 +10,7 @@ namespace OutWit.Examples.Benchmark.Client.Model
     {
         Json,
         MessagePack,
-        MemoryPack
+        MemoryPack,
+        ProtoBuf
     }
 }

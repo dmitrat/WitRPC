@@ -11,22 +11,27 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.MMF, SerializerType.Json)]
         [TestCase(TransportType.MMF, SerializerType.MessagePack)]
         [TestCase(TransportType.MMF, SerializerType.MemoryPack)]
+        [TestCase(TransportType.MMF, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.Pipes, SerializerType.Json)]
         [TestCase(TransportType.Pipes, SerializerType.MessagePack)]
         [TestCase(TransportType.Pipes, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Pipes, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.Tcp, SerializerType.Json)]
         [TestCase(TransportType.Tcp, SerializerType.MessagePack)]
         [TestCase(TransportType.Tcp, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Tcp, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.TcpSecure, SerializerType.Json)]
         [TestCase(TransportType.TcpSecure, SerializerType.MessagePack)]
         [TestCase(TransportType.TcpSecure, SerializerType.MemoryPack)]
+        [TestCase(TransportType.TcpSecure, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.WebSocket, SerializerType.Json)]
         [TestCase(TransportType.WebSocket, SerializerType.MessagePack)]
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
+        [TestCase(TransportType.WebSocket, SerializerType.ProtoBuf)]
         public async Task SimpleRequestsSingleClientTest(TransportType transportType, SerializerType serializerType)
         {
             var testName = $"{nameof(SimpleRequestsSingleClientTest)}_{transportType}_{serializerType}";
@@ -67,22 +72,27 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.MMF, SerializerType.Json)]
         [TestCase(TransportType.MMF, SerializerType.MessagePack)]
         [TestCase(TransportType.MMF, SerializerType.MemoryPack)]
+        [TestCase(TransportType.MMF, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.Pipes, SerializerType.Json)]
         [TestCase(TransportType.Pipes, SerializerType.MessagePack)]
         [TestCase(TransportType.Pipes, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Pipes, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.Tcp, SerializerType.Json)]
         [TestCase(TransportType.Tcp, SerializerType.MessagePack)]
         [TestCase(TransportType.Tcp, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Tcp, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.TcpSecure, SerializerType.Json)]
         [TestCase(TransportType.TcpSecure, SerializerType.MessagePack)]
         [TestCase(TransportType.TcpSecure, SerializerType.MemoryPack)]
+        [TestCase(TransportType.TcpSecure, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.WebSocket, SerializerType.Json)]
         [TestCase(TransportType.WebSocket, SerializerType.MessagePack)]
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
+        [TestCase(TransportType.WebSocket, SerializerType.ProtoBuf)]
         public async Task SimpleRequestsSingleClientAsyncTest(TransportType transportType, SerializerType serializerType)
         {
             var testName = $"{nameof(SimpleRequestsSingleClientAsyncTest)}_{transportType}_{serializerType}";
@@ -120,22 +130,27 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.MMF, SerializerType.Json)]
         //[TestCase(TransportType.MMF, SerializerType.MessagePack)]
         [TestCase(TransportType.MMF, SerializerType.MemoryPack)]
+        [TestCase(TransportType.MMF, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.Pipes, SerializerType.Json)]
         //[TestCase(TransportType.Pipes, SerializerType.MessagePack)]
         [TestCase(TransportType.Pipes, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Pipes, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.Tcp, SerializerType.Json)]
         //[TestCase(TransportType.Tcp, SerializerType.MessagePack)]
         [TestCase(TransportType.Tcp, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Tcp, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.TcpSecure, SerializerType.Json)]
         //[TestCase(TransportType.TcpSecure, SerializerType.MessagePack)]
         [TestCase(TransportType.TcpSecure, SerializerType.MemoryPack)]
+        [TestCase(TransportType.TcpSecure, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.WebSocket, SerializerType.Json)]
         //[TestCase(TransportType.WebSocket, SerializerType.MessagePack)]
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
+        [TestCase(TransportType.WebSocket, SerializerType.ProtoBuf)]
         public async Task PropertyChangedCallbackTest(TransportType transportType, SerializerType serializerType)
         {
             var testName = $"{nameof(PropertyChangedCallbackTest)}_{transportType}_{serializerType}";
@@ -172,22 +187,27 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.MMF, SerializerType.Json)]
         [TestCase(TransportType.MMF, SerializerType.MessagePack)]
         [TestCase(TransportType.MMF, SerializerType.MemoryPack)]
+        [TestCase(TransportType.MMF, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.Pipes, SerializerType.Json)]
         [TestCase(TransportType.Pipes, SerializerType.MessagePack)]
         [TestCase(TransportType.Pipes, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Pipes, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.Tcp, SerializerType.Json)]
         [TestCase(TransportType.Tcp, SerializerType.MessagePack)]
         [TestCase(TransportType.Tcp, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Tcp, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.TcpSecure, SerializerType.Json)]
         [TestCase(TransportType.TcpSecure, SerializerType.MessagePack)]
         [TestCase(TransportType.TcpSecure, SerializerType.MemoryPack)]
+        [TestCase(TransportType.TcpSecure, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.WebSocket, SerializerType.Json)]
         [TestCase(TransportType.WebSocket, SerializerType.MessagePack)]
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
+        [TestCase(TransportType.WebSocket, SerializerType.ProtoBuf)]
         public async Task SingleSubscribeSingleClientSimpleCallbackTest(TransportType transportType, SerializerType serializerType)
         {
             var testName = $"{nameof(SingleSubscribeSingleClientSimpleCallbackTest)}_{transportType}_{serializerType}";
@@ -227,22 +247,27 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.MMF, SerializerType.Json)]
         [TestCase(TransportType.MMF, SerializerType.MessagePack)]
         [TestCase(TransportType.MMF, SerializerType.MemoryPack)]
+        [TestCase(TransportType.MMF, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.Pipes, SerializerType.Json)]
         [TestCase(TransportType.Pipes, SerializerType.MessagePack)]
         [TestCase(TransportType.Pipes, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Pipes, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.Tcp, SerializerType.Json)]
         [TestCase(TransportType.Tcp, SerializerType.MessagePack)]
         [TestCase(TransportType.Tcp, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Tcp, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.TcpSecure, SerializerType.Json)]
         [TestCase(TransportType.TcpSecure, SerializerType.MessagePack)]
         [TestCase(TransportType.TcpSecure, SerializerType.MemoryPack)]
+        [TestCase(TransportType.TcpSecure, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.WebSocket, SerializerType.Json)]
         [TestCase(TransportType.WebSocket, SerializerType.MessagePack)]
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
+        [TestCase(TransportType.WebSocket, SerializerType.ProtoBuf)]
         public async Task SingleSubscribeSingleClientSimpleCallbackAsyncTest(TransportType transportType, SerializerType serializerType)
         {
             var testName = $"{nameof(SingleSubscribeSingleClientSimpleCallbackAsyncTest)}_{transportType}_{serializerType}";
@@ -282,22 +307,27 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.MMF, SerializerType.Json)]
         [TestCase(TransportType.MMF, SerializerType.MessagePack)]
         [TestCase(TransportType.MMF, SerializerType.MemoryPack)]
+        [TestCase(TransportType.MMF, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.Pipes, SerializerType.Json)]
         [TestCase(TransportType.Pipes, SerializerType.MessagePack)]
         [TestCase(TransportType.Pipes, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Pipes, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.Tcp, SerializerType.Json)]
         [TestCase(TransportType.Tcp, SerializerType.MessagePack)]
         [TestCase(TransportType.Tcp, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Tcp, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.TcpSecure, SerializerType.Json)]
         [TestCase(TransportType.TcpSecure, SerializerType.MessagePack)]
         [TestCase(TransportType.TcpSecure, SerializerType.MemoryPack)]
+        [TestCase(TransportType.TcpSecure, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.WebSocket, SerializerType.Json)]
         [TestCase(TransportType.WebSocket, SerializerType.MessagePack)]
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
+        [TestCase(TransportType.WebSocket, SerializerType.ProtoBuf)]
         public async Task SingleSubscribeComplexTypeSingleClientCallbackTest(TransportType transportType, SerializerType serializerType)
         {
             var testName = $"{nameof(SingleSubscribeComplexTypeSingleClientCallbackTest)}_{transportType}_{serializerType}";
@@ -343,22 +373,27 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.MMF, SerializerType.Json)]
         [TestCase(TransportType.MMF, SerializerType.MessagePack)]
         [TestCase(TransportType.MMF, SerializerType.MemoryPack)]
+        [TestCase(TransportType.MMF, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.Pipes, SerializerType.Json)]
         [TestCase(TransportType.Pipes, SerializerType.MessagePack)]
         [TestCase(TransportType.Pipes, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Pipes, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.Tcp, SerializerType.Json)]
         [TestCase(TransportType.Tcp, SerializerType.MessagePack)]
         [TestCase(TransportType.Tcp, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Tcp, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.TcpSecure, SerializerType.Json)]
         [TestCase(TransportType.TcpSecure, SerializerType.MessagePack)]
         [TestCase(TransportType.TcpSecure, SerializerType.MemoryPack)]
+        [TestCase(TransportType.TcpSecure, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.WebSocket, SerializerType.Json)]
         [TestCase(TransportType.WebSocket, SerializerType.MessagePack)]
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
+        [TestCase(TransportType.WebSocket, SerializerType.ProtoBuf)]
         public async Task SingleSubscribeComplexTypeSingleClientCallbackAsyncTest(TransportType transportType, SerializerType serializerType)
         {
             var testName = $"{nameof(SingleSubscribeComplexTypeSingleClientCallbackAsyncTest)}_{transportType}_{serializerType}";
@@ -404,18 +439,22 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.Pipes, SerializerType.Json)]
         [TestCase(TransportType.Pipes, SerializerType.MessagePack)]
         [TestCase(TransportType.Pipes, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Pipes, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.Tcp, SerializerType.Json)]
         [TestCase(TransportType.Tcp, SerializerType.MessagePack)]
         [TestCase(TransportType.Tcp, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Tcp, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.TcpSecure, SerializerType.Json)]
         [TestCase(TransportType.TcpSecure, SerializerType.MessagePack)]
         [TestCase(TransportType.TcpSecure, SerializerType.MemoryPack)]
+        [TestCase(TransportType.TcpSecure, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.WebSocket, SerializerType.Json)]
         [TestCase(TransportType.WebSocket, SerializerType.MessagePack)]
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
+        [TestCase(TransportType.WebSocket, SerializerType.ProtoBuf)]
         public async Task MultiSubscribeMultiClientsCallbackTest(TransportType transportType, SerializerType serializerType)
         {
             var testName = $"{nameof(MultiSubscribeMultiClientsCallbackTest)}_{transportType}_{serializerType}";
@@ -480,22 +519,26 @@ namespace OutWit.Communication.Tests.Communication
             Assert.That(callbackSecondCount, Is.EqualTo(2));
             Assert.That(actualSecond, Is.EqualTo("text3"));
         }
-        
+
         [TestCase(TransportType.Pipes, SerializerType.Json)]
         [TestCase(TransportType.Pipes, SerializerType.MessagePack)]
         [TestCase(TransportType.Pipes, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Pipes, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.Tcp, SerializerType.Json)]
         [TestCase(TransportType.Tcp, SerializerType.MessagePack)]
         [TestCase(TransportType.Tcp, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Tcp, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.TcpSecure, SerializerType.Json)]
         [TestCase(TransportType.TcpSecure, SerializerType.MessagePack)]
         [TestCase(TransportType.TcpSecure, SerializerType.MemoryPack)]
+        [TestCase(TransportType.TcpSecure, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.WebSocket, SerializerType.Json)]
         [TestCase(TransportType.WebSocket, SerializerType.MessagePack)]
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
+        [TestCase(TransportType.WebSocket, SerializerType.ProtoBuf)]
         public async Task MultiSubscribeMultiClientsCallbackAsyncTest(TransportType transportType, SerializerType serializerType)
         {
             var testName = $"{nameof(MultiSubscribeMultiClientsCallbackAsyncTest)}_{transportType}_{serializerType}";

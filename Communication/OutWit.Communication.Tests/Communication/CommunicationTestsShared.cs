@@ -202,6 +202,9 @@ namespace OutWit.Communication.Tests.Communication
                 case SerializerType.MemoryPack:
                     return new MessageSerializerMemoryPack();
 
+                case SerializerType.ProtoBuf:
+                    return new MessageSerializerProtoBuf();
+
                 default:
                     return new MessageSerializerJson();
             }
@@ -221,6 +224,7 @@ namespace OutWit.Communication.Tests.Communication
     {
         Json,
         MessagePack,
-        MemoryPack
+        MemoryPack,
+        ProtoBuf
     }
 }

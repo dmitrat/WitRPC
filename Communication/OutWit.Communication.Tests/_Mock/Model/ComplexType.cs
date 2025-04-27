@@ -5,12 +5,14 @@ using MessagePack;
 using OutWit.Common.Abstract;
 using OutWit.Common.Values;
 using OutWit.Communication.Tests.Mock.Interfaces;
+using ProtoBuf;
 
 namespace OutWit.Communication.Tests.Mock.Model
 {
     [MessagePackObject]
     [DataContract]
     [MemoryPackable]
+    [ProtoContract]
     public partial class ComplexType : ModelBase, IComplexType
     {
         public override bool Is(ModelBase modelBase, double tolerance = DEFAULT_TOLERANCE)
@@ -47,10 +49,12 @@ namespace OutWit.Communication.Tests.Mock.Model
 
         [Key(0)]
         [DataMember]
+        [ProtoMember(1)]
         public int Int32Value { get; set; }
 
         [Key(1)]
         [DataMember]
+        [ProtoMember(2)]
         public string? StringValue { get; set; }
     }
 }

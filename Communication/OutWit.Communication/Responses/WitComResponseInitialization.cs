@@ -4,12 +4,14 @@ using MemoryPack;
 using MessagePack;
 using OutWit.Common.Abstract;
 using OutWit.Common.Collections;
+using ProtoBuf;
 
 namespace OutWit.Communication.Responses
 {
     [MessagePackObject]
     [DataContract]
     [MemoryPackable]
+    [ProtoContract]
     public partial class WitComResponseInitialization : ModelBase
     {
         #region Model Base
@@ -38,10 +40,12 @@ namespace OutWit.Communication.Responses
 
         [Key(0)]
         [DataMember]
+        [ProtoMember(1)]
         public byte[]? SymmetricKey { get; set; }
 
         [Key(1)]
         [DataMember]
+        [ProtoMember(2)]
         public byte[]? Vector { get; set; }
 
         #endregion

@@ -5,12 +5,14 @@ using MemoryPack;
 using MessagePack;
 using OutWit.Common.Abstract;
 using OutWit.Common.Values;
+using ProtoBuf;
 
 namespace OutWit.Communication.Model
 {
     [MessagePackObject]
     [DataContract]
     [MemoryPackable]
+    [ProtoContract]
     public partial class ParameterType : ModelBase
     {
         #region Constructors
@@ -87,10 +89,12 @@ namespace OutWit.Communication.Model
 
         [Key(0)]
         [DataMember]
+        [ProtoMember(1)]
         public string? Type { get; private set; }
 
         [Key(1)]
         [DataMember]
+        [ProtoMember(2)]
         public string? Assembly { get; private set; }
 
         #endregion

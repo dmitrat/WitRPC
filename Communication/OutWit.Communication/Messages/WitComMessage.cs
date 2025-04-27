@@ -6,12 +6,14 @@ using MessagePack;
 using OutWit.Common.Abstract;
 using OutWit.Common.Collections;
 using OutWit.Common.Values;
+using ProtoBuf;
 
 namespace OutWit.Communication.Messages
 {
     [MessagePackObject]
     [DataContract]
     [MemoryPackable]
+    [ProtoContract]
     public partial class WitComMessage: ModelBase
     {
         #region Functions
@@ -51,14 +53,17 @@ namespace OutWit.Communication.Messages
 
         [DataMember]
         [Key(0)]
+        [ProtoMember(1)]
         public Guid Id { get; set; }
 
         [DataMember]
         [Key(1)]
+        [ProtoMember(2)]
         public WitComMessageType Type { get; set; }
 
         [DataMember]
         [Key(2)]
+        [ProtoMember(3)]
         public byte[]? Data { get; set; }
 
         #endregion

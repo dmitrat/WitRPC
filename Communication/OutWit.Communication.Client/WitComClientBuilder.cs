@@ -142,6 +142,18 @@ namespace OutWit.Communication.Client
             return me;
         }
 
+        public static WitComClientBuilderOptions WithProtoBuf(this WitComClientBuilderOptions me)
+        {
+            me.Serializer = new MessageSerializerProtoBuf();
+            return me;
+        }
+
+        public static DiscoveryClientOptions WithProtoBuf(this DiscoveryClientOptions me)
+        {
+            me.Serializer = new MessageSerializerProtoBuf();
+            return me;
+        }
+
         #endregion
 
         #region Discovery

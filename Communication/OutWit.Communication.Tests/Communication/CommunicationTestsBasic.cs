@@ -13,22 +13,27 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.MMF, SerializerType.Json)]
         [TestCase(TransportType.MMF, SerializerType.MessagePack)]
         [TestCase(TransportType.MMF, SerializerType.MemoryPack)]
+        [TestCase(TransportType.MMF, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.Pipes, SerializerType.Json)]
         [TestCase(TransportType.Pipes, SerializerType.MessagePack)]
         [TestCase(TransportType.Pipes, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Pipes, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.Tcp, SerializerType.Json)]
         [TestCase(TransportType.Tcp, SerializerType.MessagePack)]
         [TestCase(TransportType.Tcp, SerializerType.MemoryPack)]
+        [TestCase(TransportType.Tcp, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.TcpSecure, SerializerType.Json)]
         [TestCase(TransportType.TcpSecure, SerializerType.MessagePack)]
         [TestCase(TransportType.TcpSecure, SerializerType.MemoryPack)]
+        [TestCase(TransportType.TcpSecure, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.WebSocket, SerializerType.Json)]
         [TestCase(TransportType.WebSocket, SerializerType.MessagePack)]
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
+        [TestCase(TransportType.WebSocket, SerializerType.ProtoBuf)]
         public async Task ConnectionTest(TransportType transportType, SerializerType serializerType)
         {
             var testName = $"{nameof(ConnectionTest)}_{transportType}_{serializerType}";

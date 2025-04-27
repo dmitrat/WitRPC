@@ -4,12 +4,14 @@ using MemoryPack;
 using MessagePack;
 using OutWit.Common.Abstract;
 using OutWit.Common.Values;
+using ProtoBuf;
 
 namespace OutWit.Communication.Responses
 {
     [MessagePackObject]
     [DataContract]
     [MemoryPackable]
+    [ProtoContract]
     public partial class WitComResponseAuthorization : ModelBase
     {
         #region Constructors
@@ -46,10 +48,12 @@ namespace OutWit.Communication.Responses
 
         [Key(0)]
         [DataMember]
+        [ProtoMember(1)]
         public bool IsAuthorized { get; set; }
 
         [Key(1)]
         [DataMember]
+        [ProtoMember(2)]
         public string? Message { get; set; }
 
         #endregion

@@ -1,14 +1,11 @@
-﻿using NUnit.Framework.Legacy;
+﻿using System;
+using NUnit.Framework.Legacy;
 using OutWit.Communication.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OutWit.Common.Json;
+using OutWit.Common.MemoryPack;
 using OutWit.Common.MessagePack;
+using OutWit.Common.ProtoBuf;
 using OutWit.Common.Utils;
-using OutWit.Communication.Utils;
 
 namespace OutWit.Communication.Tests.Model
 {
@@ -552,6 +549,52 @@ namespace OutWit.Communication.Tests.Model
             ClassicAssert.NotNull(bytes);
 
             var info2 = bytes.FromJsonBytes<HostInfo>();
+            ClassicAssert.NotNull(info2);
+
+            ClassicAssert.AreNotSame(info1, info2);
+            ClassicAssert.True(info1.Is(info2));
+        }
+
+        [Test]
+        public void MemoryPackSerializationTest()
+        {
+            var info1 = new HostInfo
+            {
+                Host = "host",
+                Port = 2,
+                UseSsl = true,
+                UseWebSocket = true,
+                Path = "name"
+            };
+
+            var bytes = info1.ToMemoryPackBytes();
+
+            ClassicAssert.NotNull(bytes);
+
+            var info2 = bytes.FromMemoryPackBytes<HostInfo>();
+            ClassicAssert.NotNull(info2);
+
+            ClassicAssert.AreNotSame(info1, info2);
+            ClassicAssert.True(info1.Is(info2));
+        }
+
+        [Test]
+        public void ProtoBufSerializationTest()
+        {
+            var info1 = new HostInfo
+            {
+                Host = "host",
+                Port = 2,
+                UseSsl = true,
+                UseWebSocket = true,
+                Path = "name"
+            };
+
+            var bytes = info1.ToProtoBytes();
+
+            ClassicAssert.NotNull(bytes);
+
+            var info2 = bytes.FromProtoBytes<HostInfo>();
             ClassicAssert.NotNull(info2);
 
             ClassicAssert.AreNotSame(info1, info2);

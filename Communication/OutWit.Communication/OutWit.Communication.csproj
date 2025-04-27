@@ -23,6 +23,7 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\..\Common\OutWit.Common.Json\OutWit.Common.Json.csproj" />
 	  <ProjectReference Include="..\..\Common\OutWit.Common.MemoryPack\OutWit.Common.MemoryPack.csproj" />
+	  <ProjectReference Include="..\..\Common\OutWit.Common.ProtoBuf\OutWit.Common.ProtoBuf.csproj" />
 	  <ProjectReference Include="..\..\Common\OutWit.Common.Proxy\OutWit.Common.Proxy.csproj" />
 	  <ProjectReference Include="..\..\Common\OutWit.Common.Reflection\OutWit.Common.Reflection.csproj" />
 	</ItemGroup>

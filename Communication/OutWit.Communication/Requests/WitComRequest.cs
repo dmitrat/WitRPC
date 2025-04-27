@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 using MemoryPack;
 using MessagePack;
@@ -7,12 +8,14 @@ using OutWit.Common.Abstract;
 using OutWit.Common.Collections;
 using OutWit.Common.Values;
 using OutWit.Communication.Model;
+using ProtoBuf;
 
 namespace OutWit.Communication.Requests
 {
     [MessagePackObject]
     [DataContract]
     [MemoryPackable]
+    [ProtoContract]
     public partial class WitComRequest : ModelBase
     {
         #region Constructors
@@ -48,7 +51,7 @@ namespace OutWit.Communication.Requests
 
             return Token.Is(request.Token) &&
                    MethodName.Is(request.MethodName) &&
-                   Parameters.Is(request.Parameters) &&
+                   Parameters.SelectMany(x=>x).Is(request.Parameters.SelectMany(x=>x)) &&
                    ParameterTypes.Is(request.ParameterTypes) &&
                    ParameterTypesByName.Is(request.ParameterTypesByName) &&
                    GenericArguments.Is(request.GenericArguments) &&
@@ -75,31 +78,38 @@ namespace OutWit.Communication.Requests
 
         [Key(0)]
         [DataMember]
+        [ProtoMember(1)]
         public string Token { get; set; }
 
         [Key(1)]
         [DataMember]
+        [ProtoMember(2)]
         public string MethodName { get; set; }
 
         [Key(2)]
         [DataMember]
-        public IList<byte[]> Parameters { get; set; }
+        [ProtoMember(3)]
+        public byte[][] Parameters { get; set; }
 
         [Key(3)]
         [DataMember]
-        public IReadOnlyList<Type> ParameterTypes { get; set; }
+        [ProtoMember(4)]
+        public Type[] ParameterTypes { get; set; }
 
         [Key(4)]
         [DataMember]
-        public IReadOnlyList<ParameterType> ParameterTypesByName { get; set; }
+        [ProtoMember(5)]
+        public ParameterType[] ParameterTypesByName { get; set; }
 
         [Key(5)]
         [DataMember]
-        public IReadOnlyList<Type> GenericArguments { get; set; }
+        [ProtoMember(6)]
+        public Type[] GenericArguments { get; set; }
 
         [Key(6)]
         [DataMember]
-        public IReadOnlyList<ParameterType> GenericArgumentsByName { get; set; }
+        [ProtoMember(7)]
+        public ParameterType[] GenericArgumentsByName { get; set; }
 
         #endregion
     }
