@@ -21,5 +21,11 @@ namespace OutWit.Examples.Contracts.Utils
             }
             return hash;
         }
+
+        public static long FastHash(byte[] data)
+        {
+            return BitConverter.ToInt64(new byte[]
+                { data[0], data[1], data[2], data[3], data[^1], data[^2], data[^3], data[^4] });
+        }
     }
 }

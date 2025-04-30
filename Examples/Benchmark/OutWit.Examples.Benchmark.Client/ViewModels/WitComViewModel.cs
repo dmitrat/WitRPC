@@ -219,7 +219,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
             var id = BenchmarkUtils.NextId();
 
             var data = BenchmarkUtils.GenerateData(DataSize);
-            var hash = HashUtils.ComputeFnv1aHash(data);
+            var hash = HashUtils.FastHash(data);
 
             for (int i = 0; i < BenchmarkAttempts; i++)
             {

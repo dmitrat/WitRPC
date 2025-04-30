@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OutWit.Common.MessagePack" Version="1.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\..\InterProcess\OutWit.InterProcess\OutWit.InterProcess.csproj" />
   </ItemGroup>
 

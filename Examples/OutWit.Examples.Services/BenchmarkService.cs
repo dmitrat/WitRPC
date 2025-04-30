@@ -13,11 +13,12 @@ namespace OutWit.Examples.Services
     {
         public async Task<long> OneWayBenchmark(byte[] bytes)
         {
-            return HashUtils.ComputeFnv1aHash(bytes);
+            return HashUtils.FastHash(bytes);
         }
 
         public async Task<byte[]> TwoWaysBenchmark(byte[] bytes)
         {
+            HashUtils.FastHash(bytes);
             return bytes;
         }
 
@@ -28,7 +29,7 @@ namespace OutWit.Examples.Services
 
             return new BenchmarkResponse
             {
-                Length = HashUtils.ComputeFnv1aHash(request.Bytes), 
+                Length = HashUtils.FastHash(request.Bytes), 
                 Bytes = null
             };
         }
@@ -40,7 +41,7 @@ namespace OutWit.Examples.Services
 
             return new BenchmarkResponse
             {
-                Length = HashUtils.ComputeFnv1aHash(request.Bytes),
+                Length = HashUtils.FastHash(request.Bytes),
                 Bytes = request.Bytes
             };
         }

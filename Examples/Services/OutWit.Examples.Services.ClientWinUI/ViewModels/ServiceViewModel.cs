@@ -12,6 +12,7 @@ using System.Windows.Input;
 using Microsoft.Extensions.Logging;
 using OutWit.Common.Aspects;
 using OutWit.Common.Logging;
+using OutWit.Common.ProtoBuf;
 using OutWit.Communication.Client;
 using OutWit.Communication.Client.WebSocket.Utils;
 using OutWit.Communication.Interfaces;
@@ -93,7 +94,7 @@ namespace OutWit.Examples.Services.ClientWinUI.ViewModels
                 {
                     options.WithWebSocket($"ws://localhost:{PORT}/webSocket/");
                     options.WithEncryption();
-                    options.WithJson();
+                    options.WithProtoBuf();
                     options.WithLogger(Logger!);
                     options.WithTimeout(TimeSpan.FromSeconds(1));
                 });
@@ -108,8 +109,6 @@ namespace OutWit.Examples.Services.ClientWinUI.ViewModels
                 }
                 else
                     Service = Client.GetService<IExampleService>(interceptor=>new ExampleServiceProxy(interceptor));
-
-
 
             }
             catch (Exception e)
