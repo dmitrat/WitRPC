@@ -13,24 +13,24 @@ namespace OutWit.Communication.Serializers
 
         public byte[] Serialize(object message, Type type, ILogger? logger = null)
         {
-            return message.ToPackBytes(logger: logger);
+            return message.ToMessagePackBytes(type, logger: logger) ?? Array.Empty<byte>();
         }
 
         public T? Deserialize<T>(byte[] bytes, ILogger? logger = null) where T: class
         {
-            return bytes.FromPackBytes<T>(logger: logger);
+            return bytes.FromMessagePackBytes<T>(logger: logger);
         }
 
         public object? Deserialize(byte[] bytes, Type type, ILogger? logger = null)
         {
-            return bytes == null || bytes.Length == 0
+            return bytes.Length == 0
                 ? null
-                : bytes.FromPackBytes(type, logger: logger);
+                : bytes.FromMessagePackBytes(type, logger: logger);
         }
 
         public byte[] Serialize<T>(T message, ILogger? logger = null) where T : class
         {
-            return message.ToPackBytes(logger: logger);
+            return message.ToMessagePackBytes(logger: logger) ?? Array.Empty<byte>();
         }
 
         #endregion

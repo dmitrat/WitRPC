@@ -152,10 +152,10 @@ namespace OutWit.Communication.Tests.Messages
                 }
             };
 
-            var bytes = message1.ToPackBytes();
+            var bytes = message1.ToMessagePackBytes();
             Assert.That(bytes, Is.Not.Null);
 
-            var message2 = bytes.FromPackBytes<DiscoveryMessage>();
+            var message2 = bytes.FromMessagePackBytes<DiscoveryMessage>();
             Assert.That(message2, Is.Not.Null);
             Assert.That(message1, Is.Not.SameAs(message2));
             Assert.That(message1.Is(message2), Is.True);

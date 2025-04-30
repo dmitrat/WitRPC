@@ -85,10 +85,10 @@ namespace OutWit.Communication.Tests.Responses
                 Message = "2"
             };
 
-            var bytes = response1.ToPackBytes();
+            var bytes = response1.ToMessagePackBytes();
             Assert.That(bytes, Is.Not.Null);
 
-            var response2 = bytes.FromPackBytes<WitComResponseAuthorization>();
+            var response2 = bytes.FromMessagePackBytes<WitComResponseAuthorization>();
             Assert.That(response2, Is.Not.Null);
             Assert.That(response1, Is.Not.SameAs(response2));
             Assert.That(response1.Is(response2), Is.True);

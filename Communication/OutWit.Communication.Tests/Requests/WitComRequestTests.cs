@@ -139,10 +139,10 @@ namespace OutWit.Communication.Tests.Requests
                 GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) }
             };
 
-            var bytes = request1.ToPackBytes();
+            var bytes = request1.ToMessagePackBytes();
             Assert.That(bytes, Is.Not.Null);
 
-            var request2 = bytes.FromPackBytes<WitComRequest>();
+            var request2 = bytes.FromMessagePackBytes<WitComRequest>();
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
             Assert.That(request1.Is(request2), Is.True);

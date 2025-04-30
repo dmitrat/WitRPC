@@ -76,10 +76,10 @@ namespace OutWit.Communication.Tests.Requests
                 PublicKey = new byte[] { 1, 2, 3 }
             };
 
-            var bytes = request1.ToPackBytes();
+            var bytes = request1.ToMessagePackBytes();
             Assert.That(bytes, Is.Not.Null);
 
-            var request2 = bytes.FromPackBytes<WitComRequestInitialization>();
+            var request2 = bytes.FromMessagePackBytes<WitComRequestInitialization>();
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
             Assert.That(request1.Is(request2), Is.True);

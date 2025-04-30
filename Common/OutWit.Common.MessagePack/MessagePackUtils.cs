@@ -21,6 +21,7 @@ namespace OutWit.Common.MessagePack
             Register<PropertyChangedEventArgsFormatter>();
 
             Register(StandardResolver.Instance);
+            Register(DynamicEnumResolver.Instance);
         }
 
         #endregion

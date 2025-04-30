@@ -38,7 +38,7 @@ namespace OutWit.Examples.Services.Service.Managers
                 options.WithService(Service);
                 options.WithWebSocket(url, MAX_CLIENTS);
                 options.WithEncryption();
-                options.WithProtoBuf();
+                options.WithMessagePack();
                 options.WithTimeout(TimeSpan.FromSeconds(1));
                 options.WithLogger(Logger);
             });

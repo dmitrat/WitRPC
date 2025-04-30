@@ -95,10 +95,10 @@ namespace OutWit.Communication.Tests.Messages
                 Data = new byte[] { 1, 2, 3 }
             };
 
-            var bytes = message1.ToPackBytes();
+            var bytes = message1.ToMessagePackBytes();
             Assert.That(bytes, Is.Not.Null);
 
-            var message2 = bytes.FromPackBytes<WitComMessage>();
+            var message2 = bytes.FromMessagePackBytes<WitComMessage>();
             Assert.That(message2, Is.Not.Null);
             Assert.That(message1, Is.Not.SameAs(message2));
             Assert.That(message1.Is(message2), Is.True);

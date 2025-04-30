@@ -55,11 +55,11 @@ namespace OutWit.Communication.Tests.Serialization
                 StringValue = "test"
             };
 
-            var bytes = complexType1.ToPackBytes();
+            var bytes = complexType1.ToMessagePackBytes();
 
             Assert.That(bytes, Is.Not.Null);
 
-            var complexType2 = bytes.FromPackBytes<ComplexType>();
+            var complexType2 = bytes.FromMessagePackBytes<ComplexType>();
 
             Assert.That(complexType2, Is.Not.Null);
             Assert.That(complexType2.Int32Value, Is.EqualTo(1));
@@ -68,11 +68,11 @@ namespace OutWit.Communication.Tests.Serialization
             
             var complexNumber1 = new ComplexNumber<int, double>(1, 2.34);
 
-            bytes = complexNumber1.ToPackBytes();
+            bytes = complexNumber1.ToMessagePackBytes();
 
             Assert.That(bytes, Is.Not.Null);
 
-            var complexNumber2 = bytes.FromPackBytes<ComplexNumber<int, double>>();
+            var complexNumber2 = bytes.FromMessagePackBytes<ComplexNumber<int, double>>();
 
             Assert.That(complexNumber2, Is.Not.Null);
             Assert.That(complexNumber2.A, Is.EqualTo(1));

@@ -76,10 +76,10 @@ namespace OutWit.Communication.Tests.Requests
                 Token = "token"
             };
 
-            var bytes = request1.ToPackBytes();
+            var bytes = request1.ToMessagePackBytes();
             Assert.That(bytes, Is.Not.Null);
 
-            var request2 = bytes.FromPackBytes<WitComRequestAuthorization>();
+            var request2 = bytes.FromMessagePackBytes<WitComRequestAuthorization>();
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
             Assert.That(request1.Is(request2), Is.True);

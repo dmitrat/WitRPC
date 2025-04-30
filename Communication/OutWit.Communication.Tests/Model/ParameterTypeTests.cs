@@ -81,10 +81,10 @@ namespace OutWit.Communication.Tests.Model
         {
             var type1 = new ParameterType("1", "2");
 
-            var bytes = type1.ToPackBytes();
+            var bytes = type1.ToMessagePackBytes();
             Assert.That(bytes, Is.Not.Null);
 
-            var type2 = bytes.FromPackBytes<ParameterType>();
+            var type2 = bytes.FromMessagePackBytes<ParameterType>();
             Assert.That(type2, Is.Not.Null);
             Assert.That(type1, Is.Not.SameAs(type2));
             Assert.That(type1.Is(type2), Is.True);

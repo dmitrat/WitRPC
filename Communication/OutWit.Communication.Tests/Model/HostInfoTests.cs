@@ -503,11 +503,11 @@ namespace OutWit.Communication.Tests.Model
                 Path = "name"
             };
 
-            var bytes = info1.ToPackBytes();
+            var bytes = info1.ToMessagePackBytes();
 
             ClassicAssert.NotNull(bytes);
 
-            var info2 = bytes.FromPackBytes<HostInfo>();
+            var info2 = bytes.FromMessagePackBytes<HostInfo>();
             ClassicAssert.NotNull(info2);
 
             ClassicAssert.AreNotSame(info1, info2);
@@ -521,11 +521,11 @@ namespace OutWit.Communication.Tests.Model
                 UseWebSocket = false
             };
 
-            bytes = info1.ToPackBytes();
+            bytes = info1.ToMessagePackBytes();
 
             ClassicAssert.NotNull(bytes);
 
-            info2 = bytes.FromPackBytes<HostInfo>();
+            info2 = bytes.FromMessagePackBytes<HostInfo>();
             ClassicAssert.NotNull(info2);
 
             ClassicAssert.AreNotSame(info1, info2);
