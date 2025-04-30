@@ -277,7 +277,7 @@ namespace OutWit.Communication.Server
 
         private void SendDiscoveryMessage(DiscoveryMessageType type)
         {
-            DiscoveryServer?.SendDiscoveryMessage(MessageSerializer.Serialize(GetMessage(type), Logger));
+            DiscoveryServer?.SendDiscoveryMessage(ParametersSerializer.Serialize(GetMessage(type), Logger));
         }
 
         private DiscoveryMessage GetMessage(DiscoveryMessageType type)
