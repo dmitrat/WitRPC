@@ -55,6 +55,11 @@ namespace OutWit.Common.MessagePack
             m_formatters.Add(new TFormatter());
         }
 
+        public void Register(IMessagePackFormatter formatter)
+        {
+            m_formatters.Add(formatter);
+        }
+
         public void Register(IFormatterResolver resolver)
         {
             m_resolvers.Add(resolver);

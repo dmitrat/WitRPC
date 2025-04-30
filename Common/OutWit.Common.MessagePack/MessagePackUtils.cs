@@ -34,9 +34,27 @@ namespace OutWit.Common.MessagePack
             MessagePackResolver.Instance.Register<TFormatter>();
         }
 
+
+        public static void Register(IMessagePackFormatter formatter)
+        {
+            MessagePackResolver.Instance.Register(formatter);
+        }
+
         public static void Register(IFormatterResolver resolver)
         {
             MessagePackResolver.Instance.Register(resolver);
+        }
+
+        public static void Register(Action<MessagePackOptions> optionsBuilder)
+        {
+            var options = new MessagePackOptions();
+            optionsBuilder(options);
+
+            foreach (var formatter in options.Formatters)
+                Register(formatter);
+
+            foreach (var resolver in options.Resolvers)
+                Register(resolver);
         }
 
         #endregion

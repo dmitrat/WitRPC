@@ -18,6 +18,12 @@ namespace OutWit.Common.MemoryPack
 
         #region Registration
 
+        public static void Register(Action<MemoryPackOptions> optionsBuilder)
+        {
+            var options = new MemoryPackOptions();
+            optionsBuilder(options);
+        }
+
         public static void Register<T>(MemoryPackFormatter<T> formatter)
         {
             MemoryPackFormatterProvider.Register(formatter);

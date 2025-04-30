@@ -1,6 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
+using OutWit.Common.Json;
+using OutWit.Common.MemoryPack;
+using OutWit.Common.MessagePack;
+using OutWit.Common.ProtoBuf;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Model;
@@ -130,6 +136,9 @@ namespace OutWit.Communication.Server
             return me;
         }
 
+        #endregion
+
+        #region Json
 
         public static WitComServerBuilderOptions WithJson(this WitComServerBuilderOptions me)
         {
@@ -137,11 +146,33 @@ namespace OutWit.Communication.Server
             return me;
         }
 
+        public static WitComServerBuilderOptions WithJson(this WitComServerBuilderOptions me, Action<JsonOptions> options)
+        {
+            JsonUtils.Register(options);
+
+            return me.WithJson();
+        }
+
+        #endregion
+
+        #region MessagePack
+
         public static WitComServerBuilderOptions WithMessagePack(this WitComServerBuilderOptions me)
         {
             me.ParametersSerializer = new MessageSerializerMessagePack();
             return me;
         }
+
+        public static WitComServerBuilderOptions WithMessagePack(this WitComServerBuilderOptions me, Action<MessagePackOptions> options)
+        {
+            MessagePackUtils.Register(options);
+            
+            return me.WithMessagePack();
+        }
+        
+        #endregion
+
+        #region MemoryPack
 
         public static WitComServerBuilderOptions WithMemoryPack(this WitComServerBuilderOptions me)
         {
@@ -149,13 +180,29 @@ namespace OutWit.Communication.Server
             return me;
         }
 
+        public static WitComServerBuilderOptions WithMemoryPack(this WitComServerBuilderOptions me, Action<MemoryPackOptions> options)
+        {
+            MemoryPackUtils.Register(options);
+            return me.WithMemoryPack();
+        }
+        
+        #endregion
+
+        #region ProtoBuf
+
         public static WitComServerBuilderOptions WithProtoBuf(this WitComServerBuilderOptions me)
         {
             me.ParametersSerializer = new MessageSerializerProtoBuf();
             return me;
         }
 
-
+        public static WitComServerBuilderOptions WithProtoBuf(this WitComServerBuilderOptions me, Action<ProtoBufOptions> options)
+        {
+            ProtoBufUtils.Register(options);
+            
+            return me.WithProtoBuf();
+        }
+        
         #endregion
 
         #region Logger

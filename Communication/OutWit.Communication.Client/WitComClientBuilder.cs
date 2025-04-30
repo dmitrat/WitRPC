@@ -2,6 +2,10 @@
 using System.Net;
 using Castle.DynamicProxy;
 using Microsoft.Extensions.Logging;
+using OutWit.Common.Json;
+using OutWit.Common.MemoryPack;
+using OutWit.Common.MessagePack;
+using OutWit.Common.ProtoBuf;
 using OutWit.Common.Proxy.Interfaces;
 using OutWit.Communication.Client.Authorization;
 using OutWit.Communication.Client.Discovery;
@@ -112,11 +116,21 @@ namespace OutWit.Communication.Client
             return me;
         }
 
+        #endregion
+
+        #region Json
 
         public static WitComClientBuilderOptions WithJson(this WitComClientBuilderOptions me)
         {
             me.ParametersSerializer = new MessageSerializerJson();
             return me;
+        }
+
+        public static WitComClientBuilderOptions WithJson(this WitComClientBuilderOptions me, Action<JsonOptions> options)
+        {
+            JsonUtils.Register(options);
+
+            return me.WithJson();
         }
 
         public static DiscoveryClientOptions WithJson(this DiscoveryClientOptions me)
@@ -125,10 +139,29 @@ namespace OutWit.Communication.Client
             return me;
         }
 
+        public static DiscoveryClientOptions WithJson(this DiscoveryClientOptions me, Action<JsonOptions> options)
+        {
+            JsonUtils.Register(options);
+
+            return me.WithJson();
+        }
+
+        #endregion
+
+        #region MessagePack
+
         public static WitComClientBuilderOptions WithMessagePack(this WitComClientBuilderOptions me)
         {
             me.ParametersSerializer = new MessageSerializerMessagePack();
             return me;
+        }
+
+
+        public static WitComClientBuilderOptions WithMessagePack(this WitComClientBuilderOptions me, Action<MessagePackOptions> options)
+        {
+            MessagePackUtils.Register(options);
+
+            return me.WithMessagePack();
         }
 
         public static DiscoveryClientOptions WithMessagePack(this DiscoveryClientOptions me)
@@ -137,10 +170,27 @@ namespace OutWit.Communication.Client
             return me;
         }
 
+        public static DiscoveryClientOptions WithMessagePack(this DiscoveryClientOptions me, Action<MessagePackOptions> options)
+        {
+            MessagePackUtils.Register(options);
+
+            return me.WithMessagePack();
+        }
+
+        #endregion
+
+        #region MemoryPack
+
         public static WitComClientBuilderOptions WithMemoryPack(this WitComClientBuilderOptions me)
         {
             me.ParametersSerializer = new MessageSerializerMemoryPack();
             return me;
+        }
+
+        public static WitComClientBuilderOptions WithMemoryPack(this WitComClientBuilderOptions me, Action<MemoryPackOptions> options)
+        {
+            MemoryPackUtils.Register(options);
+            return me.WithMemoryPack();
         }
 
         public static DiscoveryClientOptions WithMemoryPack(this DiscoveryClientOptions me)
@@ -149,16 +199,40 @@ namespace OutWit.Communication.Client
             return me;
         }
 
+        public static DiscoveryClientOptions WithMemoryPack(this DiscoveryClientOptions me, Action<MemoryPackOptions> options)
+        {
+            MemoryPackUtils.Register(options);
+            return me.WithMemoryPack();
+        }
+
+        #endregion
+
+        #region ProtoBuf
+
         public static WitComClientBuilderOptions WithProtoBuf(this WitComClientBuilderOptions me)
         {
             me.ParametersSerializer = new MessageSerializerProtoBuf();
             return me;
         }
 
+        public static WitComClientBuilderOptions WithProtoBuf(this WitComClientBuilderOptions me, Action<ProtoBufOptions> options)
+        {
+            ProtoBufUtils.Register(options);
+
+            return me.WithProtoBuf();
+        }
+
         public static DiscoveryClientOptions WithProtoBuf(this DiscoveryClientOptions me)
         {
             me.Serializer = new MessageSerializerProtoBuf();
             return me;
+        }
+
+        public static DiscoveryClientOptions WithProtoBuf(this DiscoveryClientOptions me, Action<ProtoBufOptions> options)
+        {
+            ProtoBufUtils.Register(options);
+
+            return me.WithProtoBuf();
         }
 
         #endregion

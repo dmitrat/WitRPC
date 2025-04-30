@@ -25,6 +25,12 @@ namespace OutWit.Common.ProtoBuf
 
         #region Registration
 
+        public static void Register(Action<ProtoBufOptions> optionsBuilder)
+        {
+            var options = new ProtoBufOptions();
+            optionsBuilder(options);
+        }
+
         public static void RegisterSurrogate<TObject, TSurrogate>()
         {
             Model

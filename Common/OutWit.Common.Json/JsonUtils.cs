@@ -47,6 +47,18 @@ namespace OutWit.Common.Json
             Context.AddContext(context);
         }
 
+        public static void Register(Action<JsonOptions> optionsBuilder)
+        {
+            var options = new JsonOptions();
+            optionsBuilder(options);
+            
+            if(options.Contexts.Count == 0)
+                return;
+            
+            foreach (var context in options.Contexts)
+                Register(context);
+        }
+
         #endregion
 
         #region String Serialization
