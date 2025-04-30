@@ -1,4 +1,5 @@
-﻿using OutWit.Common.Json.Tests.Utils;
+﻿using OutWit.Common.Collections;
+using OutWit.Common.Json.Tests.Utils;
 
 namespace OutWit.Common.Json.Tests
 {
@@ -143,6 +144,138 @@ namespace OutWit.Common.Json.Tests
             Assert.That(mockData2.Text, Is.EqualTo("Test"));
             Assert.That(mockData2.Value, Is.EqualTo(3.14));
             Assert.That(mockData2.Type, Is.EqualTo(typeof(MockData)));
+        }
+
+        [Test]
+        public void JsonBytesExportTest()
+        {
+            var data1 = new MockData[]
+            {
+                new MockData
+                {
+                    Text = "Test1",
+                    Value = 3.141,
+                    Type = typeof(MockData)
+                },new MockData
+                {
+                    Text = "Test2",
+                    Value = 3.142,
+                    Type = typeof(MockData)
+                },new MockData
+                {
+                    Text = "Test3",
+                    Value = 3.143,
+                    Type = typeof(MockData)
+                },
+            };
+
+            var filePath = Path.GetTempFileName();
+            data1.ExportAsJsonBytes(filePath);
+
+            IReadOnlyList<MockData>? data2 = JsonUtils.LoadAsJsonBytes<MockData>(filePath);
+
+            Assert.That(data2, Is.Not.Null);
+
+            Assert.That(data2.Is(data1), Is.EqualTo(true));
+        }
+
+        [Test]
+        public async Task JsonBytesExportAsyncTest()
+        {
+            var data1 = new MockData[]
+            {
+                new MockData
+                {
+                    Text = "Test1",
+                    Value = 3.141,
+                    Type = typeof(MockData)
+                },new MockData
+                {
+                    Text = "Test2",
+                    Value = 3.142,
+                    Type = typeof(MockData)
+                },new MockData
+                {
+                    Text = "Test3",
+                    Value = 3.143,
+                    Type = typeof(MockData)
+                },
+            };
+
+            var filePath = Path.GetTempFileName();
+            await data1.ExportAsJsonBytesAsync(filePath);
+
+            IReadOnlyList<MockData>? data2 = await JsonUtils.LoadAsJsonBytesAsync<MockData>(filePath);
+
+            Assert.That(data2, Is.Not.Null);
+
+            Assert.That(data2.Is(data1), Is.EqualTo(true));
+        }
+
+        [Test]
+        public void JsonStringExportTest()
+        {
+            var data1 = new MockData[]
+            {
+                new MockData
+                {
+                    Text = "Test1",
+                    Value = 3.141,
+                    Type = typeof(MockData)
+                },new MockData
+                {
+                    Text = "Test2",
+                    Value = 3.142,
+                    Type = typeof(MockData)
+                },new MockData
+                {
+                    Text = "Test3",
+                    Value = 3.143,
+                    Type = typeof(MockData)
+                },
+            };
+
+            var filePath = Path.GetTempFileName();
+            data1.ExportAsJsonString(filePath);
+
+            IReadOnlyList<MockData>? data2 = JsonUtils.LoadAsJsonString<MockData>(filePath);
+
+            Assert.That(data2, Is.Not.Null);
+
+            Assert.That(data2.Is(data1), Is.EqualTo(true));
+        }
+
+        [Test]
+        public async Task JsonStringExportAsyncTest()
+        {
+            var data1 = new MockData[]
+            {
+                new MockData
+                {
+                    Text = "Test1",
+                    Value = 3.141,
+                    Type = typeof(MockData)
+                },new MockData
+                {
+                    Text = "Test2",
+                    Value = 3.142,
+                    Type = typeof(MockData)
+                },new MockData
+                {
+                    Text = "Test3",
+                    Value = 3.143,
+                    Type = typeof(MockData)
+                },
+            };
+
+            var filePath = Path.GetTempFileName();
+            await data1.ExportAsJsonStringAsync(filePath);
+
+            IReadOnlyList<MockData>? data2 = await JsonUtils.LoadAsJsonStringAsync<MockData>(filePath);
+
+            Assert.That(data2, Is.Not.Null);
+
+            Assert.That(data2.Is(data1), Is.EqualTo(true));
         }
     }
 }

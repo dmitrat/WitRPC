@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using OutWit.Common.Collections;
 using OutWit.Common.MemoryPack.Tests.Utils;
 
 namespace OutWit.Common.MemoryPack.Tests
@@ -104,6 +105,72 @@ namespace OutWit.Common.MemoryPack.Tests
             Assert.That(args2, Is.Not.Null);
 
             Assert.That(args2.PropertyName, Is.Null);
+        }
+
+        [Test]
+        public void MemoryPackExportTest()
+        {
+            var data1 = new MockData[]
+            {
+                new MockData
+                {
+                    Text = "Test1",
+                    Value = 3.141,
+                    Type = typeof(MockData)
+                },new MockData
+                {
+                    Text = "Test2",
+                    Value = 3.142,
+                    Type = typeof(MockData)
+                },new MockData
+                {
+                    Text = "Test3",
+                    Value = 3.143,
+                    Type = typeof(MockData)
+                },
+            };
+
+            var filePath = Path.GetTempFileName();
+            data1.ExportAsMemoryPack(filePath);
+
+            IReadOnlyList<MockData>? data2 = MemoryPackUtils.LoadAsMemoryPack<MockData>(filePath);
+
+            Assert.That(data2, Is.Not.Null);
+
+            Assert.That(data2.Is(data1), Is.EqualTo(true));
+        }
+
+        [Test]
+        public async Task MemoryPackExportAsyncTest()
+        {
+            var data1 = new MockData[]
+            {
+                new MockData
+                {
+                    Text = "Test1",
+                    Value = 3.141,
+                    Type = typeof(MockData)
+                },new MockData
+                {
+                    Text = "Test2",
+                    Value = 3.142,
+                    Type = typeof(MockData)
+                },new MockData
+                {
+                    Text = "Test3",
+                    Value = 3.143,
+                    Type = typeof(MockData)
+                },
+            };
+
+            var filePath = Path.GetTempFileName();
+            await data1.ExportAsMemoryPackAsync(filePath);
+
+            IReadOnlyList<MockData>? data2 = await MemoryPackUtils.LoadAsMemoryPackAsync<MockData>(filePath);
+
+            Assert.That(data2, Is.Not.Null);
+
+            Assert.That(data2.Is(data1), Is.EqualTo(true));
         }
     }
 }

@@ -34,7 +34,7 @@ namespace OutWit.Communication.Serializers
 
         static MessageSerializerJson()
         {
-            JsonUtils.AddContext(new MessageSerializerJsonContext());
+            JsonUtils.Register(new MessageSerializerJsonContext());
         }
 
         #endregion

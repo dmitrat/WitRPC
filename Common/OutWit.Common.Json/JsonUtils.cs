@@ -35,21 +35,21 @@ namespace OutWit.Common.Json
                 TypeInfoResolver = Context
             };
 
-            AddContext(new JsonContextDefault());
+            Register(new JsonContextDefault());
         }
 
         #endregion
 
-        #region Context
+        #region Registration
 
-        public static void AddContext(JsonSerializerContext context)
+        public static void Register(JsonSerializerContext context)
         {
             Context.AddContext(context);
         }
 
         #endregion
 
-        #region Json
+        #region String Serialization
 
         public static string? ToJsonString<TObject>(this TObject me, bool indented = false, ILogger? logger = null)
         {
@@ -77,6 +77,10 @@ namespace OutWit.Common.Json
             }
         }
 
+        #endregion
+
+        #region Bytes Serialization
+
         public static byte[]? ToJsonBytes<TObject>(this TObject me, ILogger? logger = null)
         {
             try
@@ -103,6 +107,10 @@ namespace OutWit.Common.Json
             }
         }
 
+        #endregion
+
+        #region String Deserealization
+
         public static TObject? FromJsonString<TObject>(this string me, ILogger? logger = null)
         {
             try
@@ -128,6 +136,10 @@ namespace OutWit.Common.Json
                 return null;
             }
         }
+
+        #endregion
+
+        #region Bytes Deserealization
 
         public static TObject? FromJsonBytes<TObject>(this byte[] me, ILogger? logger = null)
         {
@@ -165,6 +177,10 @@ namespace OutWit.Common.Json
             }
         }
 
+        #endregion
+
+        #region Clone
+
         public static TObject? JsonClone<TObject>(this TObject me)
             where TObject : class
         {
@@ -173,8 +189,84 @@ namespace OutWit.Common.Json
 
         #endregion
 
-        #region MyRegion
-        
+        #region Export
+
+        public static async Task ExportAsJsonBytesAsync<T>(this IEnumerable<T> me, string filePath)
+        {
+            byte[]? bytes = me.ToArray().ToJsonBytes();
+            if (bytes != null)
+                await File.WriteAllBytesAsync(filePath, bytes);
+        }
+
+        public static void ExportAsJsonBytes<T>(this IEnumerable<T> me, string filePath)
+        {
+            byte[]? bytes = me.ToArray().ToJsonBytes();
+            if (bytes != null)
+                File.WriteAllBytes(filePath, bytes);
+        }
+
+        public static async Task ExportAsJsonStringAsync<T>(this IEnumerable<T> me, string filePath)
+        {
+            string? json = me.ToArray().ToJsonString(indented: true);
+            if (!string.IsNullOrEmpty(json))
+                await File.WriteAllTextAsync(filePath, json);
+        }
+
+        public static void ExportAsJsonString<T>(this IEnumerable<T> me, string filePath)
+        {
+            string? json = me.ToArray().ToJsonString(indented: true);
+            if (!string.IsNullOrEmpty(json))
+                File.WriteAllText(filePath, json);
+        }
+
+        #endregion
+
+        #region Load
+
+        public static async Task<IReadOnlyList<T>?> LoadAsJsonBytesAsync<T>(string filePath)
+        {
+            if (!File.Exists(filePath))
+                return null;
+
+            byte[] bytes = await File.ReadAllBytesAsync(filePath);
+
+            return bytes.FromJsonBytes<IReadOnlyList<T>>();
+        }
+
+        public static IReadOnlyList<T>? LoadAsJsonBytes<T>(string filePath)
+        {
+            if (!File.Exists(filePath))
+                return null;
+
+            byte[] bytes = File.ReadAllBytes(filePath);
+
+            return bytes.FromJsonBytes<IReadOnlyList<T>>();
+        }
+
+        public static async Task<IReadOnlyList<T>?> LoadAsJsonStringAsync<T>(string filePath)
+        {
+            if (!File.Exists(filePath))
+                return null;
+
+            string json = await File.ReadAllTextAsync(filePath);
+
+            return json.FromJsonString<IReadOnlyList<T>>();
+        }
+
+        public static IReadOnlyList<T>? LoadAsJsonString<T>(string filePath)
+        {
+            if (!File.Exists(filePath))
+                return null;
+
+            string json = File.ReadAllText(filePath);
+
+            return json.FromJsonString<IReadOnlyList<T>>();
+        }
+
+        #endregion
+
+        #region Properties
+
         private static JsonContextMerged Context { get; }
 
         private static JsonSerializerOptions OptionsDefault { get; }

@@ -7,11 +7,26 @@ namespace OutWit.Common.MemoryPack
 {
     public static class MemoryPackUtils
     {
+        #region Constructors
+
         static MemoryPackUtils()
         {
-            MemoryPackFormatterProvider.Register(new PropertyChangedEventArgsFormatter());
+            Register(new PropertyChangedEventArgsFormatter());
         }
-        
+
+        #endregion
+
+        #region Registration
+
+        public static void Register<T>(MemoryPackFormatter<T> formatter)
+        {
+            MemoryPackFormatterProvider.Register(formatter);
+        }
+
+        #endregion
+
+        #region Serialization
+
         public static byte[]? ToMemoryPackBytes<TObject>(this TObject me, StringEncoding encoding = StringEncoding.Utf8, ILogger? logger = null)
         {
             try
@@ -37,6 +52,10 @@ namespace OutWit.Common.MemoryPack
                 return null;
             }
         }
+
+        #endregion
+
+        #region Deserealization
 
         public static TObject? FromMemoryPackBytes<TObject>(this byte[] me, ILogger? logger = null)
         {
@@ -78,6 +97,10 @@ namespace OutWit.Common.MemoryPack
             }
         }
 
+        #endregion
+
+        #region Clone
+
         public static TObject? MemoryPackClone<TObject>(this TObject me, ILogger? logger = null)
         {
             var bytes = me.ToMemoryPackBytes(logger: logger);
@@ -85,6 +108,50 @@ namespace OutWit.Common.MemoryPack
                 ? default(TObject)
                 : ((ReadOnlySpan<byte>)bytes.AsSpan()).FromMemoryPackBytes<TObject>(logger: logger);
         }
+
+        #endregion
+
+        #region Export
+
+        public static async Task ExportAsMemoryPackAsync<T>(this IEnumerable<T> me, string filePath)
+        {
+            byte[]? bytes = me.ToArray().ToMemoryPackBytes();
+            if (bytes != null)
+                await File.WriteAllBytesAsync(filePath, bytes);
+        }
+
+        public static void ExportAsMemoryPack<T>(this IEnumerable<T> me, string filePath)
+        {
+            byte[]? bytes = me.ToArray().ToMemoryPackBytes();
+            if (bytes != null)
+                File.WriteAllBytes(filePath, bytes);
+        }
+
+        #endregion
+
+        #region Load
+
+        public static async Task<IReadOnlyList<T>?> LoadAsMemoryPackAsync<T>(string filePath)
+        {
+            if (!File.Exists(filePath))
+                return null;
+
+            byte[] bytes = await File.ReadAllBytesAsync(filePath);
+
+            return bytes.FromMemoryPackBytes<IReadOnlyList<T>>();
+        }
+
+        public static IReadOnlyList<T>? LoadAsMemoryPack<T>(string filePath)
+        {
+            if (!File.Exists(filePath))
+                return null;
+
+            byte[] bytes = File.ReadAllBytes(filePath);
+
+            return bytes.FromMemoryPackBytes<IReadOnlyList<T>>();
+        }
+
+        #endregion
 
     }
 }
