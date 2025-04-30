@@ -20,10 +20,10 @@ namespace OutWit.Communication.Tests.Mock
 
         public MockClient(TService service)
         {
-            Serializer = new MessageSerializerJson();
+            ParametersSerializer = new MessageSerializerJson();
 
             Processor = new RequestProcessor<TService>(service);
-            Processor.ResetSerializer(Serializer);
+            Processor.ResetSerializer(ParametersSerializer);
 
             Processor.Callback += OnCallback;
         }
@@ -52,7 +52,7 @@ namespace OutWit.Communication.Tests.Mock
 
         private IRequestProcessor Processor { get; }
         
-        public IMessageSerializer Serializer { get; set; }
+        public IMessageSerializer ParametersSerializer { get; set; }
 
         #endregion
     }

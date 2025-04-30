@@ -13,7 +13,8 @@ namespace OutWit.Communication.Server
 
         public WitComServerBuilderOptions()
         {
-            Serializer = new MessageSerializerJson();
+            ParametersSerializer = new MessageSerializerJson();
+            MessageSerializer = new MessageSerializerMemoryPack();
             EncryptorFactory = new EncryptorServerFactory<EncryptorServerPlain>();
             TokenValidator = new AccessTokenValidatorPlain();
 
@@ -34,7 +35,9 @@ namespace OutWit.Communication.Server
 
         public IEncryptorServerFactory EncryptorFactory { get; set; }
 
-        public IMessageSerializer Serializer { get; set; }
+        public IMessageSerializer ParametersSerializer { get; set; }
+        
+        public IMessageSerializer MessageSerializer { get; set; }
 
         public IAccessTokenValidator TokenValidator { get; set; }
 

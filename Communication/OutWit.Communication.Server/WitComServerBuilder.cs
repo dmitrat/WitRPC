@@ -37,7 +37,7 @@ namespace OutWit.Communication.Server
             if (options.RequestProcessor == null)
                 throw new WitComException("Request processor cannot be empty");
 
-            return new WitComServer(options.TransportFactory, options.EncryptorFactory, options.TokenValidator, options.Serializer,
+            return new WitComServer(options.TransportFactory, options.EncryptorFactory, options.TokenValidator, options.ParametersSerializer, options.MessageSerializer,
                 options.RequestProcessor, options.DiscoveryServer, options.Logger, options.Timeout, options.Name, options.Description);
         }
 
@@ -117,35 +117,41 @@ namespace OutWit.Communication.Server
         #endregion
 
         #region Serialization
-        
-        public static WitComServerBuilderOptions WithSerializer(this WitComServerBuilderOptions me, IMessageSerializer serializer)
+
+        public static WitComServerBuilderOptions WithMessageSerializer(this WitComServerBuilderOptions me, IMessageSerializer serializer)
         {
-            me.Serializer = serializer;
+            me.MessageSerializer = serializer;
+            return me;
+        }
+
+        public static WitComServerBuilderOptions WithParametersSerializer(this WitComServerBuilderOptions me, IMessageSerializer serializer)
+        {
+            me.ParametersSerializer = serializer;
             return me;
         }
 
 
         public static WitComServerBuilderOptions WithJson(this WitComServerBuilderOptions me)
         {
-            me.Serializer = new MessageSerializerJson();
+            me.ParametersSerializer = new MessageSerializerJson();
             return me;
         }
 
         public static WitComServerBuilderOptions WithMessagePack(this WitComServerBuilderOptions me)
         {
-            me.Serializer = new MessageSerializerMessagePack();
+            me.ParametersSerializer = new MessageSerializerMessagePack();
             return me;
         }
 
         public static WitComServerBuilderOptions WithMemoryPack(this WitComServerBuilderOptions me)
         {
-            me.Serializer = new MessageSerializerMemoryPack();
+            me.ParametersSerializer = new MessageSerializerMemoryPack();
             return me;
         }
 
         public static WitComServerBuilderOptions WithProtoBuf(this WitComServerBuilderOptions me)
         {
-            me.Serializer = new MessageSerializerProtoBuf();
+            me.ParametersSerializer = new MessageSerializerProtoBuf();
             return me;
         }
 

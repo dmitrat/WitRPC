@@ -71,7 +71,7 @@ namespace OutWit.Communication.Interceptors
 
         public async Task<object?> InterceptMethodAsync(IProxyInvocation invocation)
         {
-            var request = invocation.MethodName.CreateRequest(invocation.Parameters, Client.Serializer);
+            var request = invocation.MethodName.CreateRequest(invocation.Parameters, Client.ParametersSerializer);
 
             if (IsStrongAssemblyMatch)
             {
@@ -102,7 +102,7 @@ namespace OutWit.Communication.Interceptors
                 if(response.Data == null)
                     throw response.CreateFaultException();
                 
-                return Client.Serializer.Deserialize(response.Data, returnType);
+                return Client.ParametersSerializer.Deserialize(response.Data, returnType);
             }
             catch (Exception e)
             {
@@ -159,7 +159,7 @@ namespace OutWit.Communication.Interceptors
             if(!m_eventDelegates.TryGetValue(request.MethodName, out Delegate? handlers))
                 return;
 
-            handlers.DynamicInvoke(request.GetParameters(Client.Serializer));
+            handlers.DynamicInvoke(request.GetParameters(Client.ParametersSerializer));
         }
 
         #endregion

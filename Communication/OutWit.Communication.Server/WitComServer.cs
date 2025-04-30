@@ -27,13 +27,14 @@ namespace OutWit.Communication.Server
         #region Constructors
 
         public WitComServer(ITransportServerFactory transportFactory, IEncryptorServerFactory encryptorFactory,
-            IAccessTokenValidator tokenValidator, IMessageSerializer serializer,
+            IAccessTokenValidator tokenValidator, IMessageSerializer parametersSerializer, IMessageSerializer messageSerializer,
             IRequestProcessor requestProcessor, IDiscoveryServer? discoveryServer,
             ILogger? logger, TimeSpan? timeout, string? name, string? description)
         {
             TransportFactory = transportFactory;
             EncryptorFactory = encryptorFactory;
-            Serializer = serializer;
+            ParametersSerializer = parametersSerializer;
+            MessageSerializer = messageSerializer;
             TokenValidator = tokenValidator;
             RequestProcessor = requestProcessor;
             DiscoveryServer = discoveryServer;
@@ -42,7 +43,7 @@ namespace OutWit.Communication.Server
             Name = name;
             Description = description;
             
-            RequestProcessor.ResetSerializer(Serializer);
+            RequestProcessor.ResetSerializer(ParametersSerializer);
             
             Id = Guid.NewGuid();
             WaitForCallback = new SemaphoreSlim(1, 1);
@@ -84,7 +85,7 @@ namespace OutWit.Communication.Server
                 return message.With(x=>x.Data = null);
 
             WitComRequestInitialization? request = 
-                Serializer.Deserialize<WitComRequestInitialization>(message.Data);
+                MessageSerializer.Deserialize<WitComRequestInitialization>(message.Data);
 
             if(request == null || request.PublicKey == null)
                 return message.With(x => x.Data = null);
@@ -97,7 +98,7 @@ namespace OutWit.Communication.Server
                     Vector = connection.Encryptor.GetVector()
                 };
 
-                byte[] responseBytes = Serializer
+                byte[] responseBytes = MessageSerializer
                     .Serialize(response)
                     .EncryptRsa(request.PublicKey.ToRsaParameters());
 
@@ -130,7 +131,7 @@ namespace OutWit.Communication.Server
                 return message.With(x => x.Data = null);
 
             WitComRequestAuthorization? request =
-                Serializer.Deserialize<WitComRequestAuthorization>(message.Data);
+                MessageSerializer.Deserialize<WitComRequestAuthorization>(message.Data);
 
             if (request == null || request.Token == null)
                 return message.With(x => x.Data = null);
@@ -145,7 +146,7 @@ namespace OutWit.Communication.Server
                     Message = connection.IsAuthorized ? "Authorized" : "Forbidden"
                 };
 
-                byte[] responseBytes = Serializer.Serialize(response);
+                byte[] responseBytes = MessageSerializer.Serialize(response);
 
                 return message.With(x => x.Data = responseBytes);
             }
@@ -183,7 +184,7 @@ namespace OutWit.Communication.Server
 
         protected async Task<WitComMessage> ProcessMessage(Guid client, WitComMessage message)
         {
-            var request = message.Data.GetRequest(Serializer);
+            var request = message.Data.GetRequest(MessageSerializer);
 
             WitComResponse? response = null;
             if (request == null)
@@ -200,7 +201,7 @@ namespace OutWit.Communication.Server
             else 
                 response = await RequestProcessor.Process(request);
 
-            return message.With(x => x.Data = Serializer.Serialize(response!));
+            return message.With(x => x.Data = MessageSerializer.Serialize(response!));
         }
 
         private async Task<WitComMessage> Encrypt(Guid client, WitComMessage message)
@@ -245,7 +246,7 @@ namespace OutWit.Communication.Server
                 return;
 
             var encryptedMessage = await Encrypt(client, message);
-            var data = Serializer.Serialize(encryptedMessage);
+            var data = MessageSerializer.Serialize(encryptedMessage);
             await connection.Transport.SendBytesAsync(data);
         }
 
@@ -263,7 +264,7 @@ namespace OutWit.Communication.Server
                     };
 
                     var encryptedMessage = await Encrypt(connection.Id, message);
-                    var data = Serializer.Serialize(encryptedMessage);
+                    var data = MessageSerializer.Serialize(encryptedMessage);
                     await connection.Transport.SendBytesAsync(data);
                 }
                 catch (Exception e)
@@ -276,7 +277,7 @@ namespace OutWit.Communication.Server
 
         private void SendDiscoveryMessage(DiscoveryMessageType type)
         {
-            DiscoveryServer?.SendDiscoveryMessage(Serializer.Serialize(GetMessage(type), Logger));
+            DiscoveryServer?.SendDiscoveryMessage(MessageSerializer.Serialize(GetMessage(type), Logger));
         }
 
         private DiscoveryMessage GetMessage(DiscoveryMessageType type)
@@ -323,7 +324,7 @@ namespace OutWit.Communication.Server
 
         private async void OnDataReceived(Guid sender, byte[] data)
         {
-            await OnMessageReceived(sender, Serializer.Deserialize<WitComMessage>(data));
+            await OnMessageReceived(sender, MessageSerializer.Deserialize<WitComMessage>(data));
         }
 
         private void OnCallback(WitComRequest? request)
@@ -336,9 +337,9 @@ namespace OutWit.Communication.Server
                 await WaitForCallback.WaitAsync();
 
                 if(Timeout != null && Timeout != TimeSpan.Zero)
-                    SendCallbackAsync(Serializer.Serialize(request)).Wait(Timeout.Value);
+                    SendCallbackAsync(MessageSerializer.Serialize(request)).Wait(Timeout.Value);
                 else
-                    SendCallbackAsync(Serializer.Serialize(request)).Wait();
+                    SendCallbackAsync(MessageSerializer.Serialize(request)).Wait();
 
                 WaitForCallback.Release();
             });
@@ -373,7 +374,9 @@ namespace OutWit.Communication.Server
 
         private IEncryptorServerFactory EncryptorFactory { get; }
 
-        private IMessageSerializer Serializer { get; }
+        private IMessageSerializer ParametersSerializer { get; }
+        
+        private IMessageSerializer MessageSerializer { get; }
 
         private IAccessTokenValidator TokenValidator { get; }
 

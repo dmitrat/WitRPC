@@ -13,7 +13,7 @@ namespace OutWit.Communication.Interfaces
         public Task<WitComResponse> SendRequest(WitComRequest? request);
         
         
-        public IMessageSerializer Serializer { get; }
+        public IMessageSerializer ParametersSerializer { get; }
     }
 
     public delegate void ClientEventHandler(WitComRequest? request);

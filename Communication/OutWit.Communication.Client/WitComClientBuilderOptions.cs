@@ -17,8 +17,8 @@ namespace OutWit.Communication.Client
 
         public WitComClientBuilderOptions()
         {
-            Serializer = new MessageSerializerJson();
-            //Converter = new ValueConverterJson();
+            ParametersSerializer = new MessageSerializerJson();
+            MessageSerializer = new MessageSerializerMemoryPack();
             Encryptor = new EncryptorClientPlain();
             TokenProvider = new AccessTokenProviderPlain();
 
@@ -32,7 +32,9 @@ namespace OutWit.Communication.Client
 
         public ITransportClient? Transport { get; set; }
 
-        public IMessageSerializer Serializer { get; set; }
+        public IMessageSerializer ParametersSerializer { get; set; }
+        
+        public IMessageSerializer MessageSerializer { get; set; }
 
         public IEncryptorClient Encryptor { get; set; }
 

@@ -26,9 +26,9 @@ using Castle.DynamicProxy;
 using OutWit.Communication.Interceptors;
 using OutWit.Communication.Tests._Mock.Interfaces;
 
-namespace OutWit.Communication.Tests.Communication
+namespace OutWit.Communication.Tests
 {
-    public static class CommunicationTestsShared
+    public static class Shared
     {
         private const string AUTHORIZATION_TOKEN = "token";
 
@@ -55,6 +55,7 @@ namespace OutWit.Communication.Tests.Communication
                 new EncryptorServerFactory<EncryptorServerGeneral>(),
                 new AccessTokenValidatorStatic(AUTHORIZATION_TOKEN),
                 GetSerializer(serializerType),
+                new MessageSerializerMemoryPack(),
                 new RequestProcessor<IService>(service),
                 new DiscoveryServer(new DiscoveryServerOptions
                 {
@@ -71,6 +72,7 @@ namespace OutWit.Communication.Tests.Communication
                 new EncryptorServerFactory<EncryptorServerGeneral>(),
                 new AccessTokenValidatorStatic(AUTHORIZATION_TOKEN),
                 GetSerializer(serializerType),
+                new MessageSerializerMemoryPack(),
                 new MockRequestProcessor(),
                 new DiscoveryServer(new DiscoveryServerOptions
                 {
@@ -86,7 +88,9 @@ namespace OutWit.Communication.Tests.Communication
             return new WitComClient(GetClientTransport(transportType, testName),
                 new EncryptorClientGeneral(),
                 new AccessTokenProviderStatic(AUTHORIZATION_TOKEN),
-                GetSerializer(serializerType), null, null);
+                GetSerializer(serializerType), 
+                new MessageSerializerMemoryPack(),
+                null, null);
         }
 
 
@@ -189,7 +193,7 @@ namespace OutWit.Communication.Tests.Communication
             }
         }
 
-        private static IMessageSerializer GetSerializer(SerializerType serializerType)
+        public static IMessageSerializer GetSerializer(SerializerType serializerType)
         {
             switch (serializerType)
             {

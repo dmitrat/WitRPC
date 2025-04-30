@@ -36,17 +36,17 @@ namespace OutWit.Communication.Tests.Communication
         {
             var testName = $"{nameof(SimpleRequestsSingleClientTest)}_{transportType}_{serializerType}";
 
-            var server = CommunicationTestsShared.GetServer(transportType, serializerType, 1, testName);
+            var server = Shared.GetServer(transportType, serializerType, 1, testName);
 
             server.StartWaitingForConnection();
 
-            var client = CommunicationTestsShared.GetClient(transportType, serializerType, testName);
+            var client = Shared.GetClient(transportType, serializerType, testName);
 
             Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
             Assert.That(client.IsInitialized, Is.True);
             Assert.That(client.IsAuthorized, Is.True);
 
-            var service = CommunicationTestsShared.GetServiceDynamic(client);
+            var service = Shared.GetServiceDynamic(client);
 
             Assert.That(service.StringProperty, Is.EqualTo("TestString"));
             Assert.That(service.DoubleProperty, Is.EqualTo(1.2));
@@ -97,17 +97,17 @@ namespace OutWit.Communication.Tests.Communication
         {
             var testName = $"{nameof(SimpleRequestsSingleClientAsyncTest)}_{transportType}_{serializerType}";
 
-            var server = CommunicationTestsShared.GetServer(transportType, serializerType, 1, testName);
+            var server = Shared.GetServer(transportType, serializerType, 1, testName);
 
             server.StartWaitingForConnection();
 
-            var client = CommunicationTestsShared.GetClient(transportType, serializerType, testName);
+            var client = Shared.GetClient(transportType, serializerType, testName);
 
             Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
             Assert.That(client.IsInitialized, Is.True);
             Assert.That(client.IsAuthorized, Is.True);
 
-            var service = CommunicationTestsShared.GetServiceDynamic(client);
+            var service = Shared.GetServiceDynamic(client);
 
             Assert.That(await service.RequestDataAsync("text"), Is.EqualTo("text"));
             Assert.That(await service.GenericSimpleAsync(12, "34", 5.6), Is.EqualTo(5.6));
@@ -155,17 +155,17 @@ namespace OutWit.Communication.Tests.Communication
         {
             var testName = $"{nameof(PropertyChangedCallbackTest)}_{transportType}_{serializerType}";
 
-            var server = CommunicationTestsShared.GetServer(transportType, serializerType, 1, testName);
+            var server = Shared.GetServer(transportType, serializerType, 1, testName);
 
             server.StartWaitingForConnection();
 
-            var client = CommunicationTestsShared.GetClient(transportType, serializerType, testName);
+            var client = Shared.GetClient(transportType, serializerType, testName);
 
             Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
             Assert.That(client.IsInitialized, Is.True);
             Assert.That(client.IsAuthorized, Is.True);
 
-            var service = CommunicationTestsShared.GetServiceDynamic(client);
+            var service = Shared.GetServiceDynamic(client);
 
             int callbackCount = 0;
             service.PropertyChanged += (s, e) =>
@@ -212,17 +212,17 @@ namespace OutWit.Communication.Tests.Communication
         {
             var testName = $"{nameof(SingleSubscribeSingleClientSimpleCallbackTest)}_{transportType}_{serializerType}";
 
-            var server = CommunicationTestsShared.GetServer(transportType, serializerType, 1, testName);
+            var server = Shared.GetServer(transportType, serializerType, 1, testName);
 
             server.StartWaitingForConnection();
 
-            var client = CommunicationTestsShared.GetClient(transportType, serializerType, testName);
+            var client = Shared.GetClient(transportType, serializerType, testName);
 
             Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
             Assert.That(client.IsInitialized, Is.True);
             Assert.That(client.IsAuthorized, Is.True);
 
-            var service = CommunicationTestsShared.GetServiceDynamic(client);
+            var service = Shared.GetServiceDynamic(client);
 
             int callbackCount = 0;
             string actual = "";
@@ -272,17 +272,17 @@ namespace OutWit.Communication.Tests.Communication
         {
             var testName = $"{nameof(SingleSubscribeSingleClientSimpleCallbackAsyncTest)}_{transportType}_{serializerType}";
 
-            var server = CommunicationTestsShared.GetServer(transportType, serializerType, 1, testName);
+            var server = Shared.GetServer(transportType, serializerType, 1, testName);
 
             server.StartWaitingForConnection();
 
-            var client = CommunicationTestsShared.GetClient(transportType, serializerType, testName);
+            var client = Shared.GetClient(transportType, serializerType, testName);
 
             Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
             Assert.That(client.IsInitialized, Is.True);
             Assert.That(client.IsAuthorized, Is.True);
 
-            var service = CommunicationTestsShared.GetServiceDynamic(client);
+            var service = Shared.GetServiceDynamic(client);
 
             int callbackCount = 0;
             string actual = "";
@@ -332,17 +332,17 @@ namespace OutWit.Communication.Tests.Communication
         {
             var testName = $"{nameof(SingleSubscribeComplexTypeSingleClientCallbackTest)}_{transportType}_{serializerType}";
 
-            var server = CommunicationTestsShared.GetServer(transportType, serializerType, 1, testName);
+            var server = Shared.GetServer(transportType, serializerType, 1, testName);
 
             server.StartWaitingForConnection();
 
-            var client = CommunicationTestsShared.GetClient(transportType, serializerType, testName);
+            var client = Shared.GetClient(transportType, serializerType, testName);
 
             Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
             Assert.That(client.IsInitialized, Is.True);
             Assert.That(client.IsAuthorized, Is.True);
 
-            var service = CommunicationTestsShared.GetServiceDynamic(client);
+            var service = Shared.GetServiceDynamic(client);
             
             int callbackCount = 0;
             ComplexNumber<int, int>? actualNum = null;
@@ -398,17 +398,17 @@ namespace OutWit.Communication.Tests.Communication
         {
             var testName = $"{nameof(SingleSubscribeComplexTypeSingleClientCallbackAsyncTest)}_{transportType}_{serializerType}";
 
-            var server = CommunicationTestsShared.GetServer(transportType, serializerType, 1, testName);
+            var server = Shared.GetServer(transportType, serializerType, 1, testName);
 
             server.StartWaitingForConnection();
 
-            var client = CommunicationTestsShared.GetClient(transportType, serializerType, testName);
+            var client = Shared.GetClient(transportType, serializerType, testName);
 
             Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
             Assert.That(client.IsInitialized, Is.True);
             Assert.That(client.IsAuthorized, Is.True);
 
-            var service = CommunicationTestsShared.GetServiceDynamic(client);
+            var service = Shared.GetServiceDynamic(client);
             
             int callbackCount = 0;
             ComplexNumber<int, int>? actualNum = null;
@@ -459,26 +459,26 @@ namespace OutWit.Communication.Tests.Communication
         {
             var testName = $"{nameof(MultiSubscribeMultiClientsCallbackTest)}_{transportType}_{serializerType}";
 
-            var server = CommunicationTestsShared.GetServer(transportType, serializerType, 5, testName);
+            var server = Shared.GetServer(transportType, serializerType, 5, testName);
 
             server.StartWaitingForConnection();
 
-            var client1 = CommunicationTestsShared.GetClient(transportType, serializerType, testName);
+            var client1 = Shared.GetClient(transportType, serializerType, testName);
 
             Assert.That(await client1.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
             Assert.That(client1.IsInitialized, Is.True);
             Assert.That(client1.IsAuthorized, Is.True);
 
-            var service1 = CommunicationTestsShared.GetServiceDynamic(client1);
+            var service1 = Shared.GetServiceDynamic(client1);
 
 
-            var client2 = CommunicationTestsShared.GetClient(transportType, serializerType, testName);
+            var client2 = Shared.GetClient(transportType, serializerType, testName);
 
             Assert.That(await client2.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
             Assert.That(client2.IsInitialized, Is.True);
             Assert.That(client2.IsAuthorized, Is.True);
 
-            var service2 = CommunicationTestsShared.GetServiceDynamic(client1);
+            var service2 = Shared.GetServiceDynamic(client1);
 
             int callbackFirstCount = 0;
             int callbackSecondCount = 0;
@@ -543,26 +543,26 @@ namespace OutWit.Communication.Tests.Communication
         {
             var testName = $"{nameof(MultiSubscribeMultiClientsCallbackAsyncTest)}_{transportType}_{serializerType}";
 
-            var server = CommunicationTestsShared.GetServer(transportType, serializerType, 5, testName);
+            var server = Shared.GetServer(transportType, serializerType, 5, testName);
 
             server.StartWaitingForConnection();
 
-            var client1 = CommunicationTestsShared.GetClient(transportType, serializerType, testName);
+            var client1 = Shared.GetClient(transportType, serializerType, testName);
 
             Assert.That(await client1.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
             Assert.That(client1.IsInitialized, Is.True);
             Assert.That(client1.IsAuthorized, Is.True);
 
-            var service1 = CommunicationTestsShared.GetServiceDynamic(client1);
+            var service1 = Shared.GetServiceDynamic(client1);
 
 
-            var client2 = CommunicationTestsShared.GetClient(transportType, serializerType, testName);
+            var client2 = Shared.GetClient(transportType, serializerType, testName);
 
             Assert.That(await client2.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
             Assert.That(client2.IsInitialized, Is.True);
             Assert.That(client2.IsAuthorized, Is.True);
 
-            var service2 = CommunicationTestsShared.GetServiceDynamic(client1);
+            var service2 = Shared.GetServiceDynamic(client1);
 
             int callbackFirstCount = 0;
             int callbackSecondCount = 0;

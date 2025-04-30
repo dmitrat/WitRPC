@@ -27,10 +27,11 @@ namespace OutWit.Communication.Client
         #region Constructors
 
         public WitComClient(ITransportClient transport, IEncryptorClient encryptor, IAccessTokenProvider tokenProvider,
-            IMessageSerializer serializer, ILogger? logger, TimeSpan? timeout)
+            IMessageSerializer parametersSerializer, IMessageSerializer messageSerializer, ILogger? logger, TimeSpan? timeout)
         {
             Transport = transport;
-            Serializer = serializer;
+            ParametersSerializer = parametersSerializer;
+            MessageSerializer = messageSerializer;
             Encryptor = encryptor;
             TokenProvider = tokenProvider;
             Logger = logger;
@@ -72,7 +73,7 @@ namespace OutWit.Communication.Client
             {
                 Id = Guid.NewGuid(),
                 Type = WitComMessageType.Initialization,
-                Data = Serializer.Serialize(new WitComRequestInitialization
+                Data = MessageSerializer.Serialize(new WitComRequestInitialization
                 {
                     PublicKey = Encryptor.GetPublicKey()
                 })
@@ -84,7 +85,7 @@ namespace OutWit.Communication.Client
 
             byte[] dataDecrypted = await Encryptor.DecryptRsa(responseMessage.Data);
             WitComResponseInitialization? response =
-                Serializer.Deserialize<WitComResponseInitialization>(dataDecrypted);
+                MessageSerializer.Deserialize<WitComResponseInitialization>(dataDecrypted);
 
             if (response == null || response.SymmetricKey == null || response.Vector == null)
             {
@@ -113,7 +114,7 @@ namespace OutWit.Communication.Client
             {
                 Id = Guid.NewGuid(),
                 Type = WitComMessageType.Authorization,
-                Data = Serializer.Serialize(new WitComRequestAuthorization
+                Data = MessageSerializer.Serialize(new WitComRequestAuthorization
                 {
                     Token = TokenProvider.GetToken()
                 })
@@ -127,7 +128,7 @@ namespace OutWit.Communication.Client
             }
 
             WitComResponseAuthorization? response =
-                Serializer.Deserialize<WitComResponseAuthorization>(responseMessage.Data);
+                MessageSerializer.Deserialize<WitComResponseAuthorization>(responseMessage.Data);
 
             if (response == null)
             {
@@ -200,7 +201,7 @@ namespace OutWit.Communication.Client
             {
                 Id = Guid.NewGuid(),
                 Type = WitComMessageType.Request,
-                Data = Serializer.Serialize(request)
+                Data = MessageSerializer.Serialize(request)
             };
 
             WitComMessage? messageResponse = null;
@@ -217,7 +218,7 @@ namespace OutWit.Communication.Client
 
             try
             {
-                return (messageResponse?.Data).GetResponse(Serializer);
+                return (messageResponse?.Data).GetResponse(MessageSerializer);
             }
             catch (Exception e)
             {
@@ -242,7 +243,7 @@ namespace OutWit.Communication.Client
             try
             {
                 var encryptedMessage = await Encrypt(message);
-                byte[] data = Serializer.Serialize(encryptedMessage);
+                byte[] data = MessageSerializer.Serialize(encryptedMessage);
 
                 await Transport.SendBytesAsync(data);
 
@@ -325,7 +326,7 @@ namespace OutWit.Communication.Client
             var decryptedMessage = await Decrypt(message);
 
             if (message.Type == WitComMessageType.Callback)
-                CallbackReceived(decryptedMessage.Data.GetRequest(Serializer));
+                CallbackReceived(decryptedMessage.Data.GetRequest(MessageSerializer));
 
             else
             {
@@ -335,7 +336,7 @@ namespace OutWit.Communication.Client
 
         private async void OnDataReceived(Guid sender, byte[] data)
         {
-            await OnMessageReceived(Serializer.Deserialize<WitComMessage>(data));
+            await OnMessageReceived(MessageSerializer.Deserialize<WitComMessage>(data));
         }
 
         private void OnServerDisconnected(Guid sender)
@@ -365,7 +366,9 @@ namespace OutWit.Communication.Client
 
         private ITransportClient Transport { get; }
 
-        public IMessageSerializer Serializer { get; }
+        public IMessageSerializer ParametersSerializer { get; }
+        
+        public IMessageSerializer MessageSerializer { get; }
 
         private IEncryptorClient Encryptor { get; }
 

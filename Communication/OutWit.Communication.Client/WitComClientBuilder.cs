@@ -20,7 +20,7 @@ namespace OutWit.Communication.Client
             if (options.Transport == null)
                 throw new WitComException("Transport cannot be empty");
 
-            return new WitComClient(options.Transport, options.Encryptor, options.TokenProvider, options.Serializer,
+            return new WitComClient(options.Transport, options.Encryptor, options.TokenProvider, options.ParametersSerializer, options.MessageSerializer,
                 options.Logger, options.Timeout);
         }
 
@@ -92,10 +92,17 @@ namespace OutWit.Communication.Client
         #endregion
 
         #region Serialization
-        
-        public static WitComClientBuilderOptions WithSerializer(this WitComClientBuilderOptions me, IMessageSerializer serializer)
+
+        public static WitComClientBuilderOptions WithMessageSerializer(this WitComClientBuilderOptions me, IMessageSerializer serializer)
         {
-            me.Serializer = serializer;
+            me.MessageSerializer = serializer;
+            return me;
+        }
+
+
+        public static WitComClientBuilderOptions WithParametersSerializer(this WitComClientBuilderOptions me, IMessageSerializer serializer)
+        {
+            me.ParametersSerializer = serializer;
             return me;
         }
 
@@ -108,7 +115,7 @@ namespace OutWit.Communication.Client
 
         public static WitComClientBuilderOptions WithJson(this WitComClientBuilderOptions me)
         {
-            me.Serializer = new MessageSerializerJson();
+            me.ParametersSerializer = new MessageSerializerJson();
             return me;
         }
 
@@ -120,7 +127,7 @@ namespace OutWit.Communication.Client
 
         public static WitComClientBuilderOptions WithMessagePack(this WitComClientBuilderOptions me)
         {
-            me.Serializer = new MessageSerializerMessagePack();
+            me.ParametersSerializer = new MessageSerializerMessagePack();
             return me;
         }
 
@@ -132,7 +139,7 @@ namespace OutWit.Communication.Client
 
         public static WitComClientBuilderOptions WithMemoryPack(this WitComClientBuilderOptions me)
         {
-            me.Serializer = new MessageSerializerMemoryPack();
+            me.ParametersSerializer = new MessageSerializerMemoryPack();
             return me;
         }
 
@@ -144,7 +151,7 @@ namespace OutWit.Communication.Client
 
         public static WitComClientBuilderOptions WithProtoBuf(this WitComClientBuilderOptions me)
         {
-            me.Serializer = new MessageSerializerProtoBuf();
+            me.ParametersSerializer = new MessageSerializerProtoBuf();
             return me;
         }
 

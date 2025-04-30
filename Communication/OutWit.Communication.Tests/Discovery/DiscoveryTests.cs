@@ -102,6 +102,7 @@ namespace OutWit.Communication.Tests.Discovery
                 new EncryptorServerFactory<EncryptorServerGeneral>(),
                 new AccessTokenValidatorStatic(AUTHORIZATION_TOKEN),
                 new MessageSerializerJson(),
+                new MessageSerializerMemoryPack(),
                 new RequestProcessor<IService>(service),
                 new DiscoveryServer(new DiscoveryServerOptions
                 {

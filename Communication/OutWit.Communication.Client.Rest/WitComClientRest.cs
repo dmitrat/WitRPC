@@ -26,7 +26,7 @@ namespace OutWit.Communication.Client.Rest
                 throw new WitComException("Url cannot be empty");
 
             Options = options;
-            Serializer = new MessageSerializerJson();
+            ParametersSerializer = new MessageSerializerJson();
             TokenProvider = tokenProvider;
             //Converter = new ValueConverterJson();
 
@@ -59,7 +59,7 @@ namespace OutWit.Communication.Client.Rest
 
         public RestClientTransportOptions Options { get; }
 
-        public IMessageSerializer Serializer { get; }
+        public IMessageSerializer ParametersSerializer { get; }
 
         public IAccessTokenProvider TokenProvider { get; }
 
