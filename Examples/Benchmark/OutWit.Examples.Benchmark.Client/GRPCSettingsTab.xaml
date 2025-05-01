@@ -5,11 +5,150 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800">
 
+    <TabItem.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibility"/>
+    </TabItem.Resources>
+
     <TabItem.Header>
-            <TextBlock Text="gRPC" FontWeight="Bold"/>
+        <TextBlock Text="gRPC" FontWeight="Bold"/>
     </TabItem.Header>
 
     <Grid>
-        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="gRPC Client Settings" FontSize="14" FontWeight="Medium" HorizontalAlignment="Center" Margin="0 10 0 10"/>
+
+        <Grid Grid.Row="1" Margin="10 0 10 0"
+            IsEnabled="{Binding GRPCVm.CanConnectClient, Mode=OneWay}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Transport:"/>
+            <ComboBox Grid.Row="1" Grid.Column="0" ItemsSource="{Binding GRPCVm.TransportTypes}"
+                    SelectedItem="{Binding GRPCVm.TransportType, Mode=TwoWay}"/>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Serializer:"/>
+            <ComboBox Grid.Row="4" Grid.Column="0" ItemsSource="{Binding GRPCVm.SerializerTypes}"
+                    SelectedItem="{Binding GRPCVm.SerializerType, Mode=TwoWay}"/>
+
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="Pipe Name:"
+                     Visibility="{Binding GRPCVm.IsNamedPipe, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
+            <TextBox Grid.Row="7" Grid.Column="0" Text="{Binding GRPCVm.PipeName, Mode=TwoWay}"
+                   Visibility="{Binding GRPCVm.IsNamedPipe, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
+
+
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="Http Port:"
+                     Visibility="{Binding GRPCVm.IsHttp, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
+            <TextBox Grid.Row="7" Grid.Column="0" Text="{Binding GRPCVm.HttpPort, Mode=TwoWay}"
+                   Visibility="{Binding GRPCVm.IsHttp, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
+
+
+            <TextBlock Grid.Row="9" Grid.Column="0" Text="Http Path:"
+                     Visibility="{Binding GRPCVm.IsHttp, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
+            <TextBox Grid.Row="10" Grid.Column="0" Text="{Binding GRPCVm.HttpPath, Mode=TwoWay}"
+                   Visibility="{Binding GRPCVm.IsHttp, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
+
+        </Grid>
+
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="30"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="1" Content="Connect Client" Padding="10"
+                  IsEnabled="{Binding  GRPCVm.CanConnectClient, Mode=OneWay}"
+                  Command="{Binding GRPCVm.ConnectClientCmd}"/>
+
+            <Button Grid.Column="3" Content="Disconnect Client" Padding="10"
+                  IsEnabled="{Binding  GRPCVm.CanDisconnectClient, Mode=OneWay}"
+                  Command="{Binding GRPCVm.DisconnectClientCmd}"/>
+
+        </Grid>
+
+        <Grid Grid.Row="5"
+            IsEnabled="{Binding GRPCVm.CanDisconnectClient, Mode=OneWay}">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Benchmark Attempts:"/>
+            <TextBox Grid.Row="1" Grid.Column="0" Text="{Binding GRPCVm.BenchmarkAttempts, Mode=TwoWay}"/>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Data Size:"/>
+            <TextBox Grid.Row="4" Grid.Column="0" Text="{Binding GRPCVm.DataSize, Mode=TwoWay}"/>
+
+            <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="3" Content="One Way Benchmark" Padding="5"
+                  Command="{Binding GRPCVm.OneWayBenchmarkCmd}"/>
+
+            <Button Grid.Row="3" Grid.RowSpan="2" Grid.Column="3" Content="Two Ways Benchmark" Padding="5"
+                  Command="{Binding GRPCVm.TwoWaysBenchmarkCmd}"/>
+
+            <ListView Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="6" BorderThickness="0"
+                    ItemsSource="{Binding GRPCVm.BenchmarkResults, Mode=OneWay}">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Benchmark" DisplayMemberBinding="{Binding Name}" />
+                        <GridViewColumn Header="TimestampMs" DisplayMemberBinding="{Binding DurationMs, StringFormat={}{0:0.0000}}"/>
+                        <GridViewColumn Header="Transport" DisplayMemberBinding="{Binding Transport}"/>
+                        <GridViewColumn Header="Serializer" DisplayMemberBinding="{Binding Serializer}"/>
+                        <GridViewColumn Header="Success" DisplayMemberBinding="{Binding Success}"/>
+                    </GridView>
+                </ListView.View>
+
+            </ListView>
+
+            <Button Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="6" Padding="10" Content="Export..." Width="100" HorizontalAlignment="Right"
+                  Command="{Binding  GRPCVm.ExportCsvCmd}"/>
+
+        </Grid>
+
     </Grid>
 </TabItem>

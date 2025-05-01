@@ -15,10 +15,14 @@
 		<PackageReference Include="CoreWCF.NetTcp" Version="1.7.0" />
 		<PackageReference Include="Microsoft.AspNetCore" Version="2.3.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.3.0" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="8.0.15" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.Json" Version="8.0.15" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="8.0.15" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
 		<PackageReference Include="OutWit.Common.Logging" Version="1.0.3" />
 		<PackageReference Include="OutWit.Common.MVVM" Version="1.0.1" />
+		<PackageReference Include="protobuf-net.Grpc.AspNetCore" Version="1.2.2" />
 	</ItemGroup>
 
 	<ItemGroup>

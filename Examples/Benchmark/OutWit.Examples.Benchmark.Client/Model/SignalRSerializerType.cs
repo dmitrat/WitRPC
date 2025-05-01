@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OutWit.Examples.Benchmark.Server.Model
+namespace OutWit.Examples.Benchmark.Client.Model
 {
-    public enum WCFSerializerType
+    public enum SignalRSerializerType
     {
-        DataContract,
+        MessagePack,
+        Json
     }
 }

@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace OutWit.Examples.Benchmark.Server.Model
 {
-    public enum WCFSerializerType
+    public enum SignalRSerializerType
     {
-        DataContract,
+        MessagePack,
+        Json
     }
 }

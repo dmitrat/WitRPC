@@ -1,13 +1,12 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Net;
-using System.Windows.Input;
-using CoreWCF;
-using CoreWCF.Configuration;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
 using OutWit.Common.Aspects;
+using System.Windows.Input;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http.Connections;
+using Microsoft.Extensions.DependencyInjection;
 using OutWit.Common.Aspects.Utils;
 using OutWit.Common.MVVM.Commands;
 using OutWit.Common.MVVM.ViewModels;
@@ -16,10 +15,15 @@ using OutWit.Examples.Benchmark.Server.Model;
 using OutWit.Examples.Benchmark.Server.Utils;
 using OutWit.Examples.Contracts;
 using OutWit.Examples.Services;
+using Microsoft.AspNetCore.SignalR;
+using CoreWCF.Configuration;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using OutWit.Common.Serialization;
+using ProtoBuf.Grpc.Server;
 
 namespace OutWit.Examples.Benchmark.Server.ViewModels
-{
-    public class WCFViewModel : ViewModelBase<ApplicationViewModel>
+{   
+    public class GRPCViewModel : ViewModelBase<ApplicationViewModel>
     {
         #region Constants
 
@@ -29,15 +33,13 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
 
         private const string DEFAULT_HTTP_PATH = "api";
 
-        private const int DEFAULT_TCP_PORT = 8081;
-
         private const int DEFAULT_HTTP_PORT = 8082;
 
         #endregion
 
         #region Constructors
 
-        public WCFViewModel(ApplicationViewModel applicationVm) 
+        public GRPCViewModel(ApplicationViewModel applicationVm)
             : base(applicationVm)
         {
             InitDefaults();
@@ -55,26 +57,24 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
 
             TransportTypes =
             [
-                WCFTransportType.HTTP,
-                WCFTransportType.NamedPipe,
-                WCFTransportType.TCP
+                GRPCTransportType.HTTP,
+                GRPCTransportType.NamedPipe,
             ];
 
-            TransportType = WCFTransportType.HTTP;
+            TransportType = GRPCTransportType.HTTP;
 
             SerializerTypes =
             [
-                WCFSerializerType.DataContract,
+                GRPCSerializerType.ProtoBuf,
             ];
 
-            SerializerType = WCFSerializerType.DataContract;
+            SerializerType = GRPCSerializerType.ProtoBuf;
 
             UseEncryption = true;
             UseAuthorization = true;
             AuthorizationToken = DEFAULT_TOKEN;
 
             PipeName = DEFAULT_PIPE_NAME;
-            TcpPort = DEFAULT_TCP_PORT;
             HttpPort = DEFAULT_HTTP_PORT;
             HttpPath = DEFAULT_HTTP_PATH;
 
@@ -97,77 +97,55 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
             ResetPipeNameCmd = new DelegateCommand(x => ResetPipeName());
             ResetHttpPathCmd = new DelegateCommand(x => ResetWebSocketPath());
             ResetHttpPortCmd = new DelegateCommand(x => ResetWebSocketPort());
-            ResetTcpPortCmd = new DelegateCommand(x => ResetTcpPort());
         }
 
         #endregion
 
         #region Functions
 
-        private void StartServer()
+        private async void StartServer()
         {
-            if(!CanStartServer)
+            if (!CanStartServer)
                 return;
 
-            Server = Host.CreateDefaultBuilder()
-                .ConfigureWebHostDefaults(webBuilder =>
+            try
             {
-                if(IsHttp)
-                    webBuilder.UseKestrel(options => options.ListenLocalhost(HttpPort));
-                else if (IsTcp)
-                    webBuilder.UseNetTcp(options => options.Listen($"net.tcp://localhost:{TcpPort}"));
-                else if(IsNamedPipe)
-                    webBuilder.UseNetNamedPipe(options=>options.Listen($"net.pipe://localhost/{PipeName}"));
-
-                webBuilder.ConfigureServices(services =>
+                var builder = WebApplication.CreateBuilder();
+                builder.Services.AddCodeFirstGrpc(options =>
                 {
-                    services.AddServiceModelServices();
+                    options.MaxReceiveMessageSize = 64 * 1024 * 1024;
+                    options.MaxSendMessageSize = 64 * 1024 * 1024;
+                });
+                builder.WebHost.ConfigureKestrel(opts =>
+                {
+                    if (IsHttp)
+                        opts.ListenLocalhost(HttpPort, lo => lo.Protocols = HttpProtocols.Http2);
+                    else if (IsNamedPipe)
+                        opts.ListenNamedPipe(PipeName!, lo => lo.Protocols = HttpProtocols.Http2);
                 });
 
-                webBuilder.Configure(app =>
-                {
-                    app.UseServiceModel(serviceBuilder =>
-                    {
-                        serviceBuilder.AddService<BenchmarkService>();
+                Server = builder.Build();
+                Server.MapGrpcService<BenchmarkService>();
 
-                        if(IsHttp)
-                            serviceBuilder.AddServiceEndpoint<BenchmarkService, IBenchmarkService>(
-                                new BasicHttpBinding
-                                {
-                                    MaxReceivedMessageSize = 10*1024*1024
-                                }, $"/{HttpPath}");
+                await Server.StartAsync();
 
+                CanStartServer = false;
+                CanStopServer = true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
 
-                        if (IsTcp)
-                            serviceBuilder.AddServiceEndpoint<BenchmarkService, IBenchmarkService>(
-                                new NetTcpBinding
-                                {
-                                    MaxReceivedMessageSize = 10 * 1024 * 1024
-                                }, $"net.tcp://localhost:{TcpPort}");
-
-                        if (IsNamedPipe)
-                            serviceBuilder.AddServiceEndpoint<BenchmarkService, IBenchmarkService>(
-                                new NetNamedPipeBinding
-                                {
-                                    MaxReceivedMessageSize = 10 * 1024 * 1024
-                                }, $"net.pipe://localhost/{PipeName}");
-                    });
-                });
-            }).Build();
-
-
-            Server.StartAsync();
-
-            CanStartServer = false;
-            CanStopServer = true;
+          
         }
 
         private async void StopServer()
         {
-            if(!CanStopServer)
+            if (!CanStopServer)
                 return;
 
-            if(Server != null)
+            if (Server != null)
                 await Server.StopAsync();
 
             Server = null;
@@ -191,11 +169,6 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
             HttpPort = NetworkUtils.NextFreePort();
         }
 
-        private void ResetTcpPort()
-        {
-            TcpPort = NetworkUtils.NextFreePort();
-        }
-
         private void ResetAuthorizationToken()
         {
             AuthorizationToken = RandomUtils.RandomString();
@@ -203,9 +176,8 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
 
         private void UpdateStatus()
         {
-            IsNamedPipe = TransportType == WCFTransportType.NamedPipe;
-            IsTcp = TransportType == WCFTransportType.TCP;
-            IsHttp = TransportType == WCFTransportType.HTTP;
+            IsNamedPipe = TransportType == GRPCTransportType.NamedPipe;
+            IsHttp = TransportType == GRPCTransportType.HTTP;
         }
 
         #endregion
@@ -214,7 +186,7 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
 
         private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if(e.IsProperty((WitComViewModel vm)=>vm.TransportType))
+            if (e.IsProperty((WitComViewModel vm) => vm.TransportType))
                 UpdateStatus();
         }
 
@@ -222,23 +194,20 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
 
         #region Properties
 
-        [Notify] 
-        public IReadOnlyList<WCFTransportType> TransportTypes { get; private set; } = null!;
+        [Notify]
+        public IReadOnlyList<GRPCTransportType> TransportTypes { get; private set; } = null!;
 
         [Notify]
-        public WCFTransportType? TransportType { get; set; }
-
-        [Notify] 
-        public IReadOnlyList<WCFSerializerType> SerializerTypes { get; private set; } = null!;
+        public GRPCTransportType? TransportType { get; set; }
 
         [Notify]
-        public WCFSerializerType? SerializerType { get; set; }
+        public IReadOnlyList<GRPCSerializerType> SerializerTypes { get; private set; } = null!;
+
+        [Notify]
+        public GRPCSerializerType? SerializerType { get; set; }
 
         [Notify]
         public string? PipeName { get; set; }
-
-        [Notify]
-        public int TcpPort { get; set; }
 
         [Notify]
         public int HttpPort { get; set; }
@@ -265,12 +234,9 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
         public bool IsNamedPipe { get; private set; }
 
         [Notify]
-        public bool IsTcp { get; private set; }
-
-        [Notify]
         public bool IsHttp { get; private set; }
 
-        private IHost? Server { get; set; }
+        private WebApplication? Server { get; set; }
 
         private IBenchmarkService Service { get; set; } = null!;
 
@@ -278,7 +244,7 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
 
         #region Commands
 
-        [Notify] 
+        [Notify]
         public ICommand StartServerCmd { get; private set; } = null!;
 
         [Notify]
@@ -292,9 +258,6 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
 
         [Notify]
         public ICommand ResetHttpPortCmd { get; private set; } = null!;
-
-        [Notify]
-        public ICommand ResetTcpPortCmd { get; private set; } = null!;
 
         #endregion
     }

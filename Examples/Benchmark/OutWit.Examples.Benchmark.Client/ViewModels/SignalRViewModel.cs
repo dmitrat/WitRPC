@@ -5,10 +5,16 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Security.Policy;
+using System.ServiceModel;
+using System.ServiceModel.Channels;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using CsvHelper;
+using Microsoft.AspNetCore.Http.Connections;
+using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.Win32;
 using OutWit.Common.Aspects;
 using OutWit.Common.Aspects.Utils;
@@ -20,7 +26,6 @@ using OutWit.Communication.Client;
 using OutWit.Communication.Client.MMF.Utils;
 using OutWit.Communication.Client.Pipes.Utils;
 using OutWit.Communication.Client.Tcp.Utils;
-using OutWit.Communication.Client.WebSocket.Utils;
 using OutWit.Examples.Benchmark.Client.Model;
 using OutWit.Examples.Benchmark.Client.Utils;
 using OutWit.Examples.Contracts;
@@ -28,21 +33,15 @@ using OutWit.Examples.Contracts.Utils;
 
 namespace OutWit.Examples.Benchmark.Client.ViewModels
 {
-    public class WitComViewModel: ViewModelBase<ApplicationViewModel>
+    public class SignalRViewModel : ViewModelBase<ApplicationViewModel>
     {
         #region Constants
 
         private const string DEFAULT_TOKEN = "Token";
 
-        private const string DEFAULT_MEMORY_MAPPED_FILE_NAME = "mmf";
+        private const string DEFAULT_HTTP_PATH = "api";
 
-        private const string DEFAULT_PIPE_NAME = "np";
-
-        private const string DEFAULT_WEB_SOCKET_PATH = "api";
-
-        private const int DEFAULT_TCP_PORT = 8081;
-
-        private const int DEFAULT_WEB_SOCKET_PORT = 8082;
+        private const int DEFAULT_HTTP_PORT = 8082;
 
         private const int DEFAULT_BENCHMARK_ATTEMPTS = 50;
 
@@ -52,7 +51,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
         #region Constructors
 
-        public WitComViewModel(ApplicationViewModel applicationVm) 
+        public SignalRViewModel(ApplicationViewModel applicationVm) 
             : base(applicationVm)
         {
             InitDefaults();
@@ -70,33 +69,27 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
             TransportTypes =
             [
-                WitComTransportType.MemoryMappedFile,
-                WitComTransportType.NamedPipe,
-                WitComTransportType.TCP,
-                WitComTransportType.WebSocket
+                SignalRTransportType.WebSockets,
+                SignalRTransportType.ServerSentEvents,
+                SignalRTransportType.LongPolling,
             ];
 
-            TransportType = WitComTransportType.MemoryMappedFile;
+            TransportType = SignalRTransportType.WebSockets;
 
             SerializerTypes =
             [
-                WitComSerializerType.Json,
-                WitComSerializerType.MessagePack,
-                WitComSerializerType.MemoryPack,
-                WitComSerializerType.ProtoBuf
+                SignalRSerializerType.MessagePack,
+                SignalRSerializerType.Json,
             ];
 
-            SerializerType = WitComSerializerType.Json;
+            SerializerType = SignalRSerializerType.MessagePack;
 
             UseEncryption = true;
             UseAuthorization = true;
             AuthorizationToken = DEFAULT_TOKEN;
 
-            MemoryMappedFileName = DEFAULT_MEMORY_MAPPED_FILE_NAME;
-            PipeName = DEFAULT_PIPE_NAME;
-            TcpPort = DEFAULT_TCP_PORT;
-            WebSocketPort = DEFAULT_WEB_SOCKET_PORT;
-            WebSocketPath = DEFAULT_WEB_SOCKET_PATH;
+            HttpPort = DEFAULT_HTTP_PORT;
+            HttpPath = DEFAULT_HTTP_PATH;
 
             BenchmarkAttempts = DEFAULT_BENCHMARK_ATTEMPTS;
             DataSize = DEFAULT_DATA_SIZE;
@@ -131,79 +124,67 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
             if(!CanConnectClient)
                 return;
 
-            var options = new WitComClientBuilderOptions();
-            if(UseEncryption)
-                options.WithEncryption();
-            else
-                options.WithoutEncryption();
-
-            if (UseAuthorization && !string.IsNullOrEmpty(AuthorizationToken))
-                options.WithAccessToken(AuthorizationToken);
-            else
-                options.WithoutAuthorization();
-
-            options.WithTimeout(TimeSpan.FromMinutes(1));
+            var builder = new HubConnectionBuilder()
+                .WithUrl($"http://localhost:{HttpPort}/{HttpPath}", options =>
+                {
+                    switch (TransportType)
+                    {
+                        case SignalRTransportType.WebSockets:
+                            options.Transports = HttpTransportType.WebSockets; 
+                            break;
+                        case SignalRTransportType.LongPolling:
+                            options.Transports = HttpTransportType.LongPolling; 
+                            break;
+                        case SignalRTransportType.ServerSentEvents:
+                            options.Transports = HttpTransportType.ServerSentEvents; 
+                            break;
+                    }
+                });
 
             switch (SerializerType)
             {
-                case WitComSerializerType.Json:
-                    options.WithJson();
+                case SignalRSerializerType.Json:
+                    builder.AddJsonProtocol();
                     break;
-
-                case WitComSerializerType.MessagePack:
-                    options.WithMessagePack();
-                    break;
-
-                case WitComSerializerType.MemoryPack:
-                    options.WithMemoryPack();
-                    break;
-
-                case WitComSerializerType.ProtoBuf:
-                    options.WithProtoBuf();
+                case SignalRSerializerType.MessagePack:
+                    builder.AddMessagePackProtocol();
                     break;
             }
 
-            switch (TransportType)
+            try
             {
-                case WitComTransportType.MemoryMappedFile:
-                    if(!string.IsNullOrEmpty(MemoryMappedFileName))
-                        options.WithMemoryMappedFile(MemoryMappedFileName);
-                    break;
+                Service = builder.Build();
 
-                case WitComTransportType.NamedPipe:
-                    if (!string.IsNullOrEmpty(PipeName))
-                        options.WithNamedPipe(PipeName);
-                    break;
+                Service.Closed += OnServiceClosed;
+                
+                await Service.StartAsync();
 
-                case WitComTransportType.TCP:
-                    options.WithTcp("localhost", TcpPort);
-                    break;
-
-
-                case WitComTransportType.WebSocket:
-                    options.WithWebSocket($"ws://localhost:{WebSocketPort}/{WebSocketPath}");
-                    break;
+                CanConnectClient = false;
+                CanDisconnectClient = true;
             }
+            catch (Exception e)
+            {
+                
+                
+            }
+    
 
-            if(options.Transport == null)
-                return;
-
-            Client = WitComClientBuilder.Build(options);
-            await Client.ConnectAsync(TimeSpan.FromSeconds(1), CancellationToken.None);
-
-            Service = Client.GetService<IBenchmarkService>();
-
-            CanConnectClient = false;
-            CanDisconnectClient = true;
+          
         }
+
 
         private void DisconnectClient()
         {
             if(!CanDisconnectClient)
                 return;
 
-            Client?.Disconnect();
-            Client = null;
+            if (Service != null)
+            {
+                Service.StopAsync().Wait();
+                Service.DisposeAsync();
+            }
+
+            Service = null;
 
             CanConnectClient = true;
             CanDisconnectClient = false;
@@ -227,7 +208,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
                 {
                     var start = DateTime.Now;
 
-                    var result = await Service.OneWayBenchmark(data);
+                    var result = await Service.InvokeAsync<long>("OneWayBenchmark", data);
 
                     var end = DateTime.Now;
 
@@ -247,8 +228,6 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
                             Success = result == hash
                         });
                     });
-                    
-                    Thread.Sleep(100);
                 }
                 catch (Exception e)
                 {
@@ -277,7 +256,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
                 {
                     var start = DateTime.Now;
 
-                    var result = await Service.TwoWaysBenchmark(data);
+                    var result = await Service.InvokeAsync<byte[]>("TwoWaysBenchmark", data);
 
                     var end = DateTime.Now;
 
@@ -297,8 +276,6 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
                             Success = data.Is(result)
                         });
                     });
-
-                    Thread.Sleep(100);
                 }
                 catch (Exception e)
                 {
@@ -328,21 +305,13 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
         private string BuildFileName()
         {
-            var fileName = $"WitCom_{TransportType}_{SerializerType}_{BenchmarkResults.FirstOrDefault()?.Name}";
-            if (UseEncryption)
-                fileName = $"{fileName}_Encryption";
-            if (UseAuthorization)
-                fileName = $"{fileName}_Authorization";
+            var fileName = $"SignalR_{TransportType}_{SerializerType}_{BenchmarkResults.FirstOrDefault()?.Name}";
             return $"{fileName}.csv";
-            
-        }
 
+        }
+        
         private void UpdateStatus()
         {
-            IsMemoryMappedFile = TransportType == WitComTransportType.MemoryMappedFile;
-            IsNamedPipe = TransportType == WitComTransportType.NamedPipe;
-            IsTcp = TransportType == WitComTransportType.TCP;
-            IsWebSocket = TransportType == WitComTransportType.WebSocket;
         }
 
         #endregion
@@ -355,39 +324,36 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
                 UpdateStatus();
         }
 
+
+        private async Task OnServiceClosed(Exception? arg)
+        {
+            Console.WriteLine(arg);
+        }
+
         #endregion
 
         #region Properties
 
         [Notify] 
-        public IReadOnlyList<WitComTransportType> TransportTypes { get; private set; } = null!;
+        public IReadOnlyList<SignalRTransportType> TransportTypes { get; private set; } = null!;
 
         [Notify]
-        public WitComTransportType? TransportType { get; set; }
+        public SignalRTransportType? TransportType { get; set; }
 
         [Notify] 
-        public IReadOnlyList<WitComSerializerType> SerializerTypes { get; private set; } = null!;
+        public IReadOnlyList<SignalRSerializerType> SerializerTypes { get; private set; } = null!;
 
         [Notify]
-        public WitComSerializerType? SerializerType { get; set; }
+        public SignalRSerializerType? SerializerType { get; set; }
 
         [Notify]
         public ObservableCollection<BenchmarkResult> BenchmarkResults { get; private set; } = null!;
 
         [Notify]
-        public string? MemoryMappedFileName { get; set; }
+        public int HttpPort { get; set; }
 
         [Notify]
-        public string? PipeName { get; set; }
-
-        [Notify]
-        public int TcpPort { get; set; }
-
-        [Notify]
-        public int WebSocketPort { get; set; }
-
-        [Notify]
-        public string? WebSocketPath { get; set; }
+        public string? HttpPath { get; set; }
 
         [Notify]
         public bool UseEncryption { get; set; }
@@ -405,26 +371,12 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
         public bool CanDisconnectClient { get; private set; }
 
         [Notify]
-        public bool IsMemoryMappedFile { get; private set; }
-
-        [Notify]
-        public bool IsNamedPipe { get; private set; }
-
-        [Notify]
-        public bool IsTcp { get; private set; }
-
-        [Notify]
-        public bool IsWebSocket { get; private set; }
-
-        [Notify]
         public int BenchmarkAttempts { get; set; }
 
         [Notify]
         public long DataSize { get; set; }
 
-        private WitComClient? Client { get; set; }
-
-        private IBenchmarkService? Service { get; set; }
+        private HubConnection? Service { get; set; }
 
         #endregion
 

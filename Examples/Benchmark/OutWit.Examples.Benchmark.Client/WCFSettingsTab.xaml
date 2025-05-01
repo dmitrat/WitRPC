@@ -145,7 +145,7 @@
                         <GridViewColumn Header="Benchmark" DisplayMemberBinding="{Binding Name}" />
                         <GridViewColumn Header="TimestampMs" DisplayMemberBinding="{Binding DurationMs, StringFormat={}{0:0.0000}}"/>
                         <GridViewColumn Header="Transport" DisplayMemberBinding="{Binding Transport}"/>
-                        <GridViewColumn Header="Serializer" DisplayMemberBinding="{Binding ParametersSerializer}"/>
+                        <GridViewColumn Header="Serializer" DisplayMemberBinding="{Binding Serializer}"/>
                         <GridViewColumn Header="Success" DisplayMemberBinding="{Binding Success}"/>
                     </GridView>
                 </ListView.View>

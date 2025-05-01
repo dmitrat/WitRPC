@@ -10,9 +10,13 @@
 
 	<ItemGroup>
 		<PackageReference Include="CsvHelper" Version="33.0.1" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.15" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.Json" Version="8.0.15" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="8.0.15" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
 		<PackageReference Include="OutWit.Common.Logging" Version="1.0.3" />
 		<PackageReference Include="OutWit.Common.MVVM" Version="1.0.1" />
+		<PackageReference Include="protobuf-net.Grpc.ClientFactory" Version="1.2.2" />
 		<PackageReference Include="System.ServiceModel.Http" Version="8.1.2" />
 		<PackageReference Include="System.ServiceModel.NetNamedPipe" Version="8.1.2" />
 		<PackageReference Include="System.ServiceModel.NetTcp" Version="8.1.2" />

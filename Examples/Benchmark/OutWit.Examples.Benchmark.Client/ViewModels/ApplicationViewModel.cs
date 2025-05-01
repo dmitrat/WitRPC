@@ -37,6 +37,8 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
         {
             WitComVm = new WitComViewModel(this);
             WCFVm = new WCFViewModel(this);
+            SignalRVm = new SignalRViewModel(this);
+            GRPCVm = new GRPCViewModel(this);
         }
 
         #endregion
@@ -46,6 +48,10 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
         public WitComViewModel WitComVm { get; private set; }
 
         public WCFViewModel WCFVm { get; private set; }
+        
+        public SignalRViewModel SignalRVm { get; set; }
+        
+        public GRPCViewModel GRPCVm { get; set; }
 
         #endregion
 

@@ -190,6 +190,7 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
                 return;
 
             Server?.StopWaitingForConnection();
+            Server?.Dispose();
             Server = null;
 
             CanStartServer = true;

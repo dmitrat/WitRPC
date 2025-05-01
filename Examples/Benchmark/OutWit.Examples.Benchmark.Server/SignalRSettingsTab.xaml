@@ -6,11 +6,90 @@
          xmlns:local="clr-namespace:OutWit.Examples.Benchmark.Server"
          mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800">
 
+    <TabItem.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibility"/>
+    </TabItem.Resources>
+
     <TabItem.Header>
         <TextBlock Text="SignalR" FontWeight="Bold"/>
     </TabItem.Header>
 
     <Grid>
-            
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="SignalR Server Settings" FontSize="14" FontWeight="Medium" HorizontalAlignment="Center" Margin="0 10 0 10"/>
+
+        <Grid Grid.Row="1" Margin="10 0 10 0"
+           IsEnabled="{Binding SignalRVm.CanStartServer, Mode=OneWay}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Transport:"/>
+            <ComboBox Grid.Row="1" Grid.Column="0" ItemsSource="{Binding SignalRVm.TransportTypes}"
+                   SelectedItem="{Binding SignalRVm.TransportType, Mode=TwoWay}"/>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Serializer:"/>
+            <ComboBox Grid.Row="4" Grid.Column="0" ItemsSource="{Binding SignalRVm.SerializerTypes}"
+                   SelectedItem="{Binding SignalRVm.SerializerType, Mode=TwoWay}"/>
+
+
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="Http Port:"/>
+            <TextBox Grid.Row="7" Grid.Column="0" Text="{Binding SignalRVm.HttpPort, Mode=TwoWay}"/>
+            <Button Grid.Row="7" Grid.Column="2" Content="Reset" Padding="5 0 5 0"
+                 Command="{Binding SignalRVm.ResetHttpPortCmd}"/>
+
+
+            <TextBlock Grid.Row="9" Grid.Column="0" Text="Http Path:"/>
+            <TextBox Grid.Row="10" Grid.Column="0" Text="{Binding SignalRVm.HttpPath, Mode=TwoWay}"/>
+            <Button Grid.Row="10" Grid.Column="2" Content="Reset" Padding="5 0 5 0"
+                 Command="{Binding SignalRVm.ResetHttpPathCmd}"/>
+
+        </Grid>
+
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="30"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="1" Content="Start Server" Padding="10"
+                 IsEnabled="{Binding  SignalRVm.CanStartServer, Mode=OneWay}"
+                 Command="{Binding SignalRVm.StartServerCmd}"/>
+
+            <Button Grid.Column="3" Content="Stop Server" Padding="10"
+                 IsEnabled="{Binding  SignalRVm.CanStopServer, Mode=OneWay}"
+                 Command="{Binding SignalRVm.StopServerCmd}"/>
+
+        </Grid>
+
     </Grid>
 </TabItem>

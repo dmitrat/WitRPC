@@ -45,9 +45,9 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
         private const int DEFAULT_HTTP_PORT = 8082;
 
-        private const int DEFAULT_BENCHMARK_ATTEMPTS = 10;
+        private const int DEFAULT_BENCHMARK_ATTEMPTS = 50;
 
-        private const long DEFAULT_DATA_SIZE = 5_000_000;
+        private const long DEFAULT_DATA_SIZE = 10_000_000;
 
         #endregion
 
@@ -80,12 +80,10 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
             SerializerTypes =
             [
-                WCFSerializerType.Json,
-                WCFSerializerType.XML,
-                WCFSerializerType.ProtoBuf
+                WCFSerializerType.DataContract,
             ];
 
-            SerializerType = WCFSerializerType.Json;
+            SerializerType = WCFSerializerType.DataContract;
 
             UseEncryption = true;
             UseAuthorization = true;
@@ -147,7 +145,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
                     {
                         MaxReceivedMessageSize = 10 * 1024 * 1024
                     };
-                    address = new EndpointAddress($"net.tcp://localhost:{TcpPort}/{HttpPath}");
+                    address = new EndpointAddress($"net.tcp://localhost:{TcpPort}");
                     break;
 
                 case WCFTransportType.NamedPipe:
@@ -203,7 +201,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
             var id = BenchmarkUtils.NextId();
 
             var data = BenchmarkUtils.GenerateData(DataSize);
-            var hash = HashUtils.ComputeFnv1aHash(data);
+            var hash = HashUtils.FastHash(data);
 
             for (int i = 0; i < BenchmarkAttempts; i++)
             {
@@ -294,6 +292,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
             var dialog = new SaveFileDialog
             {
                 Filter = "CSV files (*.csv)|*.csv",
+                FileName = BuildFileName()
             };
 
             if(dialog.ShowDialog() != true)
@@ -305,6 +304,13 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
             
         }
 
+        private string BuildFileName()
+        {
+            var fileName = $"WCF_{TransportType}_{SerializerType}_{BenchmarkResults.FirstOrDefault()?.Name}";
+            return $"{fileName}.csv";
+
+        }
+        
         private void UpdateStatus()
         {
             IsNamedPipe = TransportType == WCFTransportType.NamedPipe;

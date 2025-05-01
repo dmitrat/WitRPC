@@ -330,7 +330,7 @@ namespace OutWit.Communication.Client
 
             else
             {
-                WaitForResponse?.SetResult(decryptedMessage);
+                WaitForResponse?.TrySetResult(decryptedMessage);
             }
         }
 

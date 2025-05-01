@@ -11,6 +11,132 @@
     </TabItem.Header>
 
     <Grid>
-            
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="WCF Client Settings" FontSize="14" FontWeight="Medium" HorizontalAlignment="Center" Margin="0 10 0 10"/>
+
+        <Grid Grid.Row="1" Margin="10 0 10 0"
+          IsEnabled="{Binding SignalRVm.CanConnectClient, Mode=OneWay}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Transport:"/>
+            <ComboBox Grid.Row="1" Grid.Column="0" ItemsSource="{Binding SignalRVm.TransportTypes}"
+                  SelectedItem="{Binding SignalRVm.TransportType, Mode=TwoWay}"/>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Serializer:"/>
+            <ComboBox Grid.Row="4" Grid.Column="0" ItemsSource="{Binding SignalRVm.SerializerTypes}"
+                  SelectedItem="{Binding SignalRVm.SerializerType, Mode=TwoWay}"/>
+
+
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="Http Port:"/>
+            <TextBox Grid.Row="7" Grid.Column="0" Text="{Binding SignalRVm.HttpPort, Mode=TwoWay}"/>
+
+
+            <TextBlock Grid.Row="9" Grid.Column="0" Text="Http Path:"/>
+            <TextBox Grid.Row="10" Grid.Column="0" Text="{Binding SignalRVm.HttpPath, Mode=TwoWay}"/>
+
+        </Grid>
+
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="30"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="1" Content="Connect Client" Padding="10"
+                IsEnabled="{Binding  SignalRVm.CanConnectClient, Mode=OneWay}"
+                Command="{Binding SignalRVm.ConnectClientCmd}"/>
+
+            <Button Grid.Column="3" Content="Disconnect Client" Padding="10"
+                IsEnabled="{Binding  SignalRVm.CanDisconnectClient, Mode=OneWay}"
+                Command="{Binding SignalRVm.DisconnectClientCmd}"/>
+
+        </Grid>
+
+        <Grid Grid.Row="5"
+          IsEnabled="{Binding SignalRVm.CanDisconnectClient, Mode=OneWay}">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Benchmark Attempts:"/>
+            <TextBox Grid.Row="1" Grid.Column="0" Text="{Binding SignalRVm.BenchmarkAttempts, Mode=TwoWay}"/>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Data Size:"/>
+            <TextBox Grid.Row="4" Grid.Column="0" Text="{Binding SignalRVm.DataSize, Mode=TwoWay}"/>
+
+            <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="3" Content="One Way Benchmark" Padding="5"
+                Command="{Binding SignalRVm.OneWayBenchmarkCmd}"/>
+
+            <Button Grid.Row="3" Grid.RowSpan="2" Grid.Column="3" Content="Two Ways Benchmark" Padding="5"
+                Command="{Binding SignalRVm.TwoWaysBenchmarkCmd}"/>
+
+            <ListView Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="6" BorderThickness="0"
+                  ItemsSource="{Binding SignalRVm.BenchmarkResults, Mode=OneWay}">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Benchmark" DisplayMemberBinding="{Binding Name}" />
+                        <GridViewColumn Header="TimestampMs" DisplayMemberBinding="{Binding DurationMs, StringFormat={}{0:0.0000}}"/>
+                        <GridViewColumn Header="Transport" DisplayMemberBinding="{Binding Transport}"/>
+                        <GridViewColumn Header="Serializer" DisplayMemberBinding="{Binding Serializer}"/>
+                        <GridViewColumn Header="Success" DisplayMemberBinding="{Binding Success}"/>
+                    </GridView>
+                </ListView.View>
+
+            </ListView>
+
+            <Button Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="6" Padding="10" Content="Export..." Width="100" HorizontalAlignment="Right"
+                Command="{Binding  SignalRVm.ExportCsvCmd}"/>
+
+        </Grid>
+
     </Grid>
 </TabItem>

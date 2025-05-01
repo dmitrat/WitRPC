@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace OutWit.Examples.Benchmark.Client.Model
 {
-    public enum WCFSerializerType
+    public enum SignalRTransportType
     {
-        DataContract,
+        WebSockets,
+        ServerSentEvents,
+        LongPolling
     }
 }

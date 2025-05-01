@@ -16,7 +16,7 @@ using OutWit.Communication.Utils;
 
 namespace OutWit.Communication.Server
 {
-    public class WitComServer
+    public class WitComServer : IDisposable
     {
         #region Fields
 
@@ -362,6 +362,20 @@ namespace OutWit.Communication.Server
         {
             if (m_connections.ContainsKey(sender))
                 m_connections.TryRemove(sender, out ConnectionInfo? info);
+        }
+
+        #endregion
+
+        #region IDisposable
+
+        public void Dispose()
+        {
+            foreach (var info in m_connections.Values)
+            {
+                info.Transport.Dispose();
+            }
+            
+            m_connections.Clear();
         }
 
         #endregion
