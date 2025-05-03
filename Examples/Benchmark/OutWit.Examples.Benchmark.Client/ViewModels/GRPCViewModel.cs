@@ -51,6 +51,8 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
         private const long DEFAULT_DATA_SIZE = 10_000_000;
 
+        private const string DEFAULT_HOST = "localhost";
+        
         #endregion
 
         #region Constructors
@@ -97,6 +99,9 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
             BenchmarkAttempts = DEFAULT_BENCHMARK_ATTEMPTS;
             DataSize = DEFAULT_DATA_SIZE;
 
+
+            Host = DEFAULT_HOST;
+
             CanConnectClient = true;
             CanDisconnectClient = false;
             Service = null;
@@ -140,7 +145,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
                             return pipe;
                         }
                     };
-                    Channel = GrpcChannel.ForAddress("http://localhost", new GrpcChannelOptions
+                    Channel = GrpcChannel.ForAddress($"http://{Host}", new GrpcChannelOptions
                     {
                         HttpHandler = handler,
                         MaxReceiveMessageSize = 64 * 1024 * 1024,
@@ -148,7 +153,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
                     });
                 }
                 if(IsHttp)
-                    Channel = GrpcChannel.ForAddress($"http://localhost:{HttpPort}", new GrpcChannelOptions
+                    Channel = GrpcChannel.ForAddress($"http://{Host}:{HttpPort}", new GrpcChannelOptions
                     {
                         MaxReceiveMessageSize = 64 * 1024 * 1024,
                         MaxSendMessageSize = 64 * 1024 * 1024,
@@ -375,6 +380,10 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
         [Notify]
         public int BenchmarkAttempts { get; set; }
+
+
+        [Notify]
+        public string Host { get; set; }
 
         [Notify]
         public long DataSize { get; set; }

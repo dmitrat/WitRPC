@@ -48,6 +48,8 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
         private const int DEFAULT_BENCHMARK_ATTEMPTS = 50;
 
         private const long DEFAULT_DATA_SIZE = 10_000_000;
+        
+        private const string DEFAULT_HOST= "localhost";
 
         #endregion
 
@@ -97,6 +99,8 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
             BenchmarkAttempts = DEFAULT_BENCHMARK_ATTEMPTS;
             DataSize = DEFAULT_DATA_SIZE;
 
+            Host = DEFAULT_HOST;
+
             CanConnectClient = true;
             CanDisconnectClient = false;
             Service = null;
@@ -135,33 +139,33 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
                 case WCFTransportType.HTTP:
                     binding = new BasicHttpBinding
                     {
-                        MaxReceivedMessageSize = 10*1024*1024
+                        MaxReceivedMessageSize = 64 *1024*1024
                     };
-                    address = new EndpointAddress($"http://localhost:{HttpPort}/{HttpPath}");
+                    address = new EndpointAddress($"http://{Host}:{HttpPort}/{HttpPath}");
                     break;
 
                 case WCFTransportType.TCP:
                     binding = new NetTcpBinding
                     {
-                        MaxReceivedMessageSize = 10 * 1024 * 1024
+                        MaxReceivedMessageSize = 64 * 1024 * 1024
                     };
-                    address = new EndpointAddress($"net.tcp://localhost:{TcpPort}");
+                    address = new EndpointAddress($"net.tcp://{Host}:{TcpPort}");
                     break;
 
                 case WCFTransportType.NamedPipe:
                     binding = new NetNamedPipeBinding
                     {
-                        MaxReceivedMessageSize = 10 * 1024 * 1024
+                        MaxReceivedMessageSize = 64 * 1024 * 1024
                     };
-                    address = new EndpointAddress($"net.pipe://localhost/{PipeName}");
+                    address = new EndpointAddress($"net.pipe://{Host}/{PipeName}");
                     break;
 
                 default:
                     binding = new BasicHttpBinding
                     {
-                        MaxReceivedMessageSize = 10 * 1024 * 1024
+                        MaxReceivedMessageSize = 64 * 1024 * 1024
                     };
-                    address = new EndpointAddress($"http://localhost:{HttpPort}/{HttpPath}");
+                    address = new EndpointAddress($"http://{Host}:{HttpPort}/{HttpPath}");
                     break;
             }
 
@@ -385,6 +389,9 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
         [Notify]
         public int BenchmarkAttempts { get; set; }
+
+        [Notify]
+        public string Host { get; set; }
 
         [Notify]
         public long DataSize { get; set; }

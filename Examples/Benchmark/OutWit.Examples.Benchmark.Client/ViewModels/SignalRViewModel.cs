@@ -47,6 +47,9 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
         private const long DEFAULT_DATA_SIZE = 10_000_000;
 
+
+        private const string DEFAULT_HOST = "localhost";
+        
         #endregion
 
         #region Constructors
@@ -94,6 +97,9 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
             BenchmarkAttempts = DEFAULT_BENCHMARK_ATTEMPTS;
             DataSize = DEFAULT_DATA_SIZE;
 
+
+            Host = DEFAULT_HOST;
+
             CanConnectClient = true;
             CanDisconnectClient = false;
             Service = null;
@@ -125,7 +131,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
                 return;
 
             var builder = new HubConnectionBuilder()
-                .WithUrl($"http://localhost:{HttpPort}/{HttpPath}", options =>
+                .WithUrl($"http://{Host}:{HttpPort}/{HttpPath}", options =>
                 {
                     switch (TransportType)
                     {
@@ -372,6 +378,10 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
         [Notify]
         public int BenchmarkAttempts { get; set; }
+
+
+        [Notify]
+        public string Host { get; set; }
 
         [Notify]
         public long DataSize { get; set; }

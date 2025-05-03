@@ -82,6 +82,9 @@
             <TextBox Grid.Row="10" Grid.Column="0" Text="{Binding WCFVm.HttpPath, Mode=TwoWay}"
                    Visibility="{Binding WCFVm.IsHttp, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
 
+            <TextBlock Grid.Row="6" Grid.Column="3" Text="Host:" />
+            <TextBox Grid.Row="7" Grid.Column="3" Text="{Binding WCFVm.Host, Mode=TwoWay}"/>
+
         </Grid>
 
         <Grid Grid.Row="3">

@@ -48,6 +48,9 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
         private const long DEFAULT_DATA_SIZE = 10_000_000;
 
+
+        private const string DEFAULT_HOST = "localhost";
+
         #endregion
 
         #region Constructors
@@ -100,6 +103,9 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
             BenchmarkAttempts = DEFAULT_BENCHMARK_ATTEMPTS;
             DataSize = DEFAULT_DATA_SIZE;
+
+
+            Host = DEFAULT_HOST;
 
             CanConnectClient = true;
             CanDisconnectClient = false;
@@ -176,12 +182,12 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
                     break;
 
                 case WitComTransportType.TCP:
-                    options.WithTcp("localhost", TcpPort);
+                    options.WithTcp($"{Host}", TcpPort);
                     break;
 
 
                 case WitComTransportType.WebSocket:
-                    options.WithWebSocket($"ws://localhost:{WebSocketPort}/{WebSocketPath}");
+                    options.WithWebSocket($"ws://{Host}:{WebSocketPort}/{WebSocketPath}");
                     break;
             }
 
@@ -421,6 +427,10 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
         [Notify]
         public long DataSize { get; set; }
+
+
+        [Notify]
+        public string Host { get; set; }
 
         private WitComClient? Client { get; set; }
 

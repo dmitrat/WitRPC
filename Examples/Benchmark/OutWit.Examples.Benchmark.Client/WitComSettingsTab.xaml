@@ -103,6 +103,10 @@
             <TextBox Grid.Row="4" Grid.Column="3" Text="{Binding WitComVm.AuthorizationToken, Mode=TwoWay}"
                      IsEnabled="{Binding WitComVm.UseAuthorization, Mode=OneWay}"/>
 
+
+            <TextBlock Grid.Row="6" Grid.Column="3" Text="Host:" />
+            <TextBox Grid.Row="7" Grid.Column="3" Text="{Binding WitComVm.Host, Mode=TwoWay}"/>
+
         </Grid>
 
         <Grid Grid.Row="3">
