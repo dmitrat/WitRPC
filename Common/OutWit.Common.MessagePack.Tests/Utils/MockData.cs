@@ -14,7 +14,7 @@ namespace OutWit.Common.MessagePack.Tests.Utils
 
             return Text.Is(data.Text) &&
                    Value.Is(data.Value, tolerance) &&
-                   Type?.Equals(data.Type) == true;
+                   Type.Is(data.Type);
         }
 
         public override ModelBase Clone()

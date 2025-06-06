@@ -1,6 +1,6 @@
 ﻿using System;
 using Castle.DynamicProxy;
-using OutWit.Common.Aspects.Utils;
+using OutWit.Common.Utils;
 using OutWit.Communication.Interceptors;
 using OutWit.Communication.Tests._Mock.Interfaces;
 using OutWit.Communication.Tests.Mock;

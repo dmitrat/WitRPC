@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
+	  <SignAssembly>False</SignAssembly>
+	  <RootNamespace>OutWit.Common.MemoryPack</RootNamespace>
+
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <PackageId>OutWit.Common.MemoryPack</PackageId>
+	  <Version>1.0.0</Version>
+	  <Authors>Dmitry Ratner</Authors>
+	  <Company>OutWit</Company>
+	  <Product>OutWit.Common.MemoryPack</Product>
+	  <Description>MemoryPack serialization tools/snippets</Description>
+	  <PackageTags>OutWit;Common;MemoryPack</PackageTags>
+	  <Copyright>Copyright © Dmitry Ratner 2025</Copyright>
+
+	  <RepositoryUrl>https://github.com/dmitrat/WitCom/tree/main/Common/OutWit.Common.MemoryPack</RepositoryUrl>
+	  <PackageProjectUrl>https://github.com/dmitrat/WitCom/tree/main/Common/OutWit.Common.MemoryPack</PackageProjectUrl>
+
+	  <PackageIcon>OutWitIcon128.png</PackageIcon>
+	  <PackageLicenseFile>LICENSE</PackageLicenseFile>
+
+	  <LangVersion>11.0</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MemoryPack" Version="1.21.4" />
+    <PackageReference Include="OutWit.Common.Aspects" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<None Include="LICENSE" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="OutWitIcon128.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+</Project>

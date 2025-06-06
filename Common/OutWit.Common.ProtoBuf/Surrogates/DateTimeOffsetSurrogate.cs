@@ -9,12 +9,12 @@ namespace OutWit.Common.ProtoBuf.Surrogates
 
         #region Operators
 
-        public static implicit operator DateTimeOffset(DateTimeOffsetSurrogate? s)
+        public static implicit operator DateTimeOffset(DateTimeOffsetSurrogate s)
         {
             return DateTimeOffset.FromUnixTimeMilliseconds(s?.Value ?? 0);
         }
 
-        public static implicit operator DateTimeOffset?(DateTimeOffsetSurrogate? s)
+        public static implicit operator DateTimeOffset?(DateTimeOffsetSurrogate s)
         {
             return s == null || s.Value == null
                 ? null

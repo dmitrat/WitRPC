@@ -17,7 +17,7 @@
 
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <PackageId>OutWit.Common.Proxy.Generator</PackageId>
-	  <Version>1.1.0</Version>
+	  <Version>1.1.2</Version>
 	  <Authors>Dmitry Ratner</Authors>
 	  <Company>OutWit</Company>
 	  <Product>OutWit.Common.Proxy.Generator</Product>
@@ -52,7 +52,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" PrivateAssets="all" />
-		<PackageReference Include="OutWit.Common.Proxy" Version="1.1.0" />
+		<PackageReference Include="OutWit.Common.Proxy" Version="1.1.2" />
 	</ItemGroup>
 
 	<Target Name="EnsureBuild" BeforeTargets="Pack">

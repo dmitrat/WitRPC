@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.Extensions.DependencyInjection;
-using OutWit.Common.Aspects.Utils;
 using OutWit.Common.MVVM.Commands;
 using OutWit.Common.MVVM.ViewModels;
 using OutWit.Common.Random;
@@ -19,6 +18,7 @@ using Microsoft.AspNetCore.SignalR;
 using CoreWCF.Configuration;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using OutWit.Common.Serialization;
+using OutWit.Common.Utils;
 using ProtoBuf.Grpc.Server;
 
 namespace OutWit.Examples.Benchmark.Server.ViewModels

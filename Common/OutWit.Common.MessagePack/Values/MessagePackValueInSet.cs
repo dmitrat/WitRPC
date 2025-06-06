@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using MessagePack;
 using OutWit.Common.Abstract;
 using OutWit.Common.Aspects;
@@ -7,15 +9,9 @@ using OutWit.Common.Aspects;
 namespace OutWit.Common.MessagePack.Values
 {
     [MessagePackObject]
-    public class MessagePackValueInSet<TValue> : ModelBase, INotifyPropertyChanged
+    public class MessagePackValueInSet<TValue> : ModelBase
         where TValue : struct, IComparable<TValue>
     {
-        #region Events
-
-        public event PropertyChangedEventHandler PropertyChanged = delegate { };
-
-        #endregion
-
         #region Constructors
 
         private MessagePackValueInSet()

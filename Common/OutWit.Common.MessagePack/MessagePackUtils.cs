@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
@@ -61,7 +65,7 @@ namespace OutWit.Common.MessagePack
 
         #region Serialize
 
-        public static byte[]? ToMessagePackBytes<TObject>(this TObject me, bool withCompression = true, ILogger? logger = null)
+        public static byte[] ToMessagePackBytes<TObject>(this TObject me, bool withCompression = true, ILogger logger = null)
         {
             try
             {
@@ -77,7 +81,7 @@ namespace OutWit.Common.MessagePack
 
         }
 
-        public static byte[]? ToMessagePackBytes(this object? me, Type type, bool withCompression = true, ILogger? logger = null)
+        public static byte[] ToMessagePackBytes(this object me, Type type, bool withCompression = true, ILogger logger = null)
         {
             try
             {
@@ -97,13 +101,13 @@ namespace OutWit.Common.MessagePack
 
         #region Deserizlize
 
-        public static TObject? FromMessagePackBytes<TObject>(this byte[] me, bool withCompression = true, ILogger? logger = null)
+        public static TObject FromMessagePackBytes<TObject>(this byte[] me, bool withCompression = true, ILogger logger = null)
         {
             return ((ReadOnlyMemory<byte>)me.AsMemory()).FromMessagePackBytes<TObject>(withCompression, logger);
         }
 
 
-        public static TObject? FromMessagePackBytes<TObject>(this ReadOnlyMemory<byte> me, bool withCompression = true, ILogger? logger = null)
+        public static TObject FromMessagePackBytes<TObject>(this ReadOnlyMemory<byte> me, bool withCompression = true, ILogger logger = null)
         {
             try
             {
@@ -119,12 +123,12 @@ namespace OutWit.Common.MessagePack
             }
         }
 
-        public static object? FromMessagePackBytes(this byte[] me, Type type, bool withCompression = true, ILogger? logger = null)
+        public static object FromMessagePackBytes(this byte[] me, Type type, bool withCompression = true, ILogger logger = null)
         {
             return ((ReadOnlyMemory<byte>)me.AsMemory()).FromMessagePackBytes(type, withCompression, logger);
         }
 
-        public static object? FromMessagePackBytes(this ReadOnlyMemory<byte> me, Type type, bool withCompression = true, ILogger? logger = null)
+        public static object FromMessagePackBytes(this ReadOnlyMemory<byte> me, Type type, bool withCompression = true, ILogger logger = null)
         {
             try
             {
@@ -146,9 +150,9 @@ namespace OutWit.Common.MessagePack
 
         #region Clone
 
-        public static TObject? MessagePackClone<TObject>(this TObject me, bool withCompression = true, ILogger? logger = null)
+        public static TObject MessagePackClone<TObject>(this TObject me, bool withCompression = true, ILogger logger = null)
         {
-            byte[]? bytes = me.ToMessagePackBytes(withCompression, logger);
+            byte[] bytes = me.ToMessagePackBytes(withCompression, logger);
             return bytes == null
                 ? default(TObject)
                 : bytes.FromMessagePackBytes<TObject>(withCompression, logger);
@@ -156,27 +160,35 @@ namespace OutWit.Common.MessagePack
 
         #endregion
 
-        #region Export
-        
+#region Export
+
+
+#if NET6_0_OR_GREATER
+
         public static async Task ExportAsMessagePackAsync<T>(this IEnumerable<T> me, string filePath)
         {
-            byte[]? bytes = me.ToArray().ToMessagePackBytes();
+            byte[] bytes = me.ToArray().ToMessagePackBytes();
             if (bytes != null)
                 await File.WriteAllBytesAsync(filePath, bytes);
         }
+
+#endif
         
         public static void ExportAsMessagePack<T>(this IEnumerable<T> me, string filePath)
         {
-            byte[]? bytes = me.ToArray().ToMessagePackBytes();
+            byte[] bytes = me.ToArray().ToMessagePackBytes();
             if (bytes != null)
                 File.WriteAllBytes(filePath, bytes);
         }
 
-        #endregion
+#endregion
 
-        #region Load
+#region Load
 
-        public static async Task<IReadOnlyList<T>?> LoadAsMessagePackAsync<T>(string filePath)
+
+
+#if NET6_0_OR_GREATER
+        public static async Task<IReadOnlyList<T>> LoadAsMessagePackAsync<T>(string filePath)
         {
             if (!File.Exists(filePath))
                 return null;
@@ -186,7 +198,9 @@ namespace OutWit.Common.MessagePack
             return bytes.FromMessagePackBytes<IReadOnlyList<T>>();
         }
 
-        public static IReadOnlyList<T>? LoadAsMessagePack<T>(string filePath)
+#endif
+
+        public static IReadOnlyList<T> LoadAsMessagePack<T>(string filePath)
         {
             if (!File.Exists(filePath))
                 return null;
@@ -196,7 +210,7 @@ namespace OutWit.Common.MessagePack
             return bytes.FromMessagePackBytes<IReadOnlyList<T>>();
         }
 
-        #endregion
+#endregion
 
         #region Properties
 

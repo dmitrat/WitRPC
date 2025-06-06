@@ -1,7 +1,7 @@
 ﻿using System;
+using OutWit.Common.Utils;
 using OutWit.Communication.Tests.Mock.Interfaces;
 using OutWit.Communication.Tests.Mock.Model;
-using OutWit.Common.Aspects.Utils;
 
 namespace OutWit.Communication.Tests.Communication
 {

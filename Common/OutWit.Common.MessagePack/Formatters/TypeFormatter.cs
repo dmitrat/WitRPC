@@ -4,14 +4,14 @@ using MessagePack.Formatters;
 
 namespace OutWit.Common.MessagePack.Formatters
 {
-    internal class TypeFormatter : IMessagePackFormatter<Type?>
+    internal class TypeFormatter : IMessagePackFormatter<Type>
     {
-        public void Serialize(ref MessagePackWriter writer, Type? value, MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, Type value, MessagePackSerializerOptions options)
         {
             writer.Write(value?.AssemblyQualifiedName);
         }
 
-        public Type? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        public Type Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             if (reader.TryReadNil()) 
                 return null;

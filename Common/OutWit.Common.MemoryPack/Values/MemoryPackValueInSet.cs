@@ -11,14 +11,9 @@ using OutWit.Common.Aspects;
 namespace OutWit.Common.MemoryPack.Values
 {
     [MemoryPackable]
-    public partial class MemoryPackValueInSet<TValue> : ModelBase, INotifyPropertyChanged
+    public partial class MemoryPackValueInSet<TValue> : ModelBase
         where TValue : struct, IComparable<TValue>
     {
-        #region Events
-
-        public event PropertyChangedEventHandler PropertyChanged = delegate { };
-
-        #endregion
 
         #region Constructors
 

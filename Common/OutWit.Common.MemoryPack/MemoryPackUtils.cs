@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using MemoryPack;
 using Microsoft.Extensions.Logging;
 using OutWit.Common.MemoryPack.Formatters;
@@ -33,7 +37,7 @@ namespace OutWit.Common.MemoryPack
 
         #region Serialization
 
-        public static byte[]? ToMemoryPackBytes<TObject>(this TObject me, StringEncoding encoding = StringEncoding.Utf8, ILogger? logger = null)
+        public static byte[] ToMemoryPackBytes<TObject>(this TObject me, StringEncoding encoding = StringEncoding.Utf8, ILogger logger = null)
         {
             try
             {
@@ -46,7 +50,7 @@ namespace OutWit.Common.MemoryPack
             }
         }
 
-        public static byte[]? ToMemoryPackBytes(this object? me, Type type, StringEncoding encoding = StringEncoding.Utf8, ILogger? logger = null)
+        public static byte[] ToMemoryPackBytes(this object me, Type type, StringEncoding encoding = StringEncoding.Utf8, ILogger logger = null)
         {
             try
             {
@@ -63,12 +67,12 @@ namespace OutWit.Common.MemoryPack
 
         #region Deserealization
 
-        public static TObject? FromMemoryPackBytes<TObject>(this byte[] me, ILogger? logger = null)
+        public static TObject FromMemoryPackBytes<TObject>(this byte[] me, ILogger logger = null)
         {
             return ((ReadOnlySpan<byte>)me.AsSpan()).FromMemoryPackBytes<TObject>(logger);
         }
 
-        public static TObject? FromMemoryPackBytes<TObject>(this ReadOnlySpan<byte> me, ILogger? logger = null)
+        public static TObject FromMemoryPackBytes<TObject>(this ReadOnlySpan<byte> me, ILogger logger = null)
         {
             try
             {
@@ -82,12 +86,12 @@ namespace OutWit.Common.MemoryPack
             }
         }
 
-        public static object? FromMemoryPackBytes(this byte[] me, Type type, ILogger? logger = null)
+        public static object FromMemoryPackBytes(this byte[] me, Type type, ILogger logger = null)
         {
             return ((ReadOnlySpan<byte>)me.AsSpan()).FromMemoryPackBytes(type, logger);
         }
         
-        public static object? FromMemoryPackBytes(this ReadOnlySpan<byte> me, Type type, ILogger? logger = null)
+        public static object FromMemoryPackBytes(this ReadOnlySpan<byte> me, Type type, ILogger logger = null)
         {
             try
             {
@@ -107,7 +111,7 @@ namespace OutWit.Common.MemoryPack
 
         #region Clone
 
-        public static TObject? MemoryPackClone<TObject>(this TObject me, ILogger? logger = null)
+        public static TObject MemoryPackClone<TObject>(this TObject me, ILogger logger = null)
         {
             var bytes = me.ToMemoryPackBytes(logger: logger);
             return bytes == null
@@ -121,14 +125,14 @@ namespace OutWit.Common.MemoryPack
 
         public static async Task ExportAsMemoryPackAsync<T>(this IEnumerable<T> me, string filePath)
         {
-            byte[]? bytes = me.ToArray().ToMemoryPackBytes();
+            byte[] bytes = me.ToArray().ToMemoryPackBytes();
             if (bytes != null)
                 await File.WriteAllBytesAsync(filePath, bytes);
         }
 
         public static void ExportAsMemoryPack<T>(this IEnumerable<T> me, string filePath)
         {
-            byte[]? bytes = me.ToArray().ToMemoryPackBytes();
+            byte[] bytes = me.ToArray().ToMemoryPackBytes();
             if (bytes != null)
                 File.WriteAllBytes(filePath, bytes);
         }
@@ -137,7 +141,7 @@ namespace OutWit.Common.MemoryPack
 
         #region Load
 
-        public static async Task<IReadOnlyList<T>?> LoadAsMemoryPackAsync<T>(string filePath)
+        public static async Task<IReadOnlyList<T>> LoadAsMemoryPackAsync<T>(string filePath)
         {
             if (!File.Exists(filePath))
                 return null;
@@ -147,7 +151,7 @@ namespace OutWit.Common.MemoryPack
             return bytes.FromMemoryPackBytes<IReadOnlyList<T>>();
         }
 
-        public static IReadOnlyList<T>? LoadAsMemoryPack<T>(string filePath)
+        public static IReadOnlyList<T> LoadAsMemoryPack<T>(string filePath)
         {
             if (!File.Exists(filePath))
                 return null;

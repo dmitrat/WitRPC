@@ -4,9 +4,9 @@ using System.ComponentModel;
 
 namespace OutWit.Common.MemoryPack.Formatters
 {
-    internal class PropertyChangedEventArgsFormatter: MemoryPackFormatter<PropertyChangedEventArgs?>
+    internal class PropertyChangedEventArgsFormatter: MemoryPackFormatter<PropertyChangedEventArgs>
     {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref PropertyChangedEventArgs? value)
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref PropertyChangedEventArgs value)
         {
             if (value is null)
                 writer.WriteNullObjectHeader();
@@ -18,7 +18,7 @@ namespace OutWit.Common.MemoryPack.Formatters
                 
         }
 
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref PropertyChangedEventArgs? value)
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref PropertyChangedEventArgs value)
         {
             if (!reader.TryReadObjectHeader(out var count))
             {
@@ -26,7 +26,7 @@ namespace OutWit.Common.MemoryPack.Formatters
                 return;
             }
 
-            string? propName = count > 0
+            string propName = count > 0
                 ? reader.ReadString()
                 : null;
 

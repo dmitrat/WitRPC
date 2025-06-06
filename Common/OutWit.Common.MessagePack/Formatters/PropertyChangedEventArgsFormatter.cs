@@ -5,9 +5,9 @@ using MessagePack;
 
 namespace OutWit.Common.MessagePack.Formatters
 {
-    internal class PropertyChangedEventArgsFormatter : IMessagePackFormatter<PropertyChangedEventArgs?>
+    internal class PropertyChangedEventArgsFormatter : IMessagePackFormatter<PropertyChangedEventArgs>
     {
-        public void Serialize(ref MessagePackWriter writer, PropertyChangedEventArgs? value, MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, PropertyChangedEventArgs value, MessagePackSerializerOptions options)
         {
             if (value == null)
             {
@@ -18,7 +18,7 @@ namespace OutWit.Common.MessagePack.Formatters
             writer.Write(value.PropertyName);
         }
 
-        public PropertyChangedEventArgs? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        public PropertyChangedEventArgs Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             if (reader.TryReadNil()) 
                 return null;

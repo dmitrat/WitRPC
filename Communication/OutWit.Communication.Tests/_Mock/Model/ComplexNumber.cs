@@ -3,6 +3,7 @@ using OutWit.Common.Abstract;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using MemoryPack;
+using OutWit.Common.Attributes;
 using ProtoBuf;
 
 namespace OutWit.Communication.Tests.Mock.Model
@@ -28,11 +29,6 @@ namespace OutWit.Communication.Tests.Mock.Model
             B = b;
         }
 
-        public override string ToString()
-        {
-            return $"A: {A}, B: {B}";
-        }
-
         public override bool Is(ModelBase modelBase, double tolerance = DEFAULT_TOLERANCE)
         {
             if (!(modelBase is ComplexNumber<T1, T2> request))
@@ -51,10 +47,12 @@ namespace OutWit.Communication.Tests.Mock.Model
         [Key(0)]
         [DataMember]
         [ProtoMember(1)]
+        [ToString]
         public T1 A { get; set; }
         [Key(1)]
         [DataMember]
         [ProtoMember(2)]
+        [ToString]
         public T2 B { get; set; }
 
     }

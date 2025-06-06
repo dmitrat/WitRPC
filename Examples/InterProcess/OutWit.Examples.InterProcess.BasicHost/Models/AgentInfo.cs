@@ -1,25 +1,19 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using OutWit.Common.Abstract;
 using OutWit.Common.Aspects;
-using OutWit.Common.Aspects.Utils;
 using OutWit.Communication.Client;
 using OutWit.Examples.Contracts;
 using OutWit.Examples.InterProcess.Shared;
 
 namespace OutWit.Examples.InterProcess.BasicHost.Models
 {
-    public class AgentInfo : INotifyPropertyChanged, IDisposable
+    public class AgentInfo : NotifyPropertyChangedBase, IDisposable
     {
         #region Static
 
         private static int m_count = 0;
-
-        #endregion
-
-        #region Events
-
-        public event PropertyChangedEventHandler? PropertyChanged = delegate { };
 
         #endregion
 

@@ -7,16 +7,16 @@ using System.Text.Json.Serialization;
 
 namespace OutWit.Common.Json.Converters
 {
-    internal class TypeJsonConverter : JsonConverter<Type?>
+    internal class TypeJsonConverter : JsonConverter<Type>
     {
-        public override Type? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override Type Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             if (reader.TokenType == JsonTokenType.Null)
                 return null;
 
             if (reader.TokenType == JsonTokenType.String)
             {
-                string? typeName = reader.GetString();
+                string typeName = reader.GetString();
                 if (string.IsNullOrEmpty(typeName))
                     return null;
                 try
@@ -32,7 +32,7 @@ namespace OutWit.Common.Json.Converters
             throw new JsonException($"Unexpected token type {reader.TokenType} when parsing Type.");
         }
 
-        public override void Write(Utf8JsonWriter writer, Type? value, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, Type value, JsonSerializerOptions options)
         {
             if (value == null)
                 writer.WriteNullValue();

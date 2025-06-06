@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OutWit.Common.ProtoBuf.Surrogates;
 using ProtoBuf.Meta;
@@ -14,11 +18,11 @@ namespace OutWit.Common.ProtoBuf
         {
             Model = RuntimeTypeModel.Create();
             Model.AutoAddMissingTypes = true;
-            
+
             RegisterSurrogate<DateTimeOffset, DateTimeOffsetSurrogate>();
             RegisterSurrogate<DateTimeOffset?, DateTimeOffsetSurrogate>();
-            
-            RegisterSurrogate<PropertyChangedEventArgs?, PropertyChangedEventArgsSurrogate>();
+
+            RegisterSurrogate<PropertyChangedEventArgs, PropertyChangedEventArgsSurrogate>();
         }
 
         #endregion
@@ -47,7 +51,7 @@ namespace OutWit.Common.ProtoBuf
 
         #region Serialization
 
-        public static byte[]? ToProtoBytes<T>(this T obj, ILogger? logger = null)
+        public static byte[] ToProtoBytes<T>(this T obj, ILogger logger = null)
         {
             try
             {
@@ -64,7 +68,7 @@ namespace OutWit.Common.ProtoBuf
             }
         }
 
-        public static byte[]? ToProtoBytes(this object obj, Type type, ILogger? logger = null)
+        public static byte[] ToProtoBytes(this object obj, Type type, ILogger logger = null)
         {
             try
             {
@@ -78,23 +82,23 @@ namespace OutWit.Common.ProtoBuf
             {
                 logger?.LogError(e, "Protobuf serialize failed");
                 return null;
-            } 
-           
+            }
+
         }
 
         #endregion
 
         #region Deserealization
 
-        public static TObject? FromProtoBytes<TObject>(this byte[] data, ILogger? logger = null)
+        public static TObject FromProtoBytes<TObject>(this byte[] data, ILogger logger = null)
         {
             try
             {
                 if (data.Length == 0)
                     return default;
-                
+
                 using var ms = new MemoryStream(data);
-                return (TObject?)Model.Deserialize(ms, null, typeof(TObject));
+                return (TObject)Model.Deserialize(ms, null, typeof(TObject));
             }
             catch (Exception e)
             {
@@ -103,21 +107,21 @@ namespace OutWit.Common.ProtoBuf
             }
         }
 
-        public static object? FromProtoBytes(this byte[] data, Type type, ILogger? logger = null)
+        public static object FromProtoBytes(this byte[] data, Type type, ILogger logger = null)
         {
             try
             {
                 if (data.Length == 0)
                     return null;
-                
+
                 using var ms = new MemoryStream(data);
                 return Model.Deserialize(ms, null, type);
             }
             catch (Exception e)
             {
                 logger?.LogError(e, "Protobuf deserialize failed");
-                return type.IsValueType 
-                    ? Activator.CreateInstance(type)! 
+                return type.IsValueType
+                    ? Activator.CreateInstance(type)!
                     : null;
             }
         }
@@ -126,7 +130,7 @@ namespace OutWit.Common.ProtoBuf
 
         #region Clone
 
-        public static TObject? ProtoClone<TObject>(this TObject obj, ILogger? logger = null)
+        public static TObject ProtoClone<TObject>(this TObject obj, ILogger logger = null)
             where TObject : class
         {
             return obj.ToProtoBytes(logger: logger)?.FromProtoBytes<TObject>(logger: logger);
@@ -136,16 +140,18 @@ namespace OutWit.Common.ProtoBuf
 
         #region Export
 
+#if NET6_0_OR_GREATER
         public static async Task ExportAsProtoBufAsync<T>(this IEnumerable<T> me, string filePath)
         {
-            byte[]? bytes = me.ToArray().ToProtoBytes();
+            byte[] bytes = me.ToArray().ToProtoBytes();
             if (bytes != null)
                 await File.WriteAllBytesAsync(filePath, bytes);
         }
+#endif
 
         public static void ExportAsProtoBuf<T>(this IEnumerable<T> me, string filePath)
         {
-            byte[]? bytes = me.ToArray().ToProtoBytes();
+            byte[] bytes = me.ToArray().ToProtoBytes();
             if (bytes != null)
                 File.WriteAllBytes(filePath, bytes);
         }
@@ -154,7 +160,8 @@ namespace OutWit.Common.ProtoBuf
 
         #region Load
 
-        public static async Task<IReadOnlyList<T>?> LoadAsProtoBufAsync<T>(string filePath)
+#if NET6_0_OR_GREATER
+        public static async Task<IReadOnlyList<T>> LoadAsProtoBufAsync<T>(string filePath)
         {
             if (!File.Exists(filePath))
                 return null;
@@ -163,8 +170,8 @@ namespace OutWit.Common.ProtoBuf
 
             return bytes.FromProtoBytes<IReadOnlyList<T>>();
         }
-
-        public static IReadOnlyList<T>? LoadAsProtoBuf<T>(string filePath)
+#endif
+        public static IReadOnlyList<T> LoadAsProtoBuf<T>(string filePath)
         {
             if (!File.Exists(filePath))
                 return null;
@@ -175,7 +182,7 @@ namespace OutWit.Common.ProtoBuf
         }
 
         #endregion
-        
+
         #region Properties
 
         private static RuntimeTypeModel Model { get; }

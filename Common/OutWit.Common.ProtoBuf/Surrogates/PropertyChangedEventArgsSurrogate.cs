@@ -10,12 +10,12 @@ namespace OutWit.Common.ProtoBuf.Surrogates
 
         #region Operators
 
-        public static implicit operator PropertyChangedEventArgs?(PropertyChangedEventArgsSurrogate? s)
+        public static implicit operator PropertyChangedEventArgs(PropertyChangedEventArgsSurrogate s)
         {
             return new PropertyChangedEventArgs(s?.PropertyName);
         }
 
-        public static implicit operator PropertyChangedEventArgsSurrogate(PropertyChangedEventArgs? d)
+        public static implicit operator PropertyChangedEventArgsSurrogate(PropertyChangedEventArgs d)
         {
             return new PropertyChangedEventArgsSurrogate
             {
@@ -29,7 +29,7 @@ namespace OutWit.Common.ProtoBuf.Surrogates
         #region Properties
 
         [ProtoMember(1)]
-        public string? PropertyName { get; set; }
+        public string PropertyName { get; set; }
 
         [ProtoMember(2)]
         public bool IsNull { get; set; }

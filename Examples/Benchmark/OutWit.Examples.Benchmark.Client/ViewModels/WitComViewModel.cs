@@ -11,11 +11,11 @@ using System.Windows.Threading;
 using CsvHelper;
 using Microsoft.Win32;
 using OutWit.Common.Aspects;
-using OutWit.Common.Aspects.Utils;
 using OutWit.Common.Collections;
 using OutWit.Common.MVVM.Commands;
 using OutWit.Common.MVVM.ViewModels;
 using OutWit.Common.Random;
+using OutWit.Common.Utils;
 using OutWit.Communication.Client;
 using OutWit.Communication.Client.MMF.Utils;
 using OutWit.Communication.Client.Pipes.Utils;
@@ -187,7 +187,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
 
                 case WitComTransportType.WebSocket:
-                    options.WithWebSocket($"ws://{Host}:{WebSocketPort}/{WebSocketPath}");
+                    options.WithWebSocket($"ws://{Host}/{WebSocketPath}");
                     break;
             }
 
@@ -195,7 +195,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
                 return;
 
             Client = WitComClientBuilder.Build(options);
-            await Client.ConnectAsync(TimeSpan.FromSeconds(1), CancellationToken.None);
+            var result = await Client.ConnectAsync(TimeSpan.FromSeconds(10), CancellationToken.None);
 
             Service = Client.GetService<IBenchmarkService>();
 

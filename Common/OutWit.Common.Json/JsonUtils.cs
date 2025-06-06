@@ -1,5 +1,10 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OutWit.Common.Json.Converters;
 
@@ -63,7 +68,7 @@ namespace OutWit.Common.Json
 
         #region String Serialization
 
-        public static string? ToJsonString<TObject>(this TObject me, bool indented = false, ILogger? logger = null)
+        public static string ToJsonString<TObject>(this TObject me, bool indented = false, ILogger logger = null)
         {
             try
             {
@@ -76,7 +81,7 @@ namespace OutWit.Common.Json
             }
         }
 
-        public static string? ToJsonString(this object? me, Type type, bool indented = false, ILogger? logger = null)
+        public static string ToJsonString(this object me, Type type, bool indented = false, ILogger logger = null)
         {
             try
             {
@@ -93,7 +98,7 @@ namespace OutWit.Common.Json
 
         #region Bytes Serialization
 
-        public static byte[]? ToJsonBytes<TObject>(this TObject me, ILogger? logger = null)
+        public static byte[] ToJsonBytes<TObject>(this TObject me, ILogger logger = null)
         {
             try
             {
@@ -106,7 +111,7 @@ namespace OutWit.Common.Json
             }
         }
 
-        public static byte[]? ToJsonBytes(this object? me, Type type, ILogger? logger = null)
+        public static byte[] ToJsonBytes(this object me, Type type, ILogger logger = null)
         {
             try
             {
@@ -123,7 +128,7 @@ namespace OutWit.Common.Json
 
         #region String Deserealization
 
-        public static TObject? FromJsonString<TObject>(this string me, ILogger? logger = null)
+        public static TObject FromJsonString<TObject>(this string me, ILogger logger = null)
         {
             try
             {
@@ -136,7 +141,7 @@ namespace OutWit.Common.Json
             }
         }
 
-        public static object? FromJsonString(this string me, Type type, ILogger? logger = null)
+        public static object FromJsonString(this string me, Type type, ILogger logger = null)
         {
             try
             {
@@ -153,12 +158,12 @@ namespace OutWit.Common.Json
 
         #region Bytes Deserealization
 
-        public static TObject? FromJsonBytes<TObject>(this byte[] me, ILogger? logger = null)
+        public static TObject FromJsonBytes<TObject>(this byte[] me, ILogger logger = null)
         {
             return ((ReadOnlySpan<byte>)me.AsSpan()).FromJsonBytes<TObject>(logger);
         }
 
-        public static TObject? FromJsonBytes<TObject>(this ReadOnlySpan<byte> me, ILogger? logger = null)
+        public static TObject FromJsonBytes<TObject>(this ReadOnlySpan<byte> me, ILogger logger = null)
         {
             try
             {
@@ -171,12 +176,12 @@ namespace OutWit.Common.Json
             }
         }
 
-        public static object? FromJsonBytes(this byte[] me, Type type, ILogger? logger = null)
+        public static object FromJsonBytes(this byte[] me, Type type, ILogger logger = null)
         {
             return ((ReadOnlySpan<byte>)me.AsSpan()).FromJsonBytes(type, logger);
         }
 
-        public static object? FromJsonBytes(this ReadOnlySpan<byte> me, Type type, ILogger? logger = null)
+        public static object FromJsonBytes(this ReadOnlySpan<byte> me, Type type, ILogger logger = null)
         {
             try
             {
@@ -193,7 +198,7 @@ namespace OutWit.Common.Json
 
         #region Clone
 
-        public static TObject? JsonClone<TObject>(this TObject me)
+        public static TObject JsonClone<TObject>(this TObject me)
             where TObject : class
         {
             return me.ToJsonBytes()?.FromJsonBytes<TObject>();
@@ -203,30 +208,35 @@ namespace OutWit.Common.Json
 
         #region Export
 
+#if NET6_0_OR_GREATER
+        
         public static async Task ExportAsJsonBytesAsync<T>(this IEnumerable<T> me, string filePath)
         {
-            byte[]? bytes = me.ToArray().ToJsonBytes();
+            byte[] bytes = me.ToArray().ToJsonBytes();
             if (bytes != null)
                 await File.WriteAllBytesAsync(filePath, bytes);
         }
-
+        
+#endif
         public static void ExportAsJsonBytes<T>(this IEnumerable<T> me, string filePath)
         {
-            byte[]? bytes = me.ToArray().ToJsonBytes();
+            byte[] bytes = me.ToArray().ToJsonBytes();
             if (bytes != null)
                 File.WriteAllBytes(filePath, bytes);
         }
-
+        
+#if NET6_0_OR_GREATER
+        
         public static async Task ExportAsJsonStringAsync<T>(this IEnumerable<T> me, string filePath)
         {
-            string? json = me.ToArray().ToJsonString(indented: true);
+            string json = me.ToArray().ToJsonString(indented: true);
             if (!string.IsNullOrEmpty(json))
                 await File.WriteAllTextAsync(filePath, json);
         }
-
+#endif
         public static void ExportAsJsonString<T>(this IEnumerable<T> me, string filePath)
         {
-            string? json = me.ToArray().ToJsonString(indented: true);
+            string json = me.ToArray().ToJsonString(indented: true);
             if (!string.IsNullOrEmpty(json))
                 File.WriteAllText(filePath, json);
         }
@@ -234,8 +244,9 @@ namespace OutWit.Common.Json
         #endregion
 
         #region Load
-
-        public static async Task<IReadOnlyList<T>?> LoadAsJsonBytesAsync<T>(string filePath)
+        
+#if NET6_0_OR_GREATER
+        public static async Task<IReadOnlyList<T>> LoadAsJsonBytesAsync<T>(string filePath)
         {
             if (!File.Exists(filePath))
                 return null;
@@ -244,8 +255,8 @@ namespace OutWit.Common.Json
 
             return bytes.FromJsonBytes<IReadOnlyList<T>>();
         }
-
-        public static IReadOnlyList<T>? LoadAsJsonBytes<T>(string filePath)
+#endif
+        public static IReadOnlyList<T> LoadAsJsonBytes<T>(string filePath)
         {
             if (!File.Exists(filePath))
                 return null;
@@ -254,8 +265,8 @@ namespace OutWit.Common.Json
 
             return bytes.FromJsonBytes<IReadOnlyList<T>>();
         }
-
-        public static async Task<IReadOnlyList<T>?> LoadAsJsonStringAsync<T>(string filePath)
+#if NET6_0_OR_GREATER
+        public static async Task<IReadOnlyList<T>> LoadAsJsonStringAsync<T>(string filePath)
         {
             if (!File.Exists(filePath))
                 return null;
@@ -264,8 +275,8 @@ namespace OutWit.Common.Json
 
             return json.FromJsonString<IReadOnlyList<T>>();
         }
-
-        public static IReadOnlyList<T>? LoadAsJsonString<T>(string filePath)
+#endif   
+        public static IReadOnlyList<T> LoadAsJsonString<T>(string filePath)
         {
             if (!File.Exists(filePath))
                 return null;

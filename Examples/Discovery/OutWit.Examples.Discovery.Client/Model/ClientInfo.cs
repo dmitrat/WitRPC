@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Windows.Input;
+using OutWit.Common.Abstract;
 using OutWit.Common.Aspects;
 using OutWit.Common.MVVM.Commands;
 using OutWit.Communication.Client;
@@ -9,14 +10,8 @@ using OutWit.Examples.Contracts;
 
 namespace OutWit.Examples.Discovery.Client.Model
 {
-    public class ClientInfo : INotifyPropertyChanged, IDisposable
+    public class ClientInfo : NotifyPropertyChangedBase, IDisposable
     {
-        #region Events
-
-        public event PropertyChangedEventHandler? PropertyChanged = delegate { };
-
-        #endregion
-
         #region Constructors
 
         public ClientInfo(DiscoveryMessage message, WitComClient client)

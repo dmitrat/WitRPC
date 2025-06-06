@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.Extensions.DependencyInjection;
-using OutWit.Common.Aspects.Utils;
 using OutWit.Common.MVVM.Commands;
 using OutWit.Common.MVVM.ViewModels;
 using OutWit.Common.Random;
@@ -16,6 +15,7 @@ using OutWit.Examples.Benchmark.Server.Utils;
 using OutWit.Examples.Contracts;
 using OutWit.Examples.Services;
 using Microsoft.AspNetCore.SignalR;
+using OutWit.Common.Utils;
 
 namespace OutWit.Examples.Benchmark.Server.ViewModels
 {   

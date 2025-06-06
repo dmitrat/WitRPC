@@ -10,15 +10,9 @@ using OutWit.Common.Interfaces;
 namespace OutWit.Common.MessagePack.Ranges
 {
     [MessagePackObject]
-    public class MessagePackRange<TValue> : ModelBase, IRange<TValue>, INotifyPropertyChanged
+    public class MessagePackRange<TValue> : ModelBase, IRange<TValue>
         where TValue : struct, IComparable<TValue>
     {
-        #region Events
-
-        public event PropertyChangedEventHandler PropertyChanged = delegate { };
-
-        #endregion
-
         #region Constructors
 
         private MessagePackRange()

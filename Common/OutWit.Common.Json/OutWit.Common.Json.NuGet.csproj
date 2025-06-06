@@ -1,0 +1,48 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>netstandard2.0;net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
+	  <SignAssembly>False</SignAssembly>
+	  <RootNamespace>OutWit.Common.Json</RootNamespace>
+
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <PackageId>OutWit.Common.Json</PackageId>
+	  <Version>1.0.0</Version>
+	  <Authors>Dmitry Ratner</Authors>
+	  <Company>OutWit</Company>
+	  <Product>OutWit.Common.Json</Product>
+	  <Description>Json (System.Text.Json) serialization tools/snippets</Description>
+	  <PackageTags>OutWit;Common;Json</PackageTags>
+	  <Copyright>Copyright © Dmitry Ratner 2025</Copyright>
+
+	  <RepositoryUrl>https://github.com/dmitrat/WitCom/tree/main/Common/OutWit.Common.Json</RepositoryUrl>
+	  <PackageProjectUrl>https://github.com/dmitrat/WitCom/tree/main/Common/OutWit.Common.Json</PackageProjectUrl>
+
+	  <PackageIcon>OutWitIcon128.png</PackageIcon>
+	  <PackageLicenseFile>LICENSE</PackageLicenseFile>
+
+	  <LangVersion>10.0</LangVersion>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="OutWit.Common.Aspects" Version="1.1.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+		<PackageReference Include="System.Text.Json" Version="8.0.5" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<PackageReference Include="System.Text.Json" Version="8.0.5" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="LICENSE" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="OutWitIcon128.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+</Project>

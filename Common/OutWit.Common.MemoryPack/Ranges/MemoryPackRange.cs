@@ -8,15 +8,9 @@ using OutWit.Common.Interfaces;
 namespace OutWit.Common.MemoryPack.Ranges
 {
     [MemoryPackable]
-    public partial class MemoryPackRange<TValue> : ModelBase, IRange<TValue>, INotifyPropertyChanged
+    public partial class MemoryPackRange<TValue> : ModelBase, IRange<TValue>
         where TValue : struct, IComparable<TValue>
     {
-        #region Events
-
-        public event PropertyChangedEventHandler? PropertyChanged = delegate { };
-
-        #endregion
-
         #region Constructors
 
         private MemoryPackRange()

@@ -3,6 +3,7 @@ using System.Runtime.Serialization;
 using MemoryPack;
 using MessagePack;
 using OutWit.Common.Abstract;
+using OutWit.Common.Attributes;
 using OutWit.Common.Values;
 using OutWit.Communication.Tests.Mock.Interfaces;
 using ProtoBuf;
@@ -50,11 +51,13 @@ namespace OutWit.Communication.Tests.Mock.Model
         [Key(0)]
         [DataMember]
         [ProtoMember(1)]
+        [ToString]
         public int Int32Value { get; set; }
 
         [Key(1)]
         [DataMember]
         [ProtoMember(2)]
+        [ToString]
         public string? StringValue { get; set; }
     }
 }

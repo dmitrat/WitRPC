@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using MessagePack;
 using MessagePack.Formatters;
 
@@ -25,7 +26,7 @@ namespace OutWit.Common.MessagePack
                 }
             }
 
-            public static IMessagePackFormatter<T>? Formatter { get; }
+            public static IMessagePackFormatter<T> Formatter { get; }
         }
 
         #endregion
@@ -67,7 +68,7 @@ namespace OutWit.Common.MessagePack
 
         #endregion
 
-        public IMessagePackFormatter<T>? GetFormatter<T>()
+        public IMessagePackFormatter<T> GetFormatter<T>()
         {
             return Cache<T>.Formatter;
         }

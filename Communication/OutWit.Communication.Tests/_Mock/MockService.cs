@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using OutWit.Common.Abstract;
 using OutWit.Common.Aspects;
 using OutWit.Communication.Tests._Mock.Interfaces;
 using OutWit.Communication.Tests.Mock.Interfaces;
@@ -7,11 +8,9 @@ using OutWit.Communication.Tests.Mock.Model;
 
 namespace OutWit.Communication.Tests.Mock
 {
-    public class MockService : IService
+    public class MockService : NotifyPropertyChangedBase, IService
     {
         #region Events
-
-        public event PropertyChangedEventHandler? PropertyChanged = delegate { };
 
         public event ServiceProgressEventHandler Progress = delegate { };
 

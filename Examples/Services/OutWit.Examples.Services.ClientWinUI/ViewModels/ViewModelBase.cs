@@ -4,18 +4,13 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OutWit.Common.Abstract;
 
 namespace OutWit.Examples.Services.ClientWinUI.ViewModels
 {
-    public abstract class ViewModelBase<TApplicationVm> : INotifyPropertyChanged, IDisposable
+    public abstract class ViewModelBase<TApplicationVm> : NotifyPropertyChangedBase, IDisposable
       where TApplicationVm : class
     {
-        #region Events
-
-        public event PropertyChangedEventHandler PropertyChanged = delegate { };
-
-        #endregion
-
         #region Constructors
 
         protected ViewModelBase(TApplicationVm applicationVm)

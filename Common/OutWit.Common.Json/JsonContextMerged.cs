@@ -30,7 +30,7 @@ namespace OutWit.Common.Json
 
         #region IJsonTypeInfoResolver
 
-        public JsonTypeInfo? GetTypeInfo(Type type, JsonSerializerOptions options)
+        public JsonTypeInfo GetTypeInfo(Type type, JsonSerializerOptions options)
         {
             foreach (var context in m_contexts.Cast<IJsonTypeInfoResolver>())
             {

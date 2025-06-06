@@ -13,9 +13,9 @@ using System.Runtime.CompilerServices;
 using OutWit.Communication.Processors;
 using OutWit.Communication.Tests.Mock.Interfaces;
 using Castle.DynamicProxy;
+using OutWit.Common.Utils;
 using OutWit.Communication.Interceptors;
 using OutWit.Communication.Tests.Mock.Model;
-using OutWit.Common.Aspects.Utils;
 using OutWit.Communication.Server.Discovery;
 using OutWit.Communication.Tests._Mock.Interfaces;
 

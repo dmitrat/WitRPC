@@ -48,10 +48,10 @@ namespace OutWit.Common.Json.Converters
                     throw new JsonException("Expected property name in RSA parameters object.");
                 
 
-                string? propertyName = reader.GetString();
+                string propertyName = reader.GetString();
                 reader.Read(); 
 
-                byte[]? value = null;
+                byte[] value = null;
                 if (reader.TokenType == JsonTokenType.String)
                 {
                     try
@@ -104,7 +104,7 @@ namespace OutWit.Common.Json.Converters
             writer.WriteEndObject();
         }
 
-        private void WriteBase64Property(Utf8JsonWriter writer, string propertyName, byte[]? value)
+        private void WriteBase64Property(Utf8JsonWriter writer, string propertyName, byte[] value)
         {
             if (value == null || value.Length <= 0) 
                 return;
