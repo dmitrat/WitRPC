@@ -10,35 +10,35 @@ namespace OutWit.Examples.Services.ClientBlazor.Encryption
         #region Properties
 
         [JsonPropertyName("n")]
-        public string? Modulus { get; set; }
+        public string? mod { get; set; }
 
 
         [JsonPropertyName("e")]
-        public string? Exponent { get; set; }
+        public string? exp { get; set; }
 
 
         [JsonPropertyName("d")]
-        public string? D { get; set; }
+        public string? d { get; set; }
 
 
         [JsonPropertyName("P")]
-        public string? P { get; set; }
+        public string? p { get; set; }
 
 
         [JsonPropertyName("q")]
-        public string? Q { get; set; }
+        public string? q { get; set; }
 
 
         [JsonPropertyName("dp")]
-        public string? DP { get; set; }
+        public string? dp { get; set; }
 
 
         [JsonPropertyName("dq")]
-        public string? DQ { get; set; }
+        public string? dq { get; set; }
 
 
         [JsonPropertyName("qi")]
-        public string? InverseQ { get; set; }
+        public string? iq { get; set; }
 
         #endregion
     }
