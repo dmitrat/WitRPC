@@ -97,9 +97,15 @@ namespace OutWit.Communication.Client.Discovery
 
         public async Task Stop()
         {
-            if(CancellationToken != null)
+            
+#if NET8_0_OR_GREATER
+            if (CancellationToken != null)
                 await CancellationToken.CancelAsync();
 
+#else
+            if (CancellationToken != null)
+                CancellationToken.Cancel();
+#endif
             Dispose();
         }
 

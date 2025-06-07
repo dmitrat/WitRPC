@@ -5,6 +5,7 @@ using OutWit.Communication.Client.Encryption;
 using OutWit.Communication.Interfaces;
 using OutWit.Examples.Services.ClientBlazor;
 using OutWit.Examples.Services.ClientBlazor.Encryption;
+using OutWit.Examples.Services.ClientBlazor;
 
 #region Default
 

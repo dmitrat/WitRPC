@@ -9,12 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OutWit.Common.Logging" Version="1.0.2" />
-    <PackageReference Include="OutWit.Common.MVVM" Version="1.0.1" />
-    <PackageReference Include="OutWit.Communication.Server.MMF" Version="1.2.0" />
-    <PackageReference Include="OutWit.Communication.Server.Pipes" Version="1.2.0" />
-    <PackageReference Include="OutWit.Communication.Server.Tcp" Version="1.2.0" />
-    <PackageReference Include="OutWit.Communication.Server.WebSocket" Version="1.2.0" />
+    <PackageReference Include="OutWit.Common.Logging" Version="1.1.0" />
+    <PackageReference Include="OutWit.Common.MVVM" Version="1.1.0" />
+    <PackageReference Include="OutWit.Communication.Server.MMF" Version="2.0.0" />
+    <PackageReference Include="OutWit.Communication.Server.Pipes" Version="2.0.0" />
+    <PackageReference Include="OutWit.Communication.Server.Tcp" Version="2.0.0" />
+    <PackageReference Include="OutWit.Communication.Server.WebSocket" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -39,10 +39,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.250108002" />
-    <PackageReference Include="OutWit.Common.Logging" Version="1.0.2" />
-    <PackageReference Include="OutWit.Common.Proxy" Version="1.1.0" />
-    <PackageReference Include="OutWit.Common.Proxy.Generator" Version="1.1.0" />
-    <PackageReference Include="OutWit.Communication.Client.WebSocket" Version="1.2.0" />
+    <PackageReference Include="OutWit.Common.Logging" Version="1.1.0" />
+    <PackageReference Include="OutWit.Common.Proxy" Version="1.1.2" />
+    <PackageReference Include="OutWit.Common.Proxy.Generator" Version="1.1.2" />
+    <PackageReference Include="OutWit.Communication.Client.WebSocket" Version="2.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\OutWit.Examples.Contracts\OutWit.Examples.Contracts.NuGet.csproj" />

@@ -9,10 +9,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="9.0.1" />
-    <PackageReference Include="OutWit.Communication.Server.Pipes" Version="1.2.0" />
-    <PackageReference Include="OutWit.Communication.Server.Rest" Version="1.2.0" />
-    <PackageReference Include="OutWit.Communication.Server.Tcp" Version="1.2.0" />
-    <PackageReference Include="OutWit.Communication.Server.WebSocket" Version="1.2.0" />
+    <PackageReference Include="OutWit.Communication.Server.Pipes" Version="2.0.0" />
+    <PackageReference Include="OutWit.Communication.Server.Rest" Version="2.0.0" />
+    <PackageReference Include="OutWit.Communication.Server.Tcp" Version="2.0.0" />
+    <PackageReference Include="OutWit.Communication.Server.WebSocket" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>
