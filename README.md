@@ -1,6 +1,6 @@
-# WitCom
+# WitRPC
 
-WitCom is a modern API for client-server communication designed to simplify development and provide a robust, extensible framework. It offers a seamless way to handle real-time and event-driven interactions with minimal setup, acting as a powerful alternative to traditional frameworks like WCF and SignalR.
+WitRPC is a modern API for client-server communication designed to simplify development and provide a robust, extensible framework. It offers a seamless way to handle real-time and event-driven interactions with minimal setup, acting as a powerful alternative to traditional frameworks like WCF and SignalR.
 
 ## Features
 
@@ -98,7 +98,7 @@ public class ExampleService : IExampleService
 
 ### Setting Up the Server
 ```csharp
-var server = WitComServerBuilder.Build(options =>
+var server = WitServerBuilder.Build(options =>
 {
     options.WithService(new ExampleService());
     options.WithWebSocket("http://localhost:5000", 10);
@@ -111,7 +111,7 @@ server.StartWaitingForConnection();
 
 ### Connecting the Client
 ```csharp
-var client = WitComClientBuilder.Build(options =>
+var client = WitClientBuilder.Build(options =>
 {
     options.WithWebSocket("ws://localhost:5000");
     options.WithJson();
@@ -130,4 +130,3 @@ service.StartProcessing();
 
 ## More Info
 For more info visit the [ratner.io](https://ratner.io/witcom/).
-
