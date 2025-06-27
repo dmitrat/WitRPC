@@ -38,14 +38,14 @@ namespace OutWit.InterProcess.Host
 
         #region IAgent
 
-        public bool Start(WitComClientBuilderOptions options, string pathToService, TimeSpan timeout)
+        public bool Start(WitClientBuilderOptions options, string pathToService, TimeSpan timeout)
         {
             if(!RunProcess(options, pathToService, timeout))
                 return false;
 
             try
             {
-                Client = WitComClientBuilder.Build(options);
+                Client = WitClientBuilder.Build(options);
             }
             catch (Exception e)
             {
@@ -104,7 +104,7 @@ namespace OutWit.InterProcess.Host
 
         #region Process
 
-        private bool RunProcess(WitComClientBuilderOptions options, string pathToService, TimeSpan timeout)
+        private bool RunProcess(WitClientBuilderOptions options, string pathToService, TimeSpan timeout)
         {
             if (!File.Exists(pathToService))
                 return false;
@@ -174,7 +174,7 @@ namespace OutWit.InterProcess.Host
 
         private Process? Process { get; set; }
 
-        private WitComClient? Client { get; set; }
+        private WitClient? Client { get; set; }
 
 
         public TService? Service { get; private set; }

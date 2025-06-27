@@ -17,7 +17,7 @@ namespace OutWit.Communication.Client.Rest.Requests
     {
         #region Constructors
 
-        public RequestGet(RestClientTransportOptions options, WitComRequest requestBase, string token)
+        public RequestGet(RestClientTransportOptions options, WitRequest requestBase, string token)
         {
             Options = options;
             RequestBase = requestBase;
@@ -34,11 +34,11 @@ namespace OutWit.Communication.Client.Rest.Requests
         private void CheckRequest()
         {
             if (RequestBase.GenericArguments.Length > 0 || RequestBase.GenericArgumentsByName.Length > 0)
-                throw new WitComExceptionRestRequest(RequestBase,
+                throw new WitExceptionRestRequest(RequestBase,
                     "Rest Get request cannot be constructed from generic method parameters");
 
             if (Options.Mode == RestClientRequestModes.PostOnly)
-                throw new WitComExceptionRestRequest(RequestBase,
+                throw new WitExceptionRestRequest(RequestBase,
                     "Only post request allowed");
 
             IReadOnlyList<Type?> types = RequestBase.ParameterTypes;
@@ -46,12 +46,12 @@ namespace OutWit.Communication.Client.Rest.Requests
                 types = RequestBase.ParameterTypesByName.Select(parameterType => (Type?)parameterType).ToArray();
 
             if (Options.Mode == RestClientRequestModes.AllowGetForMethodsWithoutParameters && types.Count > 0)
-                throw new WitComExceptionRestRequest(RequestBase, 
+                throw new WitExceptionRestRequest(RequestBase, 
                     "Only get requests for methods without parameters allowed");
 
 
             if (Options.Mode == RestClientRequestModes.AllowGetForMethodsWithSingleParameter && types.Count > 1)
-                throw new WitComExceptionRestRequest(RequestBase,
+                throw new WitExceptionRestRequest(RequestBase,
                     "Only get requests for methods with single parameter allowed");
 
             for (int i = 0; i < types.Count; i++)
@@ -60,7 +60,7 @@ namespace OutWit.Communication.Client.Rest.Requests
                 if(type == null)
                     continue;
                 if (!type.CanAppend())
-                    throw new WitComExceptionRestRequest(RequestBase,
+                    throw new WitExceptionRestRequest(RequestBase,
                         $"Parameter of type {type} is not accepted to construct Get request");
             }
         }
@@ -128,7 +128,7 @@ namespace OutWit.Communication.Client.Rest.Requests
 
         public RestClientTransportOptions Options { get; }
 
-        public WitComRequest RequestBase { get; }
+        public WitRequest RequestBase { get; }
 
         public string Token { get; }
 

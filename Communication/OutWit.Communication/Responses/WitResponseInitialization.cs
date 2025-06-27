@@ -12,22 +12,22 @@ namespace OutWit.Communication.Responses
     [DataContract]
     [MemoryPackable]
     [ProtoContract]
-    public partial class WitComResponseInitialization : ModelBase
+    public partial class WitResponseInitialization : ModelBase
     {
         #region Model Base
 
         public override bool Is(ModelBase modelBase, double tolerance = 1E-07)
         {
-            if (!(modelBase is WitComResponseInitialization request))
+            if (!(modelBase is WitResponseInitialization request))
                 return false;
 
             return SymmetricKey.Is(request.SymmetricKey) && 
                    Vector.Is(request.Vector);
         }
 
-        public override WitComResponseInitialization Clone()
+        public override WitResponseInitialization Clone()
         {
-            return new WitComResponseInitialization
+            return new WitResponseInitialization
             {
                 SymmetricKey = SymmetricKey,
                 Vector = Vector

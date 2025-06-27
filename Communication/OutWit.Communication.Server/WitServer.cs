@@ -16,7 +16,7 @@ using OutWit.Communication.Utils;
 
 namespace OutWit.Communication.Server
 {
-    public class WitComServer : IDisposable
+    public class WitServer : IDisposable
     {
         #region Fields
 
@@ -26,7 +26,7 @@ namespace OutWit.Communication.Server
 
         #region Constructors
 
-        public WitComServer(ITransportServerFactory transportFactory, IEncryptorServerFactory encryptorFactory,
+        public WitServer(ITransportServerFactory transportFactory, IEncryptorServerFactory encryptorFactory,
             IAccessTokenValidator tokenValidator, IMessageSerializer parametersSerializer, IMessageSerializer messageSerializer,
             IRequestProcessor requestProcessor, IDiscoveryServer? discoveryServer,
             ILogger? logger, TimeSpan? timeout, string? name, string? description)
@@ -64,12 +64,12 @@ namespace OutWit.Communication.Server
                 DiscoveryServer.DiscoveryMessageRequested += OnDiscoveryMessageRequested;
         }
 
-        private WitComMessage ProcessInitialization(Guid client, WitComMessage message)
+        private WitMessage ProcessInitialization(Guid client, WitMessage message)
         {
             if (!m_connections.TryGetValue(client, out ConnectionInfo? connection))
             {
                 Logger?.LogError($"Unexpected recipient id");
-                throw new WitComException($"Unexpected recipient id: {client}");
+                throw new WitException($"Unexpected recipient id: {client}");
             }
 
             if(connection.IsInitialized && connection.CanReinitialize)
@@ -78,21 +78,21 @@ namespace OutWit.Communication.Server
             if (connection.IsInitialized)
             {
                 Logger?.LogError($"Wrong initialization request");
-                throw new WitComException($"Wrong initialization request");
+                throw new WitException($"Wrong initialization request");
             }
 
             if (message.Data == null)
                 return message.With(x=>x.Data = null);
 
-            WitComRequestInitialization? request = 
-                MessageSerializer.Deserialize<WitComRequestInitialization>(message.Data);
+            WitRequestInitialization? request = 
+                MessageSerializer.Deserialize<WitRequestInitialization>(message.Data);
 
             if(request == null || request.PublicKey == null)
                 return message.With(x => x.Data = null);
 
             try
             {
-                var response = new WitComResponseInitialization
+                var response = new WitResponseInitialization
                 {
                     SymmetricKey = connection.Encryptor.GetSymmetricKey(),
                     Vector = connection.Encryptor.GetVector()
@@ -113,25 +113,25 @@ namespace OutWit.Communication.Server
             }
         }
 
-        private WitComMessage ProcessAuthorization(Guid client, WitComMessage message)
+        private WitMessage ProcessAuthorization(Guid client, WitMessage message)
         {
             if (!m_connections.TryGetValue(client, out ConnectionInfo? connection))
             {
                 Logger?.LogError($"Unexpected recipient id");
-                throw new WitComException($"Unexpected recipient id: {client}");
+                throw new WitException($"Unexpected recipient id: {client}");
             }
 
             if (connection.IsAuthorized)
             {
                 Logger?.LogError($"Wrong authorization request");
-                throw new WitComException($"Wrong authorization request");
+                throw new WitException($"Wrong authorization request");
             }
 
             if (message.Data == null)
                 return message.With(x => x.Data = null);
 
-            WitComRequestAuthorization? request =
-                MessageSerializer.Deserialize<WitComRequestAuthorization>(message.Data);
+            WitRequestAuthorization? request =
+                MessageSerializer.Deserialize<WitRequestAuthorization>(message.Data);
 
             if (request == null || request.Token == null)
                 return message.With(x => x.Data = null);
@@ -140,7 +140,7 @@ namespace OutWit.Communication.Server
             {
                 connection.IsAuthorized = TokenValidator.IsAuthorizationTokenValid(request.Token);
 
-                var response = new WitComResponseAuthorization
+                var response = new WitResponseAuthorization
                 {
                     IsAuthorized = connection.IsAuthorized,
                     Message = connection.IsAuthorized ? "Authorized" : "Forbidden"
@@ -163,7 +163,7 @@ namespace OutWit.Communication.Server
 
         public void StartWaitingForConnection()
         {
-            TransportFactory.StartWaitingForConnection();
+            TransportFactory.StartWaitingForConnection(Logger);
             if(DiscoveryServer == null)
                 return;
 
@@ -182,21 +182,21 @@ namespace OutWit.Communication.Server
             DiscoveryServer.Stop();
         }
 
-        protected async Task<WitComMessage> ProcessMessage(Guid client, WitComMessage message)
+        protected async Task<WitMessage> ProcessMessage(Guid client, WitMessage message)
         {
             var request = message.Data.GetRequest(MessageSerializer);
 
-            WitComResponse? response = null;
+            WitResponse? response = null;
             if (request == null)
             {
                 Logger?.LogError($"Request is empty");
-                response = WitComResponse.BadRequest("Request is empty");
+                response = WitResponse.BadRequest("Request is empty");
             }
 
             else if (!TokenValidator.IsRequestTokenValid(request.Token))
             {
                 Logger?.LogError($"Tokes is not valid");
-                response = WitComResponse.UnauthorizedRequest("Tokes is not valid");
+                response = WitResponse.UnauthorizedRequest("Tokes is not valid");
             }
             else 
                 response = await RequestProcessor.Process(request);
@@ -204,15 +204,15 @@ namespace OutWit.Communication.Server
             return message.With(x => x.Data = MessageSerializer.Serialize(response!));
         }
 
-        private async Task<WitComMessage> Encrypt(Guid client, WitComMessage message)
+        private async Task<WitMessage> Encrypt(Guid client, WitMessage message)
         {
             if (!m_connections.TryGetValue(client, out ConnectionInfo? connection))
             {
                 Logger?.LogError($"Unexpected recipient id");
-                throw new WitComException($"Unexpected recipient id: {client}");
+                throw new WitException($"Unexpected recipient id: {client}");
             }
 
-            if (message.Type == WitComMessageType.Initialization || message.Data == null)
+            if (message.Type == WitMessageType.Initialization || message.Data == null)
                 return message;
 
             var data = await connection.Encryptor.Encrypt(message.Data);
@@ -220,15 +220,15 @@ namespace OutWit.Communication.Server
             return message.With(x => x.Data = data);
         }
 
-        private async Task<WitComMessage> Decrypt(Guid client, WitComMessage message)
+        private async Task<WitMessage> Decrypt(Guid client, WitMessage message)
         {
             if (!m_connections.TryGetValue(client, out ConnectionInfo? connection))
             {
                 Logger?.LogError($"Unexpected recipient id");
-                throw new WitComException($"Unexpected recipient id: {client}");
+                throw new WitException($"Unexpected recipient id: {client}");
             }
 
-            if (message.Type == WitComMessageType.Initialization || message.Data == null)
+            if (message.Type == WitMessageType.Initialization || message.Data == null)
                 return message;
 
             var data = await connection.Encryptor.Decrypt(message.Data);
@@ -240,7 +240,7 @@ namespace OutWit.Communication.Server
 
         #region Tools
 
-        private async Task SendMessageAsync(Guid client, WitComMessage message)
+        private async Task SendMessageAsync(Guid client, WitMessage message)
         {
             if(!m_connections.TryGetValue(client, out ConnectionInfo? connection))
                 return;
@@ -256,10 +256,10 @@ namespace OutWit.Communication.Server
             {
                 try
                 {
-                    var message = new WitComMessage
+                    var message = new WitMessage
                     {
                         Id = connection.Id,
-                        Type = WitComMessageType.Callback,
+                        Type = WitMessageType.Callback,
                         Data = callback
                     };
 
@@ -298,22 +298,22 @@ namespace OutWit.Communication.Server
 
         #region Event Handlers
 
-        private async Task OnMessageReceived(Guid client, WitComMessage? message)
+        private async Task OnMessageReceived(Guid client, WitMessage? message)
         {
-            if(message == null || message.Type == WitComMessageType.Unknown)
+            if(message == null || message.Type == WitMessageType.Unknown)
                 return;
 
             await WaitForCallback.WaitAsync();
 
             var decryptedMessage = await Decrypt(client, message);
 
-            if (message.Type == WitComMessageType.Initialization)
+            if (message.Type == WitMessageType.Initialization)
                 await SendMessageAsync(client, ProcessInitialization(client, decryptedMessage));
 
-            if (message.Type == WitComMessageType.Authorization)
+            if (message.Type == WitMessageType.Authorization)
                 await SendMessageAsync(client, ProcessAuthorization(client, decryptedMessage));
 
-            else if (message.Type == WitComMessageType.Request)
+            else if (message.Type == WitMessageType.Request)
             {
                 var responseMessage = await ProcessMessage(client, decryptedMessage);
                 await SendMessageAsync(client, responseMessage);
@@ -324,10 +324,10 @@ namespace OutWit.Communication.Server
 
         private async void OnDataReceived(Guid sender, byte[] data)
         {
-            await OnMessageReceived(sender, MessageSerializer.Deserialize<WitComMessage>(data));
+            await OnMessageReceived(sender, MessageSerializer.Deserialize<WitMessage>(data));
         }
 
-        private void OnCallback(WitComRequest? request)
+        private void OnCallback(WitRequest? request)
         {
             if (request == null)
                 return;

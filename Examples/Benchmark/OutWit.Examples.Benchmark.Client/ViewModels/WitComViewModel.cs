@@ -28,7 +28,7 @@ using OutWit.Examples.Contracts.Utils;
 
 namespace OutWit.Examples.Benchmark.Client.ViewModels
 {
-    public class WitComViewModel: ViewModelBase<ApplicationViewModel>
+    public class WitRPCViewModel: ViewModelBase<ApplicationViewModel>
     {
         #region Constants
 
@@ -40,22 +40,22 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
         private const string DEFAULT_WEB_SOCKET_PATH = "api";
 
-        private const int DEFAULT_TCP_PORT = 8081;
+        private const int DEFAULT_TCP_PORT = 7001;
 
-        private const int DEFAULT_WEB_SOCKET_PORT = 8082;
+        private const int DEFAULT_WEB_SOCKET_PORT = 7001;
 
         private const int DEFAULT_BENCHMARK_ATTEMPTS = 50;
 
-        private const long DEFAULT_DATA_SIZE = 10_000_000;
+        private const long DEFAULT_DATA_SIZE = 10_000_00;
 
 
-        private const string DEFAULT_HOST = "localhost";
+        private const string DEFAULT_HOST = "rdc.waveslogic.com";
 
         #endregion
 
         #region Constructors
 
-        public WitComViewModel(ApplicationViewModel applicationVm) 
+        public WitRPCViewModel(ApplicationViewModel applicationVm) 
             : base(applicationVm)
         {
             InitDefaults();
@@ -73,23 +73,23 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
             TransportTypes =
             [
-                WitComTransportType.MemoryMappedFile,
-                WitComTransportType.NamedPipe,
-                WitComTransportType.TCP,
-                WitComTransportType.WebSocket
+                WitRPCTransportType.MemoryMappedFile,
+                WitRPCTransportType.NamedPipe,
+                WitRPCTransportType.TCP,
+                WitRPCTransportType.WebSocket
             ];
 
-            TransportType = WitComTransportType.MemoryMappedFile;
+            TransportType = WitRPCTransportType.MemoryMappedFile;
 
             SerializerTypes =
             [
-                WitComSerializerType.Json,
-                WitComSerializerType.MessagePack,
-                WitComSerializerType.MemoryPack,
-                WitComSerializerType.ProtoBuf
+                WitRPCSerializerType.Json,
+                WitRPCSerializerType.MessagePack,
+                WitRPCSerializerType.MemoryPack,
+                WitRPCSerializerType.ProtoBuf
             ];
 
-            SerializerType = WitComSerializerType.Json;
+            SerializerType = WitRPCSerializerType.Json;
 
             UseEncryption = true;
             UseAuthorization = true;
@@ -137,7 +137,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
             if(!CanConnectClient)
                 return;
 
-            var options = new WitComClientBuilderOptions();
+            var options = new WitClientBuilderOptions();
             if(UseEncryption)
                 options.WithEncryption();
             else
@@ -152,50 +152,53 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
             switch (SerializerType)
             {
-                case WitComSerializerType.Json:
+                case WitRPCSerializerType.Json:
                     options.WithJson();
                     break;
 
-                case WitComSerializerType.MessagePack:
+                case WitRPCSerializerType.MessagePack:
                     options.WithMessagePack();
                     break;
 
-                case WitComSerializerType.MemoryPack:
+                case WitRPCSerializerType.MemoryPack:
                     options.WithMemoryPack();
                     break;
 
-                case WitComSerializerType.ProtoBuf:
+                case WitRPCSerializerType.ProtoBuf:
                     options.WithProtoBuf();
                     break;
             }
 
             switch (TransportType)
             {
-                case WitComTransportType.MemoryMappedFile:
+                case WitRPCTransportType.MemoryMappedFile:
                     if(!string.IsNullOrEmpty(MemoryMappedFileName))
                         options.WithMemoryMappedFile(MemoryMappedFileName);
                     break;
 
-                case WitComTransportType.NamedPipe:
+                case WitRPCTransportType.NamedPipe:
                     if (!string.IsNullOrEmpty(PipeName))
                         options.WithNamedPipe(PipeName);
                     break;
 
-                case WitComTransportType.TCP:
+                case WitRPCTransportType.TCP:
                     options.WithTcp($"{Host}", TcpPort);
                     break;
 
 
-                case WitComTransportType.WebSocket:
-                    options.WithWebSocket($"ws://{Host}/{WebSocketPath}");
+                case WitRPCTransportType.WebSocket:
+                    options.WithWebSocket($"wss://{Host}:{WebSocketPort}/{WebSocketPath}");
                     break;
             }
 
             if(options.Transport == null)
                 return;
 
-            Client = WitComClientBuilder.Build(options);
+            Client = WitClientBuilder.Build(options);
             var result = await Client.ConnectAsync(TimeSpan.FromSeconds(10), CancellationToken.None);
+
+            if (!result)
+                return;
 
             Service = Client.GetService<IBenchmarkService>();
 
@@ -243,7 +246,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
                         {
                             SeriesId = id,
                             Name = "OneWayBenchmark",
-                            Type = "WitCom",
+                            Type = "WitRPC",
                             Transport = $"{TransportType}",
                             Serializer = $"{SerializerType}",
                             UseEncryption = UseEncryption,
@@ -293,7 +296,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
                         {
                             SeriesId = id,
                             Name = "TwoWaysBenchmark",
-                            Type = "WitCom",
+                            Type = "WitRPC",
                             Transport = $"{TransportType}",
                             Serializer = $"{SerializerType}",
                             UseEncryption = UseEncryption,
@@ -334,7 +337,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
         private string BuildFileName()
         {
-            var fileName = $"WitCom_{TransportType}_{SerializerType}_{BenchmarkResults.FirstOrDefault()?.Name}";
+            var fileName = $"WitRPC_{TransportType}_{SerializerType}_{BenchmarkResults.FirstOrDefault()?.Name}";
             if (UseEncryption)
                 fileName = $"{fileName}_Encryption";
             if (UseAuthorization)
@@ -345,10 +348,10 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
         private void UpdateStatus()
         {
-            IsMemoryMappedFile = TransportType == WitComTransportType.MemoryMappedFile;
-            IsNamedPipe = TransportType == WitComTransportType.NamedPipe;
-            IsTcp = TransportType == WitComTransportType.TCP;
-            IsWebSocket = TransportType == WitComTransportType.WebSocket;
+            IsMemoryMappedFile = TransportType == WitRPCTransportType.MemoryMappedFile;
+            IsNamedPipe = TransportType == WitRPCTransportType.NamedPipe;
+            IsTcp = TransportType == WitRPCTransportType.TCP;
+            IsWebSocket = TransportType == WitRPCTransportType.WebSocket;
         }
 
         #endregion
@@ -357,7 +360,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
         private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if(e.IsProperty((WitComViewModel vm)=>vm.TransportType))
+            if(e.IsProperty((WitRPCViewModel vm)=>vm.TransportType))
                 UpdateStatus();
         }
 
@@ -366,16 +369,16 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
         #region Properties
 
         [Notify] 
-        public IReadOnlyList<WitComTransportType> TransportTypes { get; private set; } = null!;
+        public IReadOnlyList<WitRPCTransportType> TransportTypes { get; private set; } = null!;
 
         [Notify]
-        public WitComTransportType? TransportType { get; set; }
+        public WitRPCTransportType? TransportType { get; set; }
 
         [Notify] 
-        public IReadOnlyList<WitComSerializerType> SerializerTypes { get; private set; } = null!;
+        public IReadOnlyList<WitRPCSerializerType> SerializerTypes { get; private set; } = null!;
 
         [Notify]
-        public WitComSerializerType? SerializerType { get; set; }
+        public WitRPCSerializerType? SerializerType { get; set; }
 
         [Notify]
         public ObservableCollection<BenchmarkResult> BenchmarkResults { get; private set; } = null!;
@@ -432,7 +435,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
         [Notify]
         public string Host { get; set; }
 
-        private WitComClient? Client { get; set; }
+        private WitClient? Client { get; set; }
 
         private IBenchmarkService? Service { get; set; }
 

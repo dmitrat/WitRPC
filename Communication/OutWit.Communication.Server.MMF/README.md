@@ -1,7 +1,7 @@
 # OutWit.Communication.Server.MMF
 
 ## Overview
-The `OutWit.Communication.Server.MMF` package provides server-side support for Memory-Mapped File (MMF) transport in WitCom.
+The `OutWit.Communication.Server.MMF` package provides server-side support for Memory-Mapped File (MMF) transport in WitRPC.
 
 ### Key Features
 - Ideal for IPC on the same machine.
@@ -11,7 +11,7 @@ The `OutWit.Communication.Server.MMF` package provides server-side support for M
 ```csharp
 using OutWit.Communication.Server.MMF;
 
-var server = WitComServerBuilder.Build(options =>
+var server = WitServerBuilder.Build(options =>
 {
     options.WithMemoryMappedFile("MySharedMemory", 1024 * 1024);
 });

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `OutWit.Communication.Server` library provides a powerful framework for creating servers in the WitCom ecosystem. It supports encryption, token-based authorization, and flexible serialization to ensure secure and efficient communication with clients.
+The `OutWit.Communication.Server` library provides a powerful framework for creating servers in the WitRPC ecosystem. It supports encryption, token-based authorization, and flexible serialization to ensure secure and efficient communication with clients.
 
 ## Features
 
@@ -12,7 +12,7 @@ The `OutWit.Communication.Server` library provides a powerful framework for crea
 
 #### Example:
 ```csharp
-var server = WitComServerBuilder.Build(options =>
+var server = WitServerBuilder.Build(options =>
 {
     options.WithAccessToken("your-access-token");
 });
@@ -24,7 +24,7 @@ var server = WitComServerBuilder.Build(options =>
 
 #### Example:
 ```csharp
-var server = WitComServerBuilder.Build(options =>
+var server = WitServerBuilder.Build(options =>
 {
     options.WithEncryption();
 });
@@ -36,13 +36,13 @@ var server = WitComServerBuilder.Build(options =>
 
 #### Example:
 ```csharp
-var server = WitComServerBuilder.Build(options =>
+var server = WitServerBuilder.Build(options =>
 {
     options.WithJson();
 });
 
 // Or for MessagePack:
-var server = WitComServerBuilder.Build(options =>
+var server = WitServerBuilder.Build(options =>
 {
     options.WithMessagePack();
 });
@@ -51,7 +51,7 @@ var server = WitComServerBuilder.Build(options =>
 ### 4. Logging and Debugging
 Integrate custom logging for debugging and monitoring:
 ```csharp
-var server = WitComServerBuilder.Build(options =>
+var server = WitServerBuilder.Build(options =>
 {
     options.WithLogger(new ConsoleLogger());
 });
@@ -60,7 +60,7 @@ var server = WitComServerBuilder.Build(options =>
 ### 5. Timeout Configuration
 Set request and response timeouts for server operations:
 ```csharp
-var server = WitComServerBuilder.Build(options =>
+var server = WitServerBuilder.Build(options =>
 {
     options.WithTimeout(TimeSpan.FromSeconds(30));
 });
@@ -71,7 +71,7 @@ Expose your services seamlessly using the `WithService` configuration.
 
 #### Example:
 ```csharp
-var server = WitComServerBuilder.Build(options =>
+var server = WitServerBuilder.Build(options =>
 {
     options.WithService(new MyService());
 });
@@ -88,7 +88,7 @@ Install-Package OutWit.Communication.Server
 
 ### Basic Setup
 ```csharp
-var server = WitComServerBuilder.Build(options =>
+var server = WitServerBuilder.Build(options =>
 {
     options.WithAccessToken("my-access-token");
     options.WithEncryption();
@@ -119,7 +119,7 @@ public class MyService
 
 Clients can invoke this service:
 ```csharp
-var request = new WitComRequest
+var request = new WitRequest
 {
     MethodName = "Greet",
     Parameters = new object[] { "John" }
@@ -128,15 +128,15 @@ var request = new WitComRequest
 
 ## API Reference
 
-### `WitComServer`
+### `WitServer`
 The core class for server-side communication.
 
 #### Key Methods:
 - `StartWaitingForConnection`: Begins listening for client connections.
 - `StopWaitingForConnection`: Stops the server and releases resources.
 
-### `WitComServerBuilder`
-A fluent API for configuring and creating `WitComServer` instances.
+### `WitServerBuilder`
+A fluent API for configuring and creating `WitServer` instances.
 
 #### Configuration Options:
 - `.WithAccessToken`: Sets the access token for authentication.

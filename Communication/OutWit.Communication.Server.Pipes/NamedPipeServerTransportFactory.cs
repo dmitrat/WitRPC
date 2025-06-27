@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OutWit.Communication.Interfaces;
 
 namespace OutWit.Communication.Server.Pipes
@@ -28,7 +29,7 @@ namespace OutWit.Communication.Server.Pipes
 
         #region Functions
 
-        public void StartWaitingForConnection()
+        public void StartWaitingForConnection(ILogger? logger)
         {
             CancellationTokenSource = new CancellationTokenSource();
 

@@ -42,7 +42,7 @@ namespace OutWit.Communication.Tests.Serialization
 
                 Console.WriteLine($"Parameter serialization duration: {(end - start).TotalMilliseconds:0.0000} ms");
 
-                var request = new WitComRequest
+                var request = new WitRequest
                 {
                     Token = "token",
                     MethodName = "Serialization Test",
@@ -61,10 +61,10 @@ namespace OutWit.Communication.Tests.Serialization
 
                 Console.WriteLine($"Request serialization duration: {(end - start).TotalMilliseconds:0.0000} ms");
 
-                var message = new WitComMessage
+                var message = new WitMessage
                 {
                     Id = Guid.NewGuid(),
-                    Type = WitComMessageType.Unknown,
+                    Type = WitMessageType.Unknown,
                     Data = bytes
                 };
 

@@ -90,7 +90,7 @@ namespace OutWit.Examples.Services.ClientWinUI.ViewModels
                 CanReconnect = false;
                 Progress = 0;
 
-                Client = WitComClientBuilder.Build(options =>
+                Client = WitClientBuilder.Build(options =>
                 {
                     options.WithWebSocket($"ws://localhost:{PORT}/webSocket/");
                     options.WithEncryption();
@@ -250,7 +250,7 @@ namespace OutWit.Examples.Services.ClientWinUI.ViewModels
 
         #region Properties
 
-        private WitComClient? Client { get; set; }
+        private WitClient? Client { get; set; }
 
         private IExampleService? Service { get; set; }
 

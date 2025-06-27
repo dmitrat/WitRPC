@@ -11,7 +11,7 @@ namespace OutWit.Examples.InterProcess.BasicAgent.Utils
 {
     public static class TransportUtils
     {
-        public static WitComServerBuilderOptions WithTransport(this WitComServerBuilderOptions me, TransportType transport, string address)
+        public static WitServerBuilderOptions WithTransport(this WitServerBuilderOptions me, TransportType transport, string address)
         {
             switch (transport)
             {

@@ -5,11 +5,11 @@ using OutWit.Communication.Server.Authorization;
 
 namespace OutWit.Communication.Server.Rest
 {
-    public class WitComServerRestBuilderOptions
+    public class WitServerRestBuilderOptions
     {
         #region Constructors
 
-        public WitComServerRestBuilderOptions()
+        public WitServerRestBuilderOptions()
         {
             TokenValidator = new AccessTokenValidatorPlain();
 

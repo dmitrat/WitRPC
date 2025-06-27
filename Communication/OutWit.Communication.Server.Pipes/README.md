@@ -1,7 +1,7 @@
 # OutWit.Communication.Server.Pipes
 
 ## Overview
-The `OutWit.Communication.Server.Pipes` package provides server-side support for Named Pipe transport in WitCom.
+The `OutWit.Communication.Server.Pipes` package provides server-side support for Named Pipe transport in WitRPC.
 
 ### Key Features
 - Supports multiple clients.
@@ -11,7 +11,7 @@ The `OutWit.Communication.Server.Pipes` package provides server-side support for
 ```csharp
 using OutWit.Communication.Server.Pipes;
 
-var server = WitComServerBuilder.Build(options =>
+var server = WitServerBuilder.Build(options =>
 {
     options.WithNamedPipe("MyPipe", 5);
 });

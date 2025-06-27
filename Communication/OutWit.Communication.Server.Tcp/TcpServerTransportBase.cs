@@ -40,7 +40,7 @@ namespace OutWit.Communication.Server.Tcp
             try
             {
                 if (Client == null)
-                    throw new WitComExceptionTransport($"Failed to init tcp client");
+                    throw new WitExceptionTransport($"Failed to init tcp client");
 
                 Stream = CreateStream();
 
@@ -94,7 +94,7 @@ namespace OutWit.Communication.Server.Tcp
                 {
                     int bytesRead = await Stream.ReadAsync(lengthBuffer, 0, lengthBuffer.Length);
                     if (bytesRead == 0)
-                        throw new WitComExceptionTransport($"Client disconnected");
+                        throw new WitExceptionTransport($"Client disconnected");
 
                     int messageLength = BitConverter.ToInt32(lengthBuffer, 0);
 
@@ -105,7 +105,7 @@ namespace OutWit.Communication.Server.Tcp
                     {
                         int read = await Stream.ReadAsync(dataBuffer, totalBytesRead, messageLength - totalBytesRead);
                         if (read == 0)
-                            throw new WitComExceptionTransport($"Client disconnected");
+                            throw new WitExceptionTransport($"Client disconnected");
 
                         totalBytesRead += read;
                     }

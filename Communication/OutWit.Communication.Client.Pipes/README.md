@@ -1,7 +1,7 @@
 # OutWit.Communication.Client.Pipes
 
 ## Overview
-The `OutWit.Communication.Client.Pipes` package provides client-side support for Named Pipe transport in WitCom. Named Pipes are versatile for local and network-based IPC scenarios.
+The `OutWit.Communication.Client.Pipes` package provides client-side support for Named Pipe transport in WitRPC. Named Pipes are versatile for local and network-based IPC scenarios.
 
 ### Key Features
 - Supports single or multiple clients.
@@ -11,7 +11,7 @@ The `OutWit.Communication.Client.Pipes` package provides client-side support for
 ```csharp
 using OutWit.Communication.Client.Pipes;
 
-var client = WitComClientBuilder.Build(options =>
+var client = WitClientBuilder.Build(options =>
 {
     options.WithNamedPipe("MyPipe");
 });

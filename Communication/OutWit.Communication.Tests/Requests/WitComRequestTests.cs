@@ -12,12 +12,12 @@ using OutWit.Communication.Requests;
 namespace OutWit.Communication.Tests.Requests
 {
     [TestFixture]
-    public class WitComRequestTests
+    public class WitRequestTests
     {
         [Test]
         public void ConstructorTest()
         {
-            var request = new WitComRequest();
+            var request = new WitRequest();
             Assert.That(request.Token, Is.Empty);
             Assert.That(request.MethodName, Is.Empty);
             Assert.That(request.Parameters, Is.Empty);
@@ -26,7 +26,7 @@ namespace OutWit.Communication.Tests.Requests
             Assert.That(request.GenericArguments, Is.Empty);
             Assert.That(request.GenericArgumentsByName, Is.Empty);
 
-            request = new WitComRequest
+            request = new WitRequest
             {
                 Token = "0",
                 MethodName = "1",
@@ -49,7 +49,7 @@ namespace OutWit.Communication.Tests.Requests
         [Test]
         public void IsTest()
         {
-            var request = new WitComRequest
+            var request = new WitRequest
             {
                 Token = "0",
                 MethodName = "1",
@@ -74,7 +74,7 @@ namespace OutWit.Communication.Tests.Requests
         [Test]
         public void CloneTest()
         {
-            var request1 = new WitComRequest
+            var request1 = new WitRequest
             {
                 Token = "0",
                 MethodName = "1",
@@ -84,7 +84,7 @@ namespace OutWit.Communication.Tests.Requests
                 GenericArguments = new[] { typeof(double), typeof(string) },
                 GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) }
             };
-            var request2 = request1.Clone() as WitComRequest;
+            var request2 = request1.Clone() as WitRequest;
 
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
@@ -101,7 +101,7 @@ namespace OutWit.Communication.Tests.Requests
         [Test]
         public void JsonCloneTest()
         {
-            var request1 = new WitComRequest
+            var request1 = new WitRequest
             {
                 Token = "0",
                 MethodName = "1",
@@ -111,7 +111,7 @@ namespace OutWit.Communication.Tests.Requests
                 GenericArguments = new[] { typeof(double), typeof(string) },
                 GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) }
             };
-            var request2 = request1.JsonClone() as WitComRequest;
+            var request2 = request1.JsonClone() as WitRequest;
 
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
@@ -128,7 +128,7 @@ namespace OutWit.Communication.Tests.Requests
         [Test]
         public void MessagePackSerializationTest()
         {
-            var request1 = new WitComRequest
+            var request1 = new WitRequest
             {
                 Token = "0",
                 MethodName = "1",
@@ -142,7 +142,7 @@ namespace OutWit.Communication.Tests.Requests
             var bytes = request1.ToMessagePackBytes();
             Assert.That(bytes, Is.Not.Null);
 
-            var request2 = bytes.FromMessagePackBytes<WitComRequest>();
+            var request2 = bytes.FromMessagePackBytes<WitRequest>();
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
             Assert.That(request1.Is(request2), Is.True);
@@ -152,7 +152,7 @@ namespace OutWit.Communication.Tests.Requests
         [Test]
         public void JsonSerializationTest()
         {
-            var request1 = new WitComRequest
+            var request1 = new WitRequest
             {
                 Token = "0",
                 MethodName = "1",
@@ -166,7 +166,7 @@ namespace OutWit.Communication.Tests.Requests
             var json = request1.ToJsonString();
             Assert.That(json, Is.Not.Null);
 
-            var request2 = json.FromJsonString<WitComRequest>();
+            var request2 = json.FromJsonString<WitRequest>();
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
             Assert.That(request1.Is(request2), Is.True);
@@ -175,7 +175,7 @@ namespace OutWit.Communication.Tests.Requests
         [Test]
         public void MemoryPackSerializationTest()
         {
-            var request1 = new WitComRequest
+            var request1 = new WitRequest
             {
                 Token = "0",
                 MethodName = "1",
@@ -189,7 +189,7 @@ namespace OutWit.Communication.Tests.Requests
             var json = request1.ToMemoryPackBytes();
             Assert.That(json, Is.Not.Null);
 
-            var request2 = json.FromMemoryPackBytes<WitComRequest>();
+            var request2 = json.FromMemoryPackBytes<WitRequest>();
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
             Assert.That(request1.Is(request2), Is.True);
@@ -198,7 +198,7 @@ namespace OutWit.Communication.Tests.Requests
         [Test]
         public void ProtoBufSerializationTest()
         {
-            var request1 = new WitComRequest
+            var request1 = new WitRequest
             {
                 Token = "0",
                 MethodName = "1",
@@ -212,7 +212,7 @@ namespace OutWit.Communication.Tests.Requests
             var json = request1.ToProtoBytes();
             Assert.That(json, Is.Not.Null);
 
-            var request2 = json.FromProtoBytes<WitComRequest>();
+            var request2 = json.FromProtoBytes<WitRequest>();
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
             Assert.That(request1.Is(request2), Is.True);

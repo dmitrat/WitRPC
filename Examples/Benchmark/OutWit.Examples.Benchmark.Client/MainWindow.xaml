@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:OutWit.Examples.Benchmark.Client"
         mc:Ignorable="d" Title="Benchmark Client" Height="600" Width="800">
     <TabControl TabStripPlacement="Left">
-        <local:WitComSettingsTab/>
+        <local:WitRPCSettingsTab/>
         <local:GRPCSettingsTab/>
         <local:SignalRSettingsTab/>
         <local:WCFSettingsTab/>

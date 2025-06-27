@@ -152,7 +152,7 @@ namespace OutWit.Communication.Interceptors
 
         #region EventHandlers
 
-        private void OnCallbackReceived(WitComRequest? request)
+        private void OnCallbackReceived(WitRequest? request)
         {
             if(request == null) 
                 return;

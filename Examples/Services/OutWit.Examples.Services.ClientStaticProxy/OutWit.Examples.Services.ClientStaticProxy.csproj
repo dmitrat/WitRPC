@@ -12,10 +12,10 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
 		<PackageReference Include="OutWit.Common.Logging" Version="1.1.0" />
 		<PackageReference Include="OutWit.Common.MVVM" Version="1.1.0" />
+		<PackageReference Include="OutWit.Common.Proxy.Generator" Version="1.1.2" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\Common\OutWit.Common.Proxy.Generator\OutWit.Common.Proxy.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 		<ProjectReference Include="..\..\..\Communication\OutWit.Communication.Client.WebSocket\OutWit.Communication.Client.WebSocket.csproj" />
 		<ProjectReference Include="..\..\OutWit.Examples.Contracts\OutWit.Examples.Contracts.csproj" />
 	</ItemGroup>

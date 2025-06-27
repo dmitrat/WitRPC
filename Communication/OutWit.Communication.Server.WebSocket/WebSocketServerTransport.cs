@@ -37,7 +37,7 @@ namespace OutWit.Communication.Server.WebSocket
             try
             {
                 if (Client == null)
-                    throw new WitComExceptionTransport($"Failed to init tcp client");
+                    throw new WitExceptionTransport($"Failed to init tcp client");
 
                 IsListening = true;
 

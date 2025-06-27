@@ -10,20 +10,20 @@ using OutWit.Communication.Responses;
 
 namespace OutWit.Communication.Serializers
 {
-    [JsonSerializable(typeof(WitComMessage))]
+    [JsonSerializable(typeof(WitMessage))]
     [JsonSerializable(typeof(DiscoveryMessage))]
 
     [JsonSerializable(typeof(HostInfo))]
     [JsonSerializable(typeof(ParameterType))]
     [JsonSerializable(typeof(CommunicationStatus))]
 
-    [JsonSerializable(typeof(WitComRequest))]
-    [JsonSerializable(typeof(WitComRequestAuthorization))]
-    [JsonSerializable(typeof(WitComRequestInitialization))]
+    [JsonSerializable(typeof(WitRequest))]
+    [JsonSerializable(typeof(WitRequestAuthorization))]
+    [JsonSerializable(typeof(WitRequestInitialization))]
 
-    [JsonSerializable(typeof(WitComResponse))]
-    [JsonSerializable(typeof(WitComResponseAuthorization))]
-    [JsonSerializable(typeof(WitComResponseInitialization))]
+    [JsonSerializable(typeof(WitResponse))]
+    [JsonSerializable(typeof(WitResponseAuthorization))]
+    [JsonSerializable(typeof(WitResponseInitialization))]
     internal partial class MessageSerializerJsonContext : JsonSerializerContext
     {
     }

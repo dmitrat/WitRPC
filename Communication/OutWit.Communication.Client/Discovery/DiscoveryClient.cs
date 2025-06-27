@@ -23,13 +23,13 @@ namespace OutWit.Communication.Client.Discovery
         public DiscoveryClient(DiscoveryClientOptions options)
         {
             if (options.IpAddress == null)
-                throw new WitComException("Discovery ip address is empty");
+                throw new WitException("Discovery ip address is empty");
 
             if (options.Port == 0)
-                throw new WitComException("Discovery port is empty");
+                throw new WitException("Discovery port is empty");
 
             if (options.Serializer == null)
-                throw new WitComException("Serializer os empty");
+                throw new WitException("Serializer os empty");
 
             Options = options;
         }

@@ -10,7 +10,7 @@ using OutWit.Communication.Serializers;
 
 namespace OutWit.Communication.Client.Rest
 {
-    public class WitComClientRest : IClient
+    public class WitClientRest : IClient
     {
         #region Event Handler
 
@@ -20,10 +20,10 @@ namespace OutWit.Communication.Client.Rest
 
         #region Constructors
 
-        public WitComClientRest(RestClientTransportOptions options, IAccessTokenProvider tokenProvider)
+        public WitClientRest(RestClientTransportOptions options, IAccessTokenProvider tokenProvider)
         {
             if (string.IsNullOrEmpty(options.Host?.Connection))
-                throw new WitComException("Url cannot be empty");
+                throw new WitException("Url cannot be empty");
 
             Options = options;
             ParametersSerializer = new MessageSerializerJson();
@@ -35,18 +35,18 @@ namespace OutWit.Communication.Client.Rest
 
         #endregion
 
-        public async Task<WitComResponse> SendRequest(WitComRequest? request)
+        public async Task<WitResponse> SendRequest(WitRequest? request)
         {
             if(request == null)
-                return WitComResponse.BadRequest("Empty request");
+                return WitResponse.BadRequest("Empty request");
 
             IRequestMessage? requestMessage = request.ConstructGetRequest(Options, TokenProvider) ??
                                               request.ConstructPostRequest(Options, TokenProvider);
 
             if(requestMessage == null)
-                return WitComResponse.BadRequest("Cannot construct request");
+                return WitResponse.BadRequest("Cannot construct request");
 
-            return await Client.SendAsync<WitComResponse>(requestMessage);
+            return await Client.SendAsync<WitResponse>(requestMessage);
         }
 
         #region Properties

@@ -14,7 +14,7 @@ using OutWit.Communication.Utils;
 
 namespace OutWit.Communication.Client
 {
-    public class WitComClient : IClient
+    public class WitClient : IClient
     {
         #region Events
 
@@ -26,7 +26,7 @@ namespace OutWit.Communication.Client
 
         #region Constructors
 
-        public WitComClient(ITransportClient transport, IEncryptorClient encryptor, IAccessTokenProvider tokenProvider,
+        public WitClient(ITransportClient transport, IEncryptorClient encryptor, IAccessTokenProvider tokenProvider,
             IMessageSerializer parametersSerializer, IMessageSerializer messageSerializer, ILogger? logger, TimeSpan? timeout)
         {
             Transport = transport;
@@ -69,23 +69,23 @@ namespace OutWit.Communication.Client
 
             Logger?.LogDebug("Starting initialization");
 
-            WitComMessage requestMessage = new()
+            WitMessage requestMessage = new()
             {
                 Id = Guid.NewGuid(),
-                Type = WitComMessageType.Initialization,
-                Data = MessageSerializer.Serialize(new WitComRequestInitialization
+                Type = WitMessageType.Initialization,
+                Data = MessageSerializer.Serialize(new WitRequestInitialization
                 {
                     PublicKey = Encryptor.GetPublicKey()
                 })
             };
 
-            WitComMessage? responseMessage = await SendMessageAsync(requestMessage, timeout);
+            WitMessage? responseMessage = await SendMessageAsync(requestMessage, timeout);
             if (responseMessage == null || responseMessage.Data == null)
                 return false;
 
             byte[] dataDecrypted = await Encryptor.DecryptRsa(responseMessage.Data);
-            WitComResponseInitialization? response =
-                MessageSerializer.Deserialize<WitComResponseInitialization>(dataDecrypted);
+            WitResponseInitialization? response =
+                MessageSerializer.Deserialize<WitResponseInitialization>(dataDecrypted);
 
             if (response == null || response.SymmetricKey == null || response.Vector == null)
             {
@@ -110,25 +110,25 @@ namespace OutWit.Communication.Client
 
             Logger?.LogDebug("Starting authorization");
 
-            WitComMessage requestMessage = new()
+            WitMessage requestMessage = new()
             {
                 Id = Guid.NewGuid(),
-                Type = WitComMessageType.Authorization,
-                Data = MessageSerializer.Serialize(new WitComRequestAuthorization
+                Type = WitMessageType.Authorization,
+                Data = MessageSerializer.Serialize(new WitRequestAuthorization
                 {
                     Token = TokenProvider.GetToken()
                 })
             };
 
-            WitComMessage? responseMessage = await SendMessageAsync(requestMessage);
+            WitMessage? responseMessage = await SendMessageAsync(requestMessage);
             if (responseMessage == null || responseMessage.Data == null)
             {
                 Logger?.LogError("Failed to authorize");
                 return false;
             }
 
-            WitComResponseAuthorization? response =
-                MessageSerializer.Deserialize<WitComResponseAuthorization>(responseMessage.Data);
+            WitResponseAuthorization? response =
+                MessageSerializer.Deserialize<WitResponseAuthorization>(responseMessage.Data);
 
             if (response == null)
             {
@@ -187,24 +187,24 @@ namespace OutWit.Communication.Client
             IsAuthorized = false;
         }
 
-        public async Task<WitComResponse> SendRequest(WitComRequest? request)
+        public async Task<WitResponse> SendRequest(WitRequest? request)
         {
             if (request == null)
             {
                 Logger?.LogError("Failed to send request: empty request");
-                return WitComResponse.BadRequest($"Empty request");
+                return WitResponse.BadRequest($"Empty request");
             }
 
             request.Token = TokenProvider.GetToken();
 
-            var messageRequest = new WitComMessage
+            var messageRequest = new WitMessage
             {
                 Id = Guid.NewGuid(),
-                Type = WitComMessageType.Request,
+                Type = WitMessageType.Request,
                 Data = MessageSerializer.Serialize(request)
             };
 
-            WitComMessage? messageResponse = null;
+            WitMessage? messageResponse = null;
 
             try
             {
@@ -213,7 +213,7 @@ namespace OutWit.Communication.Client
             catch (Exception e)
             {
                 Logger?.LogError(e, "Failed to receive response");
-                return WitComResponse.InternalServerError("Failed to receive response", e);
+                return WitResponse.InternalServerError("Failed to receive response", e);
             }
 
             try
@@ -223,11 +223,11 @@ namespace OutWit.Communication.Client
             catch (Exception e)
             {
                 Logger?.LogError(e, "Failed to parse response");
-                return WitComResponse.InternalServerError("Failed to parse response", e);
+                return WitResponse.InternalServerError("Failed to parse response", e);
             }
         }
 
-        private async Task<WitComMessage?> SendMessageAsync(WitComMessage message, TimeSpan? timeout = null)
+        private async Task<WitMessage?> SendMessageAsync(WitMessage message, TimeSpan? timeout = null)
         {
             timeout ??= Timeout;
 
@@ -247,7 +247,7 @@ namespace OutWit.Communication.Client
 
                 await Transport.SendBytesAsync(data);
 
-                WaitForResponse = new TaskCompletionSource<WitComMessage?>();
+                WaitForResponse = new TaskCompletionSource<WitMessage?>();
 
                 var result = (timeout != null && timeout != TimeSpan.Zero)
                     ? await WaitForResponse.Task.WaitAsync(timeout.Value)
@@ -262,7 +262,7 @@ namespace OutWit.Communication.Client
                 if (result.Id != message.Id)
                 {
                     Logger?.LogError("Received response inconsistent");
-                    throw new WitComException($"Received response inconsistent");
+                    throw new WitException($"Received response inconsistent");
                 }
                 return result;
             }
@@ -278,9 +278,9 @@ namespace OutWit.Communication.Client
 
         }
 
-        private async Task<WitComMessage> Encrypt(WitComMessage message)
+        private async Task<WitMessage> Encrypt(WitMessage message)
         {
-            if (message.Type == WitComMessageType.Initialization || message.Data == null)
+            if (message.Type == WitMessageType.Initialization || message.Data == null)
                 return message;
 
             var data = await Encryptor.Encrypt(message.Data);
@@ -288,9 +288,9 @@ namespace OutWit.Communication.Client
             return message.With(x => x.Data = data);
         }
 
-        private async Task<WitComMessage> Decrypt(WitComMessage message)
+        private async Task<WitMessage> Decrypt(WitMessage message)
         {
-            if (message.Type == WitComMessageType.Initialization || message.Data == null)
+            if (message.Type == WitMessageType.Initialization || message.Data == null)
                 return message;
 
             var data = await Encryptor.Decrypt(message.Data);
@@ -303,29 +303,29 @@ namespace OutWit.Communication.Client
 
         #region Event Handlers
 
-        private async Task OnMessageReceived(WitComMessage? message)
+        private async Task OnMessageReceived(WitMessage? message)
         {
             if (message == null)
-                throw new WitComException("Received empty message");
+                throw new WitException("Received empty message");
 
-            if (message.Type == WitComMessageType.Unknown)
+            if (message.Type == WitMessageType.Unknown)
                 return;
 
-            if (message.Type == WitComMessageType.Initialization && IsInitialized)
+            if (message.Type == WitMessageType.Initialization && IsInitialized)
             {
                 Logger?.LogError("Wrong initialization request");
-                throw new WitComException($"Wrong initialization request");
+                throw new WitException($"Wrong initialization request");
             }
 
-            if (message.Type == WitComMessageType.Authorization && IsAuthorized)
+            if (message.Type == WitMessageType.Authorization && IsAuthorized)
             {
                 Logger?.LogError("Wrong authorization request");
-                throw new WitComException($"Wrong authorization request");
+                throw new WitException($"Wrong authorization request");
             }
 
             var decryptedMessage = await Decrypt(message);
 
-            if (message.Type == WitComMessageType.Callback)
+            if (message.Type == WitMessageType.Callback)
                 CallbackReceived(decryptedMessage.Data.GetRequest(MessageSerializer));
 
             else
@@ -336,7 +336,7 @@ namespace OutWit.Communication.Client
 
         private async void OnDataReceived(Guid sender, byte[] data)
         {
-            await OnMessageReceived(MessageSerializer.Deserialize<WitComMessage>(data));
+            await OnMessageReceived(MessageSerializer.Deserialize<WitMessage>(data));
         }
 
         private void OnServerDisconnected(Guid sender)
@@ -351,7 +351,7 @@ namespace OutWit.Communication.Client
         private TimeSpan? Timeout { get; }
 
 
-        private TaskCompletionSource<WitComMessage?>? WaitForResponse { get; set; }
+        private TaskCompletionSource<WitMessage?>? WaitForResponse { get; set; }
 
         private SemaphoreSlim WaitForRequest { get; }
 

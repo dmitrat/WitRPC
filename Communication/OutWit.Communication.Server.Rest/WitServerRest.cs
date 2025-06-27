@@ -13,7 +13,7 @@ using OutWit.Communication.Server.Rest.Utils;
 
 namespace OutWit.Communication.Server.Rest
 {
-    public class WitComServerRest : IDisposable
+    public class WitServerRest : IDisposable
     {
         #region Constants
 
@@ -22,7 +22,7 @@ namespace OutWit.Communication.Server.Rest
         #endregion
         #region Constructors
 
-        public WitComServerRest(RestServerTransportOptions options, IAccessTokenValidator tokenValidator, IRequestProcessor requestProcessor, 
+        public WitServerRest(RestServerTransportOptions options, IAccessTokenValidator tokenValidator, IRequestProcessor requestProcessor, 
             ILogger? logger, TimeSpan? timeout)
         {
             Options = options;
@@ -73,24 +73,24 @@ namespace OutWit.Communication.Server.Rest
         {
             var httpRequest = context.Request;
 
-            WitComRequest? request = null;
+            WitRequest? request = null;
 
             try
             {
                 request = httpRequest.RestoreFromGet(TokenValidator, Serializer)
                           ?? httpRequest.RestoreFromPost(TokenValidator, Serializer);
             }
-            catch (WitComExceptionRest e)
+            catch (WitExceptionRest e)
             {
                 Logger?.LogError(e, "Failed to process request");
-                SendResponse(context.Response, WitComResponse.BadRequest("Failed to process request", e));
+                SendResponse(context.Response, WitResponse.BadRequest("Failed to process request", e));
                 return;
             }
 
             SendResponse(context.Response,  await RequestProcessor.Process(request));
         }
 
-        private void SendResponse(HttpListenerResponse httpResponse, WitComResponse response)
+        private void SendResponse(HttpListenerResponse httpResponse, WitResponse response)
         {
             httpResponse.StatusCode = (int)response.Status;
             httpResponse.ContentType = JSON_MEDIA_TYPE;

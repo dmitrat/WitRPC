@@ -17,11 +17,11 @@ namespace OutWit.Communication.Responses
     [DataContract]
     [MemoryPackable]
     [ProtoContract]
-    public partial class WitComResponse : ModelBase
+    public partial class WitResponse : ModelBase
     {
         #region Constructors
 
-        private WitComResponse()
+        private WitResponse()
         {
             
         }
@@ -29,7 +29,7 @@ namespace OutWit.Communication.Responses
         [SerializationConstructor]
         [JsonConstructor]
         [MemoryPackConstructor]
-        public WitComResponse(CommunicationStatus status, byte[]? data, string? errorMessage, string? errorDetails)
+        public WitResponse(CommunicationStatus status, byte[]? data, string? errorMessage, string? errorDetails)
         {
             Status = status;
             Data = data;
@@ -43,7 +43,7 @@ namespace OutWit.Communication.Responses
 
         public override bool Is(ModelBase modelBase, double tolerance = DEFAULT_TOLERANCE)
         {
-            if (!(modelBase is WitComResponse response))
+            if (!(modelBase is WitResponse response))
                 return false;
 
             return Status.Is(response.Status) &&
@@ -52,9 +52,9 @@ namespace OutWit.Communication.Responses
                    ErrorDetails.Is(response.ErrorDetails);
         }
 
-        public override WitComResponse Clone()
+        public override WitResponse Clone()
         {
-            return new WitComResponse(Status, Data, ErrorMessage, ErrorDetails);
+            return new WitResponse(Status, Data, ErrorMessage, ErrorDetails);
         }
 
         #endregion
@@ -66,68 +66,68 @@ namespace OutWit.Communication.Responses
             return Status == CommunicationStatus.Ok;
         }
 
-        public WitComExceptionFault CreateFaultException()
+        public WitExceptionFault CreateFaultException()
         {
             if (Status <= CommunicationStatus.Ok)
             {
                 throw new InvalidOperationException("The response doesn't contain any error");
             }
 
-            return new WitComExceptionFault(Status, ErrorMessage, new Exception(ErrorDetails));
+            return new WitExceptionFault(Status, ErrorMessage, new Exception(ErrorDetails));
         }
 
         #endregion
 
         #region Static
 
-        public static WitComResponse Success(byte[]? data)
+        public static WitResponse Success(byte[]? data)
         {
-            return new WitComResponse(CommunicationStatus.Ok, data, null, null);
+            return new WitResponse(CommunicationStatus.Ok, data, null, null);
         }
 
-        public static WitComResponse BadRequest()
+        public static WitResponse BadRequest()
         {
-            return new WitComResponse(CommunicationStatus.BadRequest, null, null, null);
+            return new WitResponse(CommunicationStatus.BadRequest, null, null, null);
         }
 
-        public static WitComResponse BadRequest(string errorMessage)
+        public static WitResponse BadRequest(string errorMessage)
         {
-            return new WitComResponse(CommunicationStatus.BadRequest, null, errorMessage, null);
+            return new WitResponse(CommunicationStatus.BadRequest, null, errorMessage, null);
         }
 
-        public static WitComResponse BadRequest(string errorMessage, Exception innerException)
+        public static WitResponse BadRequest(string errorMessage, Exception innerException)
         {
-            return new WitComResponse(CommunicationStatus.BadRequest, null, errorMessage, innerException.Message);
+            return new WitResponse(CommunicationStatus.BadRequest, null, errorMessage, innerException.Message);
         }
 
-        public static WitComResponse InternalServerError()
+        public static WitResponse InternalServerError()
         {
-            return new WitComResponse(CommunicationStatus.InternalServerError, null, null, null);
+            return new WitResponse(CommunicationStatus.InternalServerError, null, null, null);
         }
 
-        public static WitComResponse InternalServerError(string errorMessage)
+        public static WitResponse InternalServerError(string errorMessage)
         {
-            return new WitComResponse(CommunicationStatus.InternalServerError, null, errorMessage, null);
+            return new WitResponse(CommunicationStatus.InternalServerError, null, errorMessage, null);
         }
 
-        public static WitComResponse InternalServerError(string errorMessage, Exception innerException)
+        public static WitResponse InternalServerError(string errorMessage, Exception innerException)
         {
-            return new WitComResponse(CommunicationStatus.InternalServerError, null, errorMessage, innerException.Message);
+            return new WitResponse(CommunicationStatus.InternalServerError, null, errorMessage, innerException.Message);
         }
 
-        public static WitComResponse UnauthorizedRequest()
+        public static WitResponse UnauthorizedRequest()
         {
-            return new WitComResponse(CommunicationStatus.Unauthorized, null, null, null);
+            return new WitResponse(CommunicationStatus.Unauthorized, null, null, null);
         }
 
-        public static WitComResponse UnauthorizedRequest(string errorMessage)
+        public static WitResponse UnauthorizedRequest(string errorMessage)
         {
-            return new WitComResponse(CommunicationStatus.Unauthorized, null, errorMessage, null);
+            return new WitResponse(CommunicationStatus.Unauthorized, null, errorMessage, null);
         }
 
-        public static WitComResponse UnauthorizedRequest(string errorMessage, Exception innerException)
+        public static WitResponse UnauthorizedRequest(string errorMessage, Exception innerException)
         {
-            return new WitComResponse(CommunicationStatus.Unauthorized, null, errorMessage, innerException.Message);
+            return new WitResponse(CommunicationStatus.Unauthorized, null, errorMessage, innerException.Message);
         }
 
         #endregion

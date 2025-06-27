@@ -88,7 +88,7 @@ namespace OutWit.Communication.Tests.Discovery
             Assert.That(messages.Last().Type, Is.EqualTo(DiscoveryMessageType.Goodbye));
         }
 
-        private WitComServer GetServer(DiscoveryServerMode mode = DiscoveryServerMode.StartStop, TimeSpan? period = null, [CallerMemberName] string callerMember = "")
+        private WitServer GetServer(DiscoveryServerMode mode = DiscoveryServerMode.StartStop, TimeSpan? period = null, [CallerMemberName] string callerMember = "")
         {
 
             var service = new MockService();
@@ -98,7 +98,7 @@ namespace OutWit.Communication.Tests.Discovery
                 MaxNumberOfClients = 10,
                 BufferSize = 4096
             });
-            return new WitComServer(serverTransport,
+            return new WitServer(serverTransport,
                 new EncryptorServerFactory<EncryptorServerGeneral>(),
                 new AccessTokenValidatorStatic(AUTHORIZATION_TOKEN),
                 new MessageSerializerJson(),

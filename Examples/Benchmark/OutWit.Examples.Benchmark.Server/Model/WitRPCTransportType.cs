@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace OutWit.Examples.Benchmark.Server.Model
 {
-    public enum WitComTransportType
+    public enum WitRPCTransportType
     {
         MemoryMappedFile,
         NamedPipe,

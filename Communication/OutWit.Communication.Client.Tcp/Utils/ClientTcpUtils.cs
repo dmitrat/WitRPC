@@ -6,13 +6,13 @@ namespace OutWit.Communication.Client.Tcp.Utils
 {
     public static class ClientTcpUtils
     {
-        public static WitComClientBuilderOptions WithTcp(this WitComClientBuilderOptions me, TcpClientTransportOptions options)
+        public static WitClientBuilderOptions WithTcp(this WitClientBuilderOptions me, TcpClientTransportOptions options)
         {
             me.Transport = new TcpClientTransport(options);
             return me;
         }
 
-        public static WitComClientBuilderOptions WithTcp(this WitComClientBuilderOptions me, string host, int port)
+        public static WitClientBuilderOptions WithTcp(this WitClientBuilderOptions me, string host, int port)
         {
             return me.WithTcp(new TcpClientTransportOptions
             {
@@ -21,7 +21,7 @@ namespace OutWit.Communication.Client.Tcp.Utils
             });
         }
 
-        public static WitComClientBuilderOptions WithTcp(this WitComClientBuilderOptions me, HostInfo hostInfo)
+        public static WitClientBuilderOptions WithTcp(this WitClientBuilderOptions me, HostInfo hostInfo)
         {
             return me.WithTcp(new TcpClientTransportOptions
             {
@@ -30,13 +30,13 @@ namespace OutWit.Communication.Client.Tcp.Utils
             });
         }
 
-        public static WitComClientBuilderOptions WithTcpSecure(this WitComClientBuilderOptions me, TcpSecureClientTransportOptions options)
+        public static WitClientBuilderOptions WithTcpSecure(this WitClientBuilderOptions me, TcpSecureClientTransportOptions options)
         {
             me.Transport = new TcpSecureClientTransport(options);
             return me;
         }
 
-        public static WitComClientBuilderOptions WithTcpSecure(this WitComClientBuilderOptions me, string host, int port, string targetHost, RemoteCertificateValidationCallback? sslValidationCallback)
+        public static WitClientBuilderOptions WithTcpSecure(this WitClientBuilderOptions me, string host, int port, string targetHost, RemoteCertificateValidationCallback? sslValidationCallback)
         {
             return me.WithTcpSecure(new TcpSecureClientTransportOptions
             {
@@ -47,7 +47,7 @@ namespace OutWit.Communication.Client.Tcp.Utils
             });
         }
 
-        public static WitComClientBuilderOptions WithTcpSecure(this WitComClientBuilderOptions me, HostInfo hostInfo, string targetHost, RemoteCertificateValidationCallback? sslValidationCallback)
+        public static WitClientBuilderOptions WithTcpSecure(this WitClientBuilderOptions me, HostInfo hostInfo, string targetHost, RemoteCertificateValidationCallback? sslValidationCallback)
         {
             return me.WithTcpSecure(new TcpSecureClientTransportOptions
             {

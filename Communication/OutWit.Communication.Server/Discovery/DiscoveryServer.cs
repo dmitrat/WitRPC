@@ -22,13 +22,13 @@ namespace OutWit.Communication.Server.Discovery
         public DiscoveryServer(DiscoveryServerOptions options)
         {
             if (options.IpAddress == null)
-                throw new WitComException("Discovery ip address is empty");
+                throw new WitException("Discovery ip address is empty");
 
             if(options.Port == 0)
-                throw new WitComException("Discovery port is empty");
+                throw new WitException("Discovery port is empty");
 
             if(options.Mode == DiscoveryServerMode.Continuous && (options.Period == null || options.Period == TimeSpan.Zero))
-                throw new WitComException("Discovery period is empty");
+                throw new WitException("Discovery period is empty");
 
             Options = options;
         }

@@ -18,7 +18,7 @@ using OutWit.Communication.Server.Encryption;
 
 namespace OutWit.Communication.Server
 {
-    public static class WitComServerBuilder
+    public static class WitServerBuilder
     {
         #region Constants
 
@@ -27,49 +27,49 @@ namespace OutWit.Communication.Server
 
         #endregion
 
-        public static WitComServer Build(Action<WitComServerBuilderOptions> optionsBuilder)
+        public static WitServer Build(Action<WitServerBuilderOptions> optionsBuilder)
         {
-            var options = new WitComServerBuilderOptions();
+            var options = new WitServerBuilderOptions();
             optionsBuilder(options);
 
             return Build(options);
         }
 
-        public static WitComServer Build(WitComServerBuilderOptions options)
+        public static WitServer Build(WitServerBuilderOptions options)
         {
             if (options.TransportFactory == null)
-                throw new WitComException("Transport cannot be empty");
+                throw new WitException("Transport cannot be empty");
 
             if (options.RequestProcessor == null)
-                throw new WitComException("Request processor cannot be empty");
+                throw new WitException("Request processor cannot be empty");
 
-            return new WitComServer(options.TransportFactory, options.EncryptorFactory, options.TokenValidator, options.ParametersSerializer, options.MessageSerializer,
+            return new WitServer(options.TransportFactory, options.EncryptorFactory, options.TokenValidator, options.ParametersSerializer, options.MessageSerializer,
                 options.RequestProcessor, options.DiscoveryServer, options.Logger, options.Timeout, options.Name, options.Description);
         }
 
         #region Processor
 
-        public static WitComServerBuilderOptions WithRequestProcessor(this WitComServerBuilderOptions me, IRequestProcessor requestProcessor)
+        public static WitServerBuilderOptions WithRequestProcessor(this WitServerBuilderOptions me, IRequestProcessor requestProcessor)
         {
             me.RequestProcessor = requestProcessor;
             return me;
         }
 
-        public static WitComServerBuilderOptions WithService<TService>(this WitComServerBuilderOptions me, TService service, bool isStrongAssemblyMatch = true)
+        public static WitServerBuilderOptions WithService<TService>(this WitServerBuilderOptions me, TService service, bool isStrongAssemblyMatch = true)
             where TService: class
         {
             me.RequestProcessor = new RequestProcessor<TService>(service, isStrongAssemblyMatch);
             return me;
         }
 
-        public static WitComServerBuilderOptions WithService<TService>(this WitComServerBuilderOptions me, bool isStrongAssemblyMatch = true)
+        public static WitServerBuilderOptions WithService<TService>(this WitServerBuilderOptions me, bool isStrongAssemblyMatch = true)
             where TService : class, new ()
         {
             me.RequestProcessor = new RequestProcessor<TService>(new TService(), isStrongAssemblyMatch);
             return me;
         }
 
-        public static WitComServerBuilderOptions WithService<TService>(this WitComServerBuilderOptions me, Func<TService> serviceBuilder, bool isStrongAssemblyMatch = true)
+        public static WitServerBuilderOptions WithService<TService>(this WitServerBuilderOptions me, Func<TService> serviceBuilder, bool isStrongAssemblyMatch = true)
             where TService : class, new()
         {
             me.RequestProcessor = new RequestProcessor<TService>(serviceBuilder(), isStrongAssemblyMatch);
@@ -80,19 +80,19 @@ namespace OutWit.Communication.Server
 
         #region Authorization
 
-        public static WitComServerBuilderOptions WithAccessTokenValidator(this WitComServerBuilderOptions me, IAccessTokenValidator validator)
+        public static WitServerBuilderOptions WithAccessTokenValidator(this WitServerBuilderOptions me, IAccessTokenValidator validator)
         {
             me.TokenValidator = validator;
             return me;
         }
 
-        public static WitComServerBuilderOptions WithAccessToken(this WitComServerBuilderOptions me, string accessToken)
+        public static WitServerBuilderOptions WithAccessToken(this WitServerBuilderOptions me, string accessToken)
         {
             me.TokenValidator = new AccessTokenValidatorStatic(accessToken);
             return me;
         }
 
-        public static WitComServerBuilderOptions WithoutAuthorization(this WitComServerBuilderOptions me)
+        public static WitServerBuilderOptions WithoutAuthorization(this WitServerBuilderOptions me)
         {
             me.TokenValidator = new AccessTokenValidatorPlain();
             return me;
@@ -102,19 +102,19 @@ namespace OutWit.Communication.Server
 
         #region Encryption
 
-        public static WitComServerBuilderOptions WithEncryptor(this WitComServerBuilderOptions me, IEncryptorServerFactory encryptorFactory)
+        public static WitServerBuilderOptions WithEncryptor(this WitServerBuilderOptions me, IEncryptorServerFactory encryptorFactory)
         {
             me.EncryptorFactory = encryptorFactory;
             return me;
         }
 
-        public static WitComServerBuilderOptions WithEncryption(this WitComServerBuilderOptions me)
+        public static WitServerBuilderOptions WithEncryption(this WitServerBuilderOptions me)
         {
             me.EncryptorFactory = new EncryptorServerFactory<EncryptorServerGeneral>();
             return me;
         }
 
-        public static WitComServerBuilderOptions WithoutEncryption(this WitComServerBuilderOptions me)
+        public static WitServerBuilderOptions WithoutEncryption(this WitServerBuilderOptions me)
         {
             me.EncryptorFactory = new EncryptorServerFactory<EncryptorServerPlain>();
             return me;
@@ -124,13 +124,13 @@ namespace OutWit.Communication.Server
 
         #region Serialization
 
-        public static WitComServerBuilderOptions WithMessageSerializer(this WitComServerBuilderOptions me, IMessageSerializer serializer)
+        public static WitServerBuilderOptions WithMessageSerializer(this WitServerBuilderOptions me, IMessageSerializer serializer)
         {
             me.MessageSerializer = serializer;
             return me;
         }
 
-        public static WitComServerBuilderOptions WithParametersSerializer(this WitComServerBuilderOptions me, IMessageSerializer serializer)
+        public static WitServerBuilderOptions WithParametersSerializer(this WitServerBuilderOptions me, IMessageSerializer serializer)
         {
             me.ParametersSerializer = serializer;
             return me;
@@ -140,13 +140,13 @@ namespace OutWit.Communication.Server
 
         #region Json
 
-        public static WitComServerBuilderOptions WithJson(this WitComServerBuilderOptions me)
+        public static WitServerBuilderOptions WithJson(this WitServerBuilderOptions me)
         {
             me.ParametersSerializer = new MessageSerializerJson();
             return me;
         }
 
-        public static WitComServerBuilderOptions WithJson(this WitComServerBuilderOptions me, Action<JsonOptions> options)
+        public static WitServerBuilderOptions WithJson(this WitServerBuilderOptions me, Action<JsonOptions> options)
         {
             JsonUtils.Register(options);
 
@@ -157,13 +157,13 @@ namespace OutWit.Communication.Server
 
         #region MessagePack
 
-        public static WitComServerBuilderOptions WithMessagePack(this WitComServerBuilderOptions me)
+        public static WitServerBuilderOptions WithMessagePack(this WitServerBuilderOptions me)
         {
             me.ParametersSerializer = new MessageSerializerMessagePack();
             return me;
         }
 
-        public static WitComServerBuilderOptions WithMessagePack(this WitComServerBuilderOptions me, Action<MessagePackOptions> options)
+        public static WitServerBuilderOptions WithMessagePack(this WitServerBuilderOptions me, Action<MessagePackOptions> options)
         {
             MessagePackUtils.Register(options);
             
@@ -174,13 +174,13 @@ namespace OutWit.Communication.Server
 
         #region MemoryPack
 
-        public static WitComServerBuilderOptions WithMemoryPack(this WitComServerBuilderOptions me)
+        public static WitServerBuilderOptions WithMemoryPack(this WitServerBuilderOptions me)
         {
             me.ParametersSerializer = new MessageSerializerMemoryPack();
             return me;
         }
 
-        public static WitComServerBuilderOptions WithMemoryPack(this WitComServerBuilderOptions me, Action<MemoryPackOptions> options)
+        public static WitServerBuilderOptions WithMemoryPack(this WitServerBuilderOptions me, Action<MemoryPackOptions> options)
         {
             MemoryPackUtils.Register(options);
             return me.WithMemoryPack();
@@ -190,13 +190,13 @@ namespace OutWit.Communication.Server
 
         #region ProtoBuf
 
-        public static WitComServerBuilderOptions WithProtoBuf(this WitComServerBuilderOptions me)
+        public static WitServerBuilderOptions WithProtoBuf(this WitServerBuilderOptions me)
         {
             me.ParametersSerializer = new MessageSerializerProtoBuf();
             return me;
         }
 
-        public static WitComServerBuilderOptions WithProtoBuf(this WitComServerBuilderOptions me, Action<ProtoBufOptions> options)
+        public static WitServerBuilderOptions WithProtoBuf(this WitServerBuilderOptions me, Action<ProtoBufOptions> options)
         {
             ProtoBufUtils.Register(options);
             
@@ -207,7 +207,7 @@ namespace OutWit.Communication.Server
 
         #region Logger
 
-        public static WitComServerBuilderOptions WithLogger(this WitComServerBuilderOptions me, ILogger logger)
+        public static WitServerBuilderOptions WithLogger(this WitServerBuilderOptions me, ILogger logger)
         {
             me.Logger = logger;
             return me;
@@ -217,25 +217,25 @@ namespace OutWit.Communication.Server
 
         #region Discovery
 
-        public static WitComServerBuilderOptions WithName(this WitComServerBuilderOptions me, string name)
+        public static WitServerBuilderOptions WithName(this WitServerBuilderOptions me, string name)
         {
             me.Name = name;
             return me;
         }
 
-        public static WitComServerBuilderOptions WithDescription(this WitComServerBuilderOptions me, string description)
+        public static WitServerBuilderOptions WithDescription(this WitServerBuilderOptions me, string description)
         {
             me.Description = description;
             return me;
         }
 
-        public static WitComServerBuilderOptions WithDiscovery(this WitComServerBuilderOptions me, DiscoveryServerOptions options)
+        public static WitServerBuilderOptions WithDiscovery(this WitServerBuilderOptions me, DiscoveryServerOptions options)
         {
             me.DiscoveryServer = new DiscoveryServer(options);
             return me;
         }
 
-        public static WitComServerBuilderOptions WithDiscovery(this WitComServerBuilderOptions me, IPAddress ipAddress, int port = DEFAULT_DISCOVERY_PORT, TimeSpan? period = null)
+        public static WitServerBuilderOptions WithDiscovery(this WitServerBuilderOptions me, IPAddress ipAddress, int port = DEFAULT_DISCOVERY_PORT, TimeSpan? period = null)
         {
             var mode = (period != null && period.Value != TimeSpan.Zero)
                 ? DiscoveryServerMode.Continuous 
@@ -250,23 +250,23 @@ namespace OutWit.Communication.Server
             });
         }
 
-        public static WitComServerBuilderOptions WithDiscovery(this WitComServerBuilderOptions me, string ipAddress, int port = DEFAULT_DISCOVERY_PORT, TimeSpan? period = null)
+        public static WitServerBuilderOptions WithDiscovery(this WitServerBuilderOptions me, string ipAddress, int port = DEFAULT_DISCOVERY_PORT, TimeSpan? period = null)
         {
             if(!IPAddress.TryParse(ipAddress, out var address))
-                throw new WitComException("Invalid IP address");
+                throw new WitException("Invalid IP address");
 
             return me.WithDiscovery(address, port, period);
         }
 
-        public static WitComServerBuilderOptions WithDiscovery(this WitComServerBuilderOptions me, HostInfo hostInfo, TimeSpan? period = null)
+        public static WitServerBuilderOptions WithDiscovery(this WitServerBuilderOptions me, HostInfo hostInfo, TimeSpan? period = null)
         {
             if (hostInfo.Port == null || hostInfo.Port <= 0) 
-                throw new WitComException("Invalid port");
+                throw new WitException("Invalid port");
 
             return me.WithDiscovery(hostInfo.Host, hostInfo.Port.Value, period);
         }
 
-        public static WitComServerBuilderOptions WithDiscovery(this WitComServerBuilderOptions me, TimeSpan? period = null)
+        public static WitServerBuilderOptions WithDiscovery(this WitServerBuilderOptions me, TimeSpan? period = null)
         {
             return me.WithDiscovery(DEFAULT_DISCOVERY_IP, DEFAULT_DISCOVERY_PORT, period);
         }
@@ -275,7 +275,7 @@ namespace OutWit.Communication.Server
 
         #region Timeout
 
-        public static WitComServerBuilderOptions WithTimeout(this WitComServerBuilderOptions me, TimeSpan timeout)
+        public static WitServerBuilderOptions WithTimeout(this WitServerBuilderOptions me, TimeSpan timeout)
         {
             me.Timeout = timeout;
             return me;

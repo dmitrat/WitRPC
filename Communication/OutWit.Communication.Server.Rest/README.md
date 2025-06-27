@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `OutWit.Communication.Server.Rest` library extends WitCom to support RESTful communication. It provides tools to expose services via REST APIs with advanced features like authentication, request processing, and logging. This package is ideal for scenarios requiring lightweight, scalable HTTP-based communication.
+The `OutWit.Communication.Server.Rest` library extends WitRPC to support RESTful communication. It provides tools to expose services via REST APIs with advanced features like authentication, request processing, and logging. This package is ideal for scenarios requiring lightweight, scalable HTTP-based communication.
 
 ## Features
 
@@ -34,7 +34,7 @@ Install-Package OutWit.Communication.Server.Rest
 ```csharp
 using OutWit.Communication.Server.Rest;
 
-var server = WitComServerRestBuilder.Build(options =>
+var server = WitServerRestBuilder.Build(options =>
 {
     options.WithUrl("http://localhost:5000/");
     options.WithService(new MyService());
@@ -73,7 +73,7 @@ You can define custom logic for processing incoming requests:
 ```csharp
 using OutWit.Communication.Server.Rest;
 
-var server = WitComServerRestBuilder.Build(options =>
+var server = WitServerRestBuilder.Build(options =>
 {
     options.WithUrl("http://localhost:5000/");
     options.WithRequestProcessor(new CustomRequestProcessor());
@@ -83,7 +83,7 @@ var server = WitComServerRestBuilder.Build(options =>
 #### Disable Authorization
 Disable authorization entirely for public APIs:
 ```csharp
-var server = WitComServerRestBuilder.Build(options =>
+var server = WitServerRestBuilder.Build(options =>
 {
     options.WithUrl("http://localhost:5000/");
     options.WithoutAuthorization();
@@ -93,7 +93,7 @@ var server = WitComServerRestBuilder.Build(options =>
 #### Logging Support
 Integrate logging for debugging and monitoring:
 ```csharp
-var server = WitComServerRestBuilder.Build(options =>
+var server = WitServerRestBuilder.Build(options =>
 {
     options.WithUrl("http://localhost:5000/");
     options.WithLogger(new MyCustomLogger());
@@ -102,15 +102,15 @@ var server = WitComServerRestBuilder.Build(options =>
 
 ## API Reference
 
-### `WitComServerRest`
+### `WitServerRest`
 The core server class that handles HTTP requests and responses.
 
 #### Methods
 - `StartWaitingForConnection()`: Starts listening for incoming connections.
 - `StopWaitingForConnection()`: Stops the server and releases resources.
 
-### `WitComServerRestBuilder`
-Provides a fluent interface for configuring and creating a `WitComServerRest` instance.
+### `WitServerRestBuilder`
+Provides a fluent interface for configuring and creating a `WitServerRest` instance.
 
 #### Configuration Options
 - `.WithUrl(string url)`: Sets the server's base URL.

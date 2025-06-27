@@ -8,39 +8,39 @@ using OutWit.Communication.Server.Authorization;
 
 namespace OutWit.Communication.Server.Rest
 {
-    public static class WitComServerRestBuilder
+    public static class WitServerRestBuilder
     {
-        public static WitComServerRest Build(Action<WitComServerRestBuilderOptions> optionsBuilder)
+        public static WitServerRest Build(Action<WitServerRestBuilderOptions> optionsBuilder)
         {
-            var options = new WitComServerRestBuilderOptions();
+            var options = new WitServerRestBuilderOptions();
             optionsBuilder(options);
 
             if (options.TransportOptions == null)
-                throw new WitComException("Transport options cannot be empty");
+                throw new WitException("Transport options cannot be empty");
 
             if (options.RequestProcessor == null)
-                throw new WitComException("Request processor cannot be empty");
+                throw new WitException("Request processor cannot be empty");
 
-            return new WitComServerRest(options.TransportOptions, options.TokenValidator, options.RequestProcessor, options.Logger, options.Timeout);
+            return new WitServerRest(options.TransportOptions, options.TokenValidator, options.RequestProcessor, options.Logger, options.Timeout);
         }
 
         #region Transport
 
 
-        public static WitComServerRestBuilderOptions WithOptions(this WitComServerRestBuilderOptions me, RestServerTransportOptions options)
+        public static WitServerRestBuilderOptions WithOptions(this WitServerRestBuilderOptions me, RestServerTransportOptions options)
         {
             me.TransportOptions = options;
             return me;
         }
 
-        public static WitComServerRestBuilderOptions WithUrl(this WitComServerRestBuilderOptions me, string url)
+        public static WitServerRestBuilderOptions WithUrl(this WitServerRestBuilderOptions me, string url)
         {
             me.TransportOptions = new RestServerTransportOptions{Host = (HostInfo)url };
             return me;
         }
 
 
-        public static WitComServerRestBuilderOptions WithHost(this WitComServerRestBuilderOptions me, HostInfo hostInfo)
+        public static WitServerRestBuilderOptions WithHost(this WitServerRestBuilderOptions me, HostInfo hostInfo)
         {
             me.TransportOptions = new RestServerTransportOptions { Host = hostInfo };
             return me;
@@ -50,27 +50,27 @@ namespace OutWit.Communication.Server.Rest
 
         #region Processor
 
-        public static WitComServerRestBuilderOptions WithRequestProcessor(this WitComServerRestBuilderOptions me, IRequestProcessor requestProcessor)
+        public static WitServerRestBuilderOptions WithRequestProcessor(this WitServerRestBuilderOptions me, IRequestProcessor requestProcessor)
         {
             me.RequestProcessor = requestProcessor;
             return me;
         }
 
-        public static WitComServerRestBuilderOptions WithService<TService>(this WitComServerRestBuilderOptions me, TService service, bool isStrongAssemblyMatch = true)
+        public static WitServerRestBuilderOptions WithService<TService>(this WitServerRestBuilderOptions me, TService service, bool isStrongAssemblyMatch = true)
             where TService: class
         {
             me.RequestProcessor = new RequestProcessor<TService>(service, isStrongAssemblyMatch);
             return me;
         }
 
-        public static WitComServerRestBuilderOptions WithService<TService>(this WitComServerRestBuilderOptions me, bool isStrongAssemblyMatch = true)
+        public static WitServerRestBuilderOptions WithService<TService>(this WitServerRestBuilderOptions me, bool isStrongAssemblyMatch = true)
             where TService : class, new ()
         {
             me.RequestProcessor = new RequestProcessor<TService>(new TService(), isStrongAssemblyMatch);
             return me;
         }
 
-        public static WitComServerRestBuilderOptions WithService<TService>(this WitComServerRestBuilderOptions me, Func<TService> serviceBuilder, bool isStrongAssemblyMatch = true)
+        public static WitServerRestBuilderOptions WithService<TService>(this WitServerRestBuilderOptions me, Func<TService> serviceBuilder, bool isStrongAssemblyMatch = true)
             where TService : class, new()
         {
             me.RequestProcessor = new RequestProcessor<TService>(serviceBuilder(), isStrongAssemblyMatch);
@@ -81,19 +81,19 @@ namespace OutWit.Communication.Server.Rest
 
         #region Authorization
 
-        public static WitComServerRestBuilderOptions WithAccessTokenValidator(this WitComServerRestBuilderOptions me, IAccessTokenValidator validator)
+        public static WitServerRestBuilderOptions WithAccessTokenValidator(this WitServerRestBuilderOptions me, IAccessTokenValidator validator)
         {
             me.TokenValidator = validator;
             return me;
         }
 
-        public static WitComServerRestBuilderOptions WithAccessToken(this WitComServerRestBuilderOptions me, string accessToken)
+        public static WitServerRestBuilderOptions WithAccessToken(this WitServerRestBuilderOptions me, string accessToken)
         {
             me.TokenValidator = new AccessTokenValidatorStatic(accessToken);
             return me;
         }
 
-        public static WitComServerRestBuilderOptions WithoutAuthorization(this WitComServerRestBuilderOptions me)
+        public static WitServerRestBuilderOptions WithoutAuthorization(this WitServerRestBuilderOptions me)
         {
             me.TokenValidator = new AccessTokenValidatorPlain();
             return me;
@@ -103,7 +103,7 @@ namespace OutWit.Communication.Server.Rest
 
         #region Logger
 
-        public static WitComServerRestBuilderOptions WithLogger(this WitComServerRestBuilderOptions me, ILogger logger)
+        public static WitServerRestBuilderOptions WithLogger(this WitServerRestBuilderOptions me, ILogger logger)
         {
             me.Logger = logger;
             return me;
@@ -113,7 +113,7 @@ namespace OutWit.Communication.Server.Rest
 
         #region Timeout
 
-        public static WitComServerRestBuilderOptions WithTimeout(this WitComServerRestBuilderOptions me, TimeSpan timeout)
+        public static WitServerRestBuilderOptions WithTimeout(this WitServerRestBuilderOptions me, TimeSpan timeout)
         {
             me.Timeout = timeout;
             return me;

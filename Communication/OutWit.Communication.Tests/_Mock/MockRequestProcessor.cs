@@ -10,11 +10,11 @@ namespace OutWit.Communication.Tests.Mock
     {
         public event RequestProcessorEventHandler Callback = delegate { };
 
-        public async Task<WitComResponse> Process(WitComRequest? request)
+        public async Task<WitResponse> Process(WitRequest? request)
         {
             Thread.Sleep(50);
             
-            return WitComResponse.Success(request?.MethodName.ToJsonBytes());
+            return WitResponse.Success(request?.MethodName.ToJsonBytes());
         }
 
         public void ResetSerializer(IMessageSerializer serializer)
@@ -22,7 +22,7 @@ namespace OutWit.Communication.Tests.Mock
             Serializer = serializer;
         }
 
-        public void InvokeCallback(WitComRequest request)
+        public void InvokeCallback(WitRequest request)
         {
             Callback(request);
         }

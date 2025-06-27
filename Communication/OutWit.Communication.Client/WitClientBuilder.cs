@@ -17,26 +17,26 @@ using OutWit.Communication.Serializers;
 
 namespace OutWit.Communication.Client
 {
-    public static class WitComClientBuilder
+    public static class WitClientBuilder
     {
-        public static WitComClient Build(WitComClientBuilderOptions options)
+        public static WitClient Build(WitClientBuilderOptions options)
         {
             if (options.Transport == null)
-                throw new WitComException("Transport cannot be empty");
+                throw new WitException("Transport cannot be empty");
 
-            return new WitComClient(options.Transport, options.Encryptor, options.TokenProvider, options.ParametersSerializer, options.MessageSerializer,
+            return new WitClient(options.Transport, options.Encryptor, options.TokenProvider, options.ParametersSerializer, options.MessageSerializer,
                 options.Logger, options.Timeout);
         }
 
-        public static WitComClient Build(Action<WitComClientBuilderOptions> optionsBuilder)
+        public static WitClient Build(Action<WitClientBuilderOptions> optionsBuilder)
         {
-            var options = new WitComClientBuilderOptions();
+            var options = new WitClientBuilderOptions();
             optionsBuilder(options);
 
             return Build(options);
         }
 
-        public static TService GetService<TService>(this WitComClient me, bool strongAssemblyMatch = true)
+        public static TService GetService<TService>(this WitClient me, bool strongAssemblyMatch = true)
             where TService : class
         {
             var proxyGenerator = new ProxyGenerator();
@@ -45,7 +45,7 @@ namespace OutWit.Communication.Client
             return proxyGenerator.CreateInterfaceProxyWithoutTarget<TService>(interceptor);
         }
 
-        public static TService GetService<TService>(this WitComClient me, Func<IProxyInterceptor, TService> create, bool strongAssemblyMatch = true)
+        public static TService GetService<TService>(this WitClient me, Func<IProxyInterceptor, TService> create, bool strongAssemblyMatch = true)
             where TService : class
         {
             return create(new RequestInterceptor(me, strongAssemblyMatch));
@@ -53,19 +53,19 @@ namespace OutWit.Communication.Client
 
         #region Authorization
 
-        public static WitComClientBuilderOptions WithAccessTokenProvider(this WitComClientBuilderOptions me, IAccessTokenProvider provider)
+        public static WitClientBuilderOptions WithAccessTokenProvider(this WitClientBuilderOptions me, IAccessTokenProvider provider)
         {
             me.TokenProvider = provider;
             return me;
         }
 
-        public static WitComClientBuilderOptions WithAccessToken(this WitComClientBuilderOptions me, string accessToken)
+        public static WitClientBuilderOptions WithAccessToken(this WitClientBuilderOptions me, string accessToken)
         {
             me.TokenProvider = new AccessTokenProviderStatic(accessToken);
             return me;
         }
 
-        public static WitComClientBuilderOptions WithoutAuthorization(this WitComClientBuilderOptions me)
+        public static WitClientBuilderOptions WithoutAuthorization(this WitClientBuilderOptions me)
         {
             me.TokenProvider = new AccessTokenProviderPlain();
             return me;
@@ -75,19 +75,19 @@ namespace OutWit.Communication.Client
 
         #region Encryption
 
-        public static WitComClientBuilderOptions WithEncryptor(this WitComClientBuilderOptions me, IEncryptorClient encryptor)
+        public static WitClientBuilderOptions WithEncryptor(this WitClientBuilderOptions me, IEncryptorClient encryptor)
         {
             me.Encryptor = encryptor;
             return me;
         }
 
-        public static WitComClientBuilderOptions WithEncryption(this WitComClientBuilderOptions me)
+        public static WitClientBuilderOptions WithEncryption(this WitClientBuilderOptions me)
         {
             me.Encryptor = new EncryptorClientGeneral();
             return me;
         }
 
-        public static WitComClientBuilderOptions WithoutEncryption(this WitComClientBuilderOptions me)
+        public static WitClientBuilderOptions WithoutEncryption(this WitClientBuilderOptions me)
         {
             me.Encryptor = new EncryptorClientPlain();
             return me;
@@ -97,14 +97,14 @@ namespace OutWit.Communication.Client
 
         #region Serialization
 
-        public static WitComClientBuilderOptions WithMessageSerializer(this WitComClientBuilderOptions me, IMessageSerializer serializer)
+        public static WitClientBuilderOptions WithMessageSerializer(this WitClientBuilderOptions me, IMessageSerializer serializer)
         {
             me.MessageSerializer = serializer;
             return me;
         }
 
 
-        public static WitComClientBuilderOptions WithParametersSerializer(this WitComClientBuilderOptions me, IMessageSerializer serializer)
+        public static WitClientBuilderOptions WithParametersSerializer(this WitClientBuilderOptions me, IMessageSerializer serializer)
         {
             me.ParametersSerializer = serializer;
             return me;
@@ -120,13 +120,13 @@ namespace OutWit.Communication.Client
 
         #region Json
 
-        public static WitComClientBuilderOptions WithJson(this WitComClientBuilderOptions me)
+        public static WitClientBuilderOptions WithJson(this WitClientBuilderOptions me)
         {
             me.ParametersSerializer = new MessageSerializerJson();
             return me;
         }
 
-        public static WitComClientBuilderOptions WithJson(this WitComClientBuilderOptions me, Action<JsonOptions> options)
+        public static WitClientBuilderOptions WithJson(this WitClientBuilderOptions me, Action<JsonOptions> options)
         {
             JsonUtils.Register(options);
 
@@ -150,14 +150,14 @@ namespace OutWit.Communication.Client
 
         #region MessagePack
 
-        public static WitComClientBuilderOptions WithMessagePack(this WitComClientBuilderOptions me)
+        public static WitClientBuilderOptions WithMessagePack(this WitClientBuilderOptions me)
         {
             me.ParametersSerializer = new MessageSerializerMessagePack();
             return me;
         }
 
 
-        public static WitComClientBuilderOptions WithMessagePack(this WitComClientBuilderOptions me, Action<MessagePackOptions> options)
+        public static WitClientBuilderOptions WithMessagePack(this WitClientBuilderOptions me, Action<MessagePackOptions> options)
         {
             MessagePackUtils.Register(options);
 
@@ -181,13 +181,13 @@ namespace OutWit.Communication.Client
 
         #region MemoryPack
 
-        public static WitComClientBuilderOptions WithMemoryPack(this WitComClientBuilderOptions me)
+        public static WitClientBuilderOptions WithMemoryPack(this WitClientBuilderOptions me)
         {
             me.ParametersSerializer = new MessageSerializerMemoryPack();
             return me;
         }
 
-        public static WitComClientBuilderOptions WithMemoryPack(this WitComClientBuilderOptions me, Action<MemoryPackOptions> options)
+        public static WitClientBuilderOptions WithMemoryPack(this WitClientBuilderOptions me, Action<MemoryPackOptions> options)
         {
             MemoryPackUtils.Register(options);
             return me.WithMemoryPack();
@@ -209,13 +209,13 @@ namespace OutWit.Communication.Client
 
         #region ProtoBuf
 
-        public static WitComClientBuilderOptions WithProtoBuf(this WitComClientBuilderOptions me)
+        public static WitClientBuilderOptions WithProtoBuf(this WitClientBuilderOptions me)
         {
             me.ParametersSerializer = new MessageSerializerProtoBuf();
             return me;
         }
 
-        public static WitComClientBuilderOptions WithProtoBuf(this WitComClientBuilderOptions me, Action<ProtoBufOptions> options)
+        public static WitClientBuilderOptions WithProtoBuf(this WitClientBuilderOptions me, Action<ProtoBufOptions> options)
         {
             ProtoBufUtils.Register(options);
 
@@ -242,13 +242,13 @@ namespace OutWit.Communication.Client
         public static IDiscoveryClient Discovery(DiscoveryClientOptions options)
         {
             if(options.IpAddress == null)
-                throw new WitComException("Discovery ip address is empty");
+                throw new WitException("Discovery ip address is empty");
 
             if(options.Port == null || options.Port == 0)
-                throw new WitComException("Discovery port is empty");
+                throw new WitException("Discovery port is empty");
 
             if(options.Serializer == null)
-                throw new WitComException("Serializer os empty");
+                throw new WitException("Serializer os empty");
 
             return new DiscoveryClient(options);
         }
@@ -294,7 +294,7 @@ namespace OutWit.Communication.Client
 
         #region Logger
 
-        public static WitComClientBuilderOptions WithLogger(this WitComClientBuilderOptions me, ILogger logger)
+        public static WitClientBuilderOptions WithLogger(this WitClientBuilderOptions me, ILogger logger)
         {
             me.Logger = logger;
             return me;
@@ -311,7 +311,7 @@ namespace OutWit.Communication.Client
 
         #region Timeout
 
-        public static WitComClientBuilderOptions WithTimeout(this WitComClientBuilderOptions me, TimeSpan timeout)
+        public static WitClientBuilderOptions WithTimeout(this WitClientBuilderOptions me, TimeSpan timeout)
         {
             me.Timeout = timeout;
             return me;

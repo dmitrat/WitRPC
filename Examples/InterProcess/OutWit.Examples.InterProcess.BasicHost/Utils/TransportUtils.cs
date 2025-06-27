@@ -67,7 +67,7 @@ namespace OutWit.Examples.InterProcess.BasicHost.Utils
             }
         }
 
-        public static WitComClientBuilderOptions WithTransport(this WitComClientBuilderOptions me, TransportType transport, string address)
+        public static WitClientBuilderOptions WithTransport(this WitClientBuilderOptions me, TransportType transport, string address)
         {
             switch (transport)
             {

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OutWit.Communication.Interfaces;
 
 namespace OutWit.Communication.Server.MMF
@@ -26,7 +28,7 @@ namespace OutWit.Communication.Server.MMF
 
         #region Functions
 
-        public void StartWaitingForConnection()
+        public void StartWaitingForConnection(ILogger? logger)
         {
             CancellationTokenSource = new CancellationTokenSource();
 

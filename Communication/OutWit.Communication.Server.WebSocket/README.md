@@ -1,7 +1,7 @@
 # OutWit.Communication.Server.WebSocket
 
 ## Overview
-The `OutWit.Communication.Server.WebSocket` package provides server-side support for WebSocket transport in WitCom.
+The `OutWit.Communication.Server.WebSocket` package provides server-side support for WebSocket transport in WitRPC.
 
 ### Key Features
 - Real-time communication over the internet.
@@ -11,7 +11,7 @@ The `OutWit.Communication.Server.WebSocket` package provides server-side support
 ```csharp
 using OutWit.Communication.Server.WebSocket;
 
-var server = WitComServerBuilder.Build(options =>
+var server = WitServerBuilder.Build(options =>
 {
     options.WithWebSocket("http://example.com/socket", 50);
 });

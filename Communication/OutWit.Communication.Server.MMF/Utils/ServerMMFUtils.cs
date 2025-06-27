@@ -5,13 +5,13 @@ namespace OutWit.Communication.Server.MMF.Utils
 {
     public static class ServerMMFUtils
     {
-        public static WitComServerBuilderOptions WithMemoryMappedFile(this WitComServerBuilderOptions me, MemoryMappedFileServerTransportOptions options)
+        public static WitServerBuilderOptions WithMemoryMappedFile(this WitServerBuilderOptions me, MemoryMappedFileServerTransportOptions options)
         {
             me.TransportFactory = new MemoryMappedFileServerTransportFactory(options);
             return me;
         }
 
-        public static WitComServerBuilderOptions WithMemoryMappedFile(this WitComServerBuilderOptions me, string name, long size)
+        public static WitServerBuilderOptions WithMemoryMappedFile(this WitServerBuilderOptions me, string name, long size)
         {
             return me.WithMemoryMappedFile(new MemoryMappedFileServerTransportOptions
             {
@@ -20,7 +20,7 @@ namespace OutWit.Communication.Server.MMF.Utils
             });
         }
 
-        public static WitComServerBuilderOptions WithMemoryMappedFile(this WitComServerBuilderOptions me, string name)
+        public static WitServerBuilderOptions WithMemoryMappedFile(this WitServerBuilderOptions me, string name)
         {
             return me.WithMemoryMappedFile(new MemoryMappedFileServerTransportOptions
             {

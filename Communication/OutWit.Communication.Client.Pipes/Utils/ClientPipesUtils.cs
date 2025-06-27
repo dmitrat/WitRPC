@@ -9,13 +9,13 @@ namespace OutWit.Communication.Client.Pipes.Utils
 {
     public static class ClientPipesUtils
     {
-        public static WitComClientBuilderOptions WithNamedPipe(this WitComClientBuilderOptions me, NamedPipeClientTransportOptions options)
+        public static WitClientBuilderOptions WithNamedPipe(this WitClientBuilderOptions me, NamedPipeClientTransportOptions options)
         {
             me.Transport = new NamedPipeClientTransport(options);
             return me;
         }
 
-        public static WitComClientBuilderOptions WithNamedPipe(this WitComClientBuilderOptions me, string server, string pipe)
+        public static WitClientBuilderOptions WithNamedPipe(this WitClientBuilderOptions me, string server, string pipe)
         {
             return me.WithNamedPipe(new NamedPipeClientTransportOptions
             {
@@ -24,7 +24,7 @@ namespace OutWit.Communication.Client.Pipes.Utils
             });
         }
 
-        public static WitComClientBuilderOptions WithNamedPipe(this WitComClientBuilderOptions me, string pipe)
+        public static WitClientBuilderOptions WithNamedPipe(this WitClientBuilderOptions me, string pipe)
         {
             return me.WithNamedPipe(new NamedPipeClientTransportOptions
             {

@@ -7,21 +7,21 @@ using OutWit.Communication.Model;
 
 namespace OutWit.Communication.Exceptions
 {
-    public class WitComExceptionFault : WitComException
+    public class WitExceptionFault : WitException
     {
-        public WitComExceptionFault(CommunicationStatus status)
+        public WitExceptionFault(CommunicationStatus status)
             : this( status,null, null)
         {
 
         }
 
-        public WitComExceptionFault(CommunicationStatus status, string message)
+        public WitExceptionFault(CommunicationStatus status, string message)
             : this(status, message, null)
         {
 
         }
 
-        public WitComExceptionFault(CommunicationStatus status, string? message, Exception? innerException)
+        public WitExceptionFault(CommunicationStatus status, string? message, Exception? innerException)
             : base(message, innerException)
         {
             Status = status;

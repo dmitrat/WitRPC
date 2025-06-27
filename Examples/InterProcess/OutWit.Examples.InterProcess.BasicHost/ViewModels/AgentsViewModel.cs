@@ -95,7 +95,7 @@ namespace OutWit.Examples.InterProcess.BasicHost.ViewModels
 
             Thread.Sleep(500);
 
-            var client = WitComClientBuilder.Build(options =>
+            var client = WitClientBuilder.Build(options =>
             {
                 options.WithTransport(dialog.SelectedTransport, parameters.Address);
                 options.WithEncryption();

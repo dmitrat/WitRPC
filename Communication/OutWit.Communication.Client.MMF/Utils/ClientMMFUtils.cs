@@ -9,13 +9,13 @@ namespace OutWit.Communication.Client.MMF.Utils
 {
     public static class ClientMMFUtils
     {
-        public static WitComClientBuilderOptions WithMemoryMappedFile(this WitComClientBuilderOptions me, MemoryMappedFileClientTransportOptions options)
+        public static WitClientBuilderOptions WithMemoryMappedFile(this WitClientBuilderOptions me, MemoryMappedFileClientTransportOptions options)
         {
             me.Transport = new MemoryMappedFileClientTransport(options);
             return me;
         }
 
-        public static WitComClientBuilderOptions WithMemoryMappedFile(this WitComClientBuilderOptions me, string name)
+        public static WitClientBuilderOptions WithMemoryMappedFile(this WitClientBuilderOptions me, string name)
         {
             return me.WithMemoryMappedFile(new MemoryMappedFileClientTransportOptions
             {

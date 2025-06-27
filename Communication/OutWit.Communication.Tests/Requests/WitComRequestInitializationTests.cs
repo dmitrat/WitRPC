@@ -10,15 +10,15 @@ using OutWit.Communication.Requests;
 namespace OutWit.Communication.Tests.Requests
 {
     [TestFixture]
-    public class WitComRequestInitializationTests
+    public class WitRequestInitializationTests
     {
         [Test]
         public void ConstructorTest()
         {
-            var request = new WitComRequestInitialization();
+            var request = new WitRequestInitialization();
             Assert.That(request.PublicKey, Is.Null);
 
-            request = new WitComRequestInitialization
+            request = new WitRequestInitialization
             {
                 PublicKey = new byte[] { 1, 2, 3 }
             };
@@ -29,7 +29,7 @@ namespace OutWit.Communication.Tests.Requests
         [Test]
         public void IsTest()
         {
-            var request = new WitComRequestInitialization
+            var request = new WitRequestInitialization
             {
                 PublicKey = new byte[] { 1, 2, 3 }
             };
@@ -41,11 +41,11 @@ namespace OutWit.Communication.Tests.Requests
         [Test]
         public void CloneTest()
         {
-            var request1 = new WitComRequestInitialization
+            var request1 = new WitRequestInitialization
             {
                 PublicKey = new byte[] { 1, 2, 3 }
             };
-            var request2 = request1.Clone() as WitComRequestInitialization;
+            var request2 = request1.Clone() as WitRequestInitialization;
 
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
@@ -56,11 +56,11 @@ namespace OutWit.Communication.Tests.Requests
         [Test]
         public void JsonCloneTest()
         {
-            var request1 = new WitComRequestInitialization
+            var request1 = new WitRequestInitialization
             {
                 PublicKey = new byte[] { 1, 2, 3 }
             };
-            var request2 = request1.JsonClone() as WitComRequestInitialization;
+            var request2 = request1.JsonClone() as WitRequestInitialization;
 
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
@@ -71,7 +71,7 @@ namespace OutWit.Communication.Tests.Requests
         [Test]
         public void MessagePackSerializationTest()
         {
-            var request1 = new WitComRequestInitialization
+            var request1 = new WitRequestInitialization
             {
                 PublicKey = new byte[] { 1, 2, 3 }
             };
@@ -79,7 +79,7 @@ namespace OutWit.Communication.Tests.Requests
             var bytes = request1.ToMessagePackBytes();
             Assert.That(bytes, Is.Not.Null);
 
-            var request2 = bytes.FromMessagePackBytes<WitComRequestInitialization>();
+            var request2 = bytes.FromMessagePackBytes<WitRequestInitialization>();
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
             Assert.That(request1.Is(request2), Is.True);
@@ -89,7 +89,7 @@ namespace OutWit.Communication.Tests.Requests
         [Test]
         public void JsonSerializationTest()
         {
-            var request1 = new WitComRequestInitialization
+            var request1 = new WitRequestInitialization
             {
                 PublicKey = new byte[] { 1, 2, 3 }
             };
@@ -97,7 +97,7 @@ namespace OutWit.Communication.Tests.Requests
             var json = request1.ToJsonBytes();
             Assert.That(json, Is.Not.Null);
 
-            var request2 = json.FromJsonBytes<WitComRequestInitialization>();
+            var request2 = json.FromJsonBytes<WitRequestInitialization>();
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
             Assert.That(request1.Is(request2), Is.True);
@@ -106,7 +106,7 @@ namespace OutWit.Communication.Tests.Requests
         [Test]
         public void MemoryPackSerializationTest()
         {
-            var request1 = new WitComRequestInitialization
+            var request1 = new WitRequestInitialization
             {
                 PublicKey = new byte[] { 1, 2, 3 }
             };
@@ -114,7 +114,7 @@ namespace OutWit.Communication.Tests.Requests
             var json = request1.ToMemoryPackBytes();
             Assert.That(json, Is.Not.Null);
 
-            var request2 = json.FromMemoryPackBytes<WitComRequestInitialization>();
+            var request2 = json.FromMemoryPackBytes<WitRequestInitialization>();
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
             Assert.That(request1.Is(request2), Is.True);
@@ -123,7 +123,7 @@ namespace OutWit.Communication.Tests.Requests
         [Test]
         public void ProtoBufSerializationTest()
         {
-            var request1 = new WitComRequestInitialization
+            var request1 = new WitRequestInitialization
             {
                 PublicKey = new byte[] { 1, 2, 3 }
             };
@@ -131,7 +131,7 @@ namespace OutWit.Communication.Tests.Requests
             var json = request1.ToProtoBytes();
             Assert.That(json, Is.Not.Null);
 
-            var request2 = json.FromProtoBytes<WitComRequestInitialization>();
+            var request2 = json.FromProtoBytes<WitRequestInitialization>();
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
             Assert.That(request1.Is(request2), Is.True);

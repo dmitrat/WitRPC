@@ -35,7 +35,7 @@
                      SelectedItem="{Binding ServicesVm.SelectedServer, Mode=TwoWay}">
 
                 <ListBox.ItemTemplate>
-                    <DataTemplate DataType="{x:Type server:WitComServer}">
+                    <DataTemplate DataType="{x:Type server:WitServer}">
                         <TextBlock Text="{Binding Name, Mode=OneWay}"/>
                     </DataTemplate>
                 </ListBox.ItemTemplate>

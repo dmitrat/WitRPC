@@ -30,7 +30,7 @@ namespace OutWit.Examples.Services.Service.Managers
         {
             Logger.LogInformation($"Starting Named Pipes Server, Pipe name: {PIPE_NAME}, max number of clients: {MAX_CLIENTS}");
 
-            Server = WitComServerBuilder.Build(options =>
+            Server = WitServerBuilder.Build(options =>
             {
                 options.WithService(Service);
                 options.WithNamedPipe(PIPE_NAME, MAX_CLIENTS);
@@ -51,7 +51,7 @@ namespace OutWit.Examples.Services.Service.Managers
 
         private ILogger<PipesManager> Logger { get; }
 
-        private WitComServer? Server { get; set; }
+        private WitServer? Server { get; set; }
 
         #endregion
     }

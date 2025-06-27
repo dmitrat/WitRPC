@@ -45,13 +45,13 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
         private const string DEFAULT_HTTP_PATH = "api";
 
-        private const int DEFAULT_HTTP_PORT = 8082;
+        private const int DEFAULT_HTTP_PORT = 7001;
 
         private const int DEFAULT_BENCHMARK_ATTEMPTS = 50;
 
-        private const long DEFAULT_DATA_SIZE = 10_000_000;
+        private const long DEFAULT_DATA_SIZE = 10_000_00;
 
-        private const string DEFAULT_HOST = "localhost";
+        private const string DEFAULT_HOST = "rdc.waveslogic.com";
         
         #endregion
 
@@ -145,7 +145,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
                             return pipe;
                         }
                     };
-                    Channel = GrpcChannel.ForAddress($"http://{Host}", new GrpcChannelOptions
+                    Channel = GrpcChannel.ForAddress($"https://{Host}", new GrpcChannelOptions
                     {
                         HttpHandler = handler,
                         MaxReceiveMessageSize = 64 * 1024 * 1024,
@@ -153,7 +153,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
                     });
                 }
                 if(IsHttp)
-                    Channel = GrpcChannel.ForAddress($"http://{Host}:{HttpPort}", new GrpcChannelOptions
+                    Channel = GrpcChannel.ForAddress($"https://{Host}:{HttpPort}", new GrpcChannelOptions
                     {
                         MaxReceiveMessageSize = 64 * 1024 * 1024,
                         MaxSendMessageSize = 64 * 1024 * 1024,
@@ -219,7 +219,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
                         {
                             SeriesId = id,
                             Name = "OneWayBenchmark",
-                            Type = "WitCom",
+                            Type = "WitRPC",
                             Transport = $"{TransportType}",
                             Serializer = $"{SerializerType}",
                             UseEncryption = UseEncryption,
@@ -270,7 +270,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
                         {
                             SeriesId = id,
                             Name = "TwoWaysBenchmark",
-                            Type = "WitCom",
+                            Type = "WitRPC",
                             Transport = $"{TransportType}",
                             Serializer = $"{SerializerType}",
                             UseEncryption = UseEncryption,
@@ -325,7 +325,7 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
         private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if(e.IsProperty((WitComViewModel vm)=>vm.TransportType))
+            if(e.IsProperty((WitRPCViewModel vm)=>vm.TransportType))
                 UpdateStatus();
         }
 

@@ -33,11 +33,11 @@ namespace OutWit.Communication.Client.Pipes
         private void InitPipe()
         {
             if (string.IsNullOrEmpty(Options.ServerName))
-                throw new WitComExceptionTransport($"Failed to create pipe: server name is empty. " +
+                throw new WitExceptionTransport($"Failed to create pipe: server name is empty. " +
                                              $"Use \".\" as server name for local communication");
 
             if (string.IsNullOrEmpty(Options.PipeName))
-                throw new WitComExceptionTransport($"Failed to create pipe: pipe name is empty");
+                throw new WitExceptionTransport($"Failed to create pipe: pipe name is empty");
 
             Stream = new NamedPipeClientStream(Options.ServerName, Options.PipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
         }
@@ -118,7 +118,7 @@ namespace OutWit.Communication.Client.Pipes
                 {
                     int bytesRead = await Stream.ReadAsync(lengthBuffer, 0, lengthBuffer.Length);
                     if (bytesRead == 0)
-                        throw new WitComExceptionTransport($"Server disconnected");
+                        throw new WitExceptionTransport($"Server disconnected");
 
                     int messageLength = BitConverter.ToInt32(lengthBuffer, 0);
 
@@ -129,7 +129,7 @@ namespace OutWit.Communication.Client.Pipes
                     {
                         int read = await Stream.ReadAsync(dataBuffer, totalBytesRead, messageLength - totalBytesRead);
                         if (read == 0)
-                            throw new WitComExceptionTransport($"Server disconnected");
+                            throw new WitExceptionTransport($"Server disconnected");
 
                         totalBytesRead += read;
                     }

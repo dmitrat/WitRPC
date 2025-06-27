@@ -34,7 +34,7 @@ namespace OutWit.Communication.Client.MMF
         private void InitChannel()
         {
             if (string.IsNullOrEmpty(Options.Name))
-                throw new WitComExceptionTransport($"Failed to open memory mapped file: name is empty");
+                throw new WitExceptionTransport($"Failed to open memory mapped file: name is empty");
 
             File = MemoryMappedFile.OpenExisting(Options.Name, MemoryMappedFileRights.ReadWrite);
             Stream = File.CreateViewStream(0, 0);

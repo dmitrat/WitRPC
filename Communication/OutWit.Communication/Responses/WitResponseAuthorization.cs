@@ -12,11 +12,11 @@ namespace OutWit.Communication.Responses
     [DataContract]
     [MemoryPackable]
     [ProtoContract]
-    public partial class WitComResponseAuthorization : ModelBase
+    public partial class WitResponseAuthorization : ModelBase
     {
         #region Constructors
 
-        public WitComResponseAuthorization()
+        public WitResponseAuthorization()
         {
         }
 
@@ -26,16 +26,16 @@ namespace OutWit.Communication.Responses
 
         public override bool Is(ModelBase modelBase, double tolerance = 1E-07)
         {
-            if (!(modelBase is WitComResponseAuthorization request))
+            if (!(modelBase is WitResponseAuthorization request))
                 return false;
 
             return IsAuthorized.Is(request.IsAuthorized) && 
                    Message.Is(request.Message);
         }
 
-        public override WitComResponseAuthorization Clone()
+        public override WitResponseAuthorization Clone()
         {
-            return new WitComResponseAuthorization
+            return new WitResponseAuthorization
             {
                 IsAuthorized = IsAuthorized,
                 Message = Message

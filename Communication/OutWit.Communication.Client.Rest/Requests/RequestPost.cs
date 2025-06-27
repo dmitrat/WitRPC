@@ -16,7 +16,7 @@ namespace OutWit.Communication.Client.Rest.Requests
     {
         #region Constructors
 
-        public RequestPost(RestClientTransportOptions options, WitComRequest requestBase, string token)
+        public RequestPost(RestClientTransportOptions options, WitRequest requestBase, string token)
         {
             Options = options;
             RequestBase = requestBase;
@@ -33,7 +33,7 @@ namespace OutWit.Communication.Client.Rest.Requests
         private void CheckRequest()
         {
             if (RequestBase.GenericArguments.Length > 0 || RequestBase.GenericArgumentsByName.Length > 0)
-                throw new WitComExceptionRestRequest(RequestBase,
+                throw new WitExceptionRestRequest(RequestBase,
                     "Rest Post request cannot be constructed from generic method parameters");
         }
 
@@ -91,7 +91,7 @@ namespace OutWit.Communication.Client.Rest.Requests
 
         public RestClientTransportOptions Options { get; }
 
-        public WitComRequest RequestBase { get; }
+        public WitRequest RequestBase { get; }
 
         public string Token { get; }
 

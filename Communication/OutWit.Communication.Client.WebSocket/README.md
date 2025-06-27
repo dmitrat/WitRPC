@@ -1,7 +1,7 @@
 # OutWit.Communication.Client.WebSocket
 
 ## Overview
-The `OutWit.Communication.Client.WebSocket` package provides client-side support for WebSocket transport in WitCom. WebSocket is excellent for real-time communication over the web.
+The `OutWit.Communication.Client.WebSocket` package provides client-side support for WebSocket transport in WitRPC. WebSocket is excellent for real-time communication over the web.
 
 ### Key Features
 - Full-duplex communication.
@@ -11,7 +11,7 @@ The `OutWit.Communication.Client.WebSocket` package provides client-side support
 ```csharp
 using OutWit.Communication.Client.WebSocket;
 
-var client = WitComClientBuilder.Build(options =>
+var client = WitClientBuilder.Build(options =>
 {
     options.WithWebSocket("ws://example.com/socket");
 });

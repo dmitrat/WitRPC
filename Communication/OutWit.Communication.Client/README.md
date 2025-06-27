@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `OutWit.Communication.Client` library provides a robust framework for client-side communication in the WitCom ecosystem. With features like encryption, token-based authorization, and flexible serialization, it enables secure and efficient communication with WitCom servers.
+The `OutWit.Communication.Client` library provides a robust framework for client-side communication in the WitRPC ecosystem. With features like encryption, token-based authorization, and flexible serialization, it enables secure and efficient communication with WitRPC servers.
 
 ## Features
 
@@ -12,7 +12,7 @@ The `OutWit.Communication.Client` library provides a robust framework for client
 
 #### Example:
 ```csharp
-var client = WitComClientBuilder.Build(options =>
+var client = WitClientBuilder.Build(options =>
 {
     options.WithAccessToken("your-access-token");
 });
@@ -24,7 +24,7 @@ var client = WitComClientBuilder.Build(options =>
 
 #### Example:
 ```csharp
-var client = WitComClientBuilder.Build(options =>
+var client = WitClientBuilder.Build(options =>
 {
     options.WithEncryption();
 });
@@ -36,13 +36,13 @@ var client = WitComClientBuilder.Build(options =>
 
 #### Example:
 ```csharp
-var client = WitComClientBuilder.Build(options =>
+var client = WitClientBuilder.Build(options =>
 {
     options.WithJson();
 });
 
 // Or for MessagePack:
-var client = WitComClientBuilder.Build(options =>
+var client = WitClientBuilder.Build(options =>
 {
     options.WithMessagePack();
 });
@@ -51,7 +51,7 @@ var client = WitComClientBuilder.Build(options =>
 ### 4. Logging and Debugging
 Integrate custom logging for debugging and monitoring:
 ```csharp
-var client = WitComClientBuilder.Build(options =>
+var client = WitClientBuilder.Build(options =>
 {
     options.WithLogger(new ConsoleLogger());
 });
@@ -60,7 +60,7 @@ var client = WitComClientBuilder.Build(options =>
 ### 5. Timeout Configuration
 Set request and response timeouts for client operations:
 ```csharp
-var client = WitComClientBuilder.Build(options =>
+var client = WitClientBuilder.Build(options =>
 {
     options.WithTimeout(TimeSpan.FromSeconds(30));
 });
@@ -84,7 +84,7 @@ Install-Package OutWit.Communication.Client
 
 ### Basic Setup
 ```csharp
-var client = WitComClientBuilder.Build(options =>
+var client = WitClientBuilder.Build(options =>
 {
     options.WithAccessToken("my-access-token");
     options.WithEncryption();
@@ -97,7 +97,7 @@ await client.ConnectAsync(TimeSpan.FromSeconds(5), CancellationToken.None);
 
 ### Sending Requests
 ```csharp
-var request = new WitComRequest
+var request = new WitRequest
 {
     MethodName = "MyMethod",
     Parameters = new object[] { 1, "parameter" }
@@ -123,7 +123,7 @@ client.Disconnected += _ =>
 
 ## API Reference
 
-### `WitComClient`
+### `WitClient`
 The core class for client-side communication.
 
 #### Key Methods:
@@ -135,8 +135,8 @@ The core class for client-side communication.
 - `CallbackReceived`: Triggered when a server callback is received.
 - `Disconnected`: Triggered when the client disconnects from the server.
 
-### `WitComClientBuilder`
-A fluent API for configuring and creating `WitComClient` instances.
+### `WitClientBuilder`
+A fluent API for configuring and creating `WitClient` instances.
 
 #### Configuration Options:
 - `.WithAccessToken`: Sets the access token for authentication.

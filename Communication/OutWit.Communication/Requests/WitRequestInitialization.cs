@@ -13,19 +13,19 @@ namespace OutWit.Communication.Requests
     [DataContract]
     [MemoryPackable]
     [ProtoContract]
-    public partial class WitComRequestInitialization : ModelBase
+    public partial class WitRequestInitialization : ModelBase
     {
         public override bool Is(ModelBase modelBase, double tolerance = 1E-07)
         {
-            if (!(modelBase is WitComRequestInitialization request))
+            if (!(modelBase is WitRequestInitialization request))
                 return false;
 
             return PublicKey.Is(request.PublicKey);
         }
 
-        public override WitComRequestInitialization Clone()
+        public override WitRequestInitialization Clone()
         {
-            return new WitComRequestInitialization
+            return new WitRequestInitialization
             {
                 PublicKey = PublicKey?.ToArray()
             };

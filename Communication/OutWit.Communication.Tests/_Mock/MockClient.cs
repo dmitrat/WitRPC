@@ -32,7 +32,7 @@ namespace OutWit.Communication.Tests.Mock
 
         #region IClient
 
-        public async Task<WitComResponse> SendRequest(WitComRequest? request)
+        public async Task<WitResponse> SendRequest(WitRequest? request)
         {
             return await Processor.Process(request);
         }
@@ -41,7 +41,7 @@ namespace OutWit.Communication.Tests.Mock
 
         #region Event Handlers
 
-        private void OnCallback(WitComRequest? request)
+        private void OnCallback(WitRequest? request)
         {
             CallbackReceived(request);
         }

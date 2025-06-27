@@ -32,7 +32,7 @@ namespace OutWit.Examples.Services.Service.Managers
 
             Logger.LogInformation($"Starting Rest Server, url: {url}");
 
-            Server = WitComServerRestBuilder.Build(options =>
+            Server = WitServerRestBuilder.Build(options =>
             {
                 options.WithService(Service);
                 options.WithUrl(url);
@@ -51,7 +51,7 @@ namespace OutWit.Examples.Services.Service.Managers
 
         private ILogger<RestManager> Logger { get; }
 
-        private WitComServerRest? Server { get; set; }
+        private WitServerRest? Server { get; set; }
 
         #endregion
     }

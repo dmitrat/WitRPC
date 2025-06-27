@@ -10,11 +10,11 @@ namespace OutWit.Communication.Interfaces
         public event ClientEventHandler CallbackReceived;
 
 
-        public Task<WitComResponse> SendRequest(WitComRequest? request);
+        public Task<WitResponse> SendRequest(WitRequest? request);
         
         
         public IMessageSerializer ParametersSerializer { get; }
     }
 
-    public delegate void ClientEventHandler(WitComRequest? request);
+    public delegate void ClientEventHandler(WitRequest? request);
 }

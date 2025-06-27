@@ -10,7 +10,7 @@ namespace OutWit.Examples.Discovery.Client.Utils
 {
     public static class TransportUtils
     {
-        public static WitComClientBuilderOptions WithTransport(this WitComClientBuilderOptions me, DiscoveryMessage message)
+        public static WitClientBuilderOptions WithTransport(this WitClientBuilderOptions me, DiscoveryMessage message)
         {
             if(message.Data == null)
                 throw new ArgumentOutOfRangeException(nameof(me), me, null);

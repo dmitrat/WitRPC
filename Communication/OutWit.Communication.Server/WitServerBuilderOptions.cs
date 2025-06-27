@@ -7,11 +7,11 @@ using OutWit.Communication.Server.Encryption;
 
 namespace OutWit.Communication.Server
 {
-    public class WitComServerBuilderOptions
+    public class WitServerBuilderOptions
     {
         #region Constructors
 
-        public WitComServerBuilderOptions()
+        public WitServerBuilderOptions()
         {
             ParametersSerializer = new MessageSerializerJson();
             MessageSerializer = new MessageSerializerMemoryPack();

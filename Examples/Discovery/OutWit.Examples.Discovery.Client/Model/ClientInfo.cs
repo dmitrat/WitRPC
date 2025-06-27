@@ -14,7 +14,7 @@ namespace OutWit.Examples.Discovery.Client.Model
     {
         #region Constructors
 
-        public ClientInfo(DiscoveryMessage message, WitComClient client)
+        public ClientInfo(DiscoveryMessage message, WitClient client)
         {
             ServiceId = message.ServiceId!.Value;
             ServiceName = message.ServiceName;
@@ -140,7 +140,7 @@ namespace OutWit.Examples.Discovery.Client.Model
 
         public string? Transport { get;  }
 
-        public WitComClient? Client { get; }
+        public WitClient? Client { get; }
 
         public IExampleService Service { get; }
 

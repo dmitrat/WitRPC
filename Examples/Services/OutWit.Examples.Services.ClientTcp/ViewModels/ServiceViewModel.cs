@@ -87,7 +87,7 @@ namespace OutWit.Examples.Services.ClientTcp.ViewModels
                 CanReconnect = false;
                 Progress = 0;
 
-                Client = WitComClientBuilder.Build(options =>
+                Client = WitClientBuilder.Build(options =>
                 {
                     options.WithTcp("localhost", PORT);
                     options.WithEncryption();
@@ -236,7 +236,7 @@ namespace OutWit.Examples.Services.ClientTcp.ViewModels
 
         #region Properties
 
-        private WitComClient? Client { get; set; }
+        private WitClient? Client { get; set; }
 
         private IExampleService? Service { get; set; }
 

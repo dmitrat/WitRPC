@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
+using System.IO;
 using System.Net;
+using System.Windows;
 using System.Windows.Input;
 using OutWit.Common.Aspects;
 using OutWit.Common.MVVM.Commands;
@@ -16,10 +18,14 @@ using OutWit.Examples.Benchmark.Server.Model;
 using OutWit.Examples.Benchmark.Server.Utils;
 using OutWit.Examples.Contracts;
 using OutWit.Examples.Services;
+using Serilog;
+using Serilog.Events;
+using Serilog.Exceptions;
+using Serilog.Extensions.Logging;
 
 namespace OutWit.Examples.Benchmark.Server.ViewModels
 {
-    public class WitComViewModel: ViewModelBase<ApplicationViewModel>
+    public class WitRPCViewModel: ViewModelBase<ApplicationViewModel>
     {
         #region Constants
 
@@ -39,12 +45,13 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
 
         #region Constructors
 
-        public WitComViewModel(ApplicationViewModel applicationVm) 
+        public WitRPCViewModel(ApplicationViewModel applicationVm) 
             : base(applicationVm)
         {
             InitDefaults();
             InitEvents();
             InitCommands();
+            InitLog();
         }
 
         #endregion
@@ -57,23 +64,23 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
 
             TransportTypes =
             [
-                WitComTransportType.MemoryMappedFile,
-                WitComTransportType.NamedPipe,
-                WitComTransportType.TCP,
-                WitComTransportType.WebSocket
+                WitRPCTransportType.MemoryMappedFile,
+                WitRPCTransportType.NamedPipe,
+                WitRPCTransportType.TCP,
+                WitRPCTransportType.WebSocket
             ];
 
-            TransportType = WitComTransportType.MemoryMappedFile;
+            TransportType = WitRPCTransportType.MemoryMappedFile;
 
             SerializerTypes =
             [
-                WitComSerializerType.Json,
-                WitComSerializerType.MessagePack,
-                WitComSerializerType.MemoryPack,
-                WitComSerializerType.ProtoBuf
+                WitRPCSerializerType.Json,
+                WitRPCSerializerType.MessagePack,
+                WitRPCSerializerType.MemoryPack,
+                WitRPCSerializerType.ProtoBuf
             ];
 
-            SerializerType = WitComSerializerType.Json;
+            SerializerType = WitRPCSerializerType.Json;
 
             UseEncryption = true;
             UseAuthorization = true;
@@ -109,6 +116,19 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
             ResetAuthorizationTokenCmd = new DelegateCommand(x => ResetAuthorizationToken());
         }
 
+        private void InitLog()
+        {
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Is(LogEventLevel.Debug)
+                .Enrich.WithExceptionDetails()
+                .WriteTo.File(Path.Combine(Application.ResourceAssembly.ApplicationDataPath(2, "Log"), "log.txt"),
+                    rollingInterval: RollingInterval.Day,
+                    rollOnFileSizeLimit: true, fileSizeLimitBytes: 524288)
+                .CreateLogger();
+
+            LoggerFactory = new SerilogLoggerFactory();
+        }
+
         #endregion
 
         #region Functions
@@ -118,8 +138,11 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
             if(!CanStartServer)
                 return;
 
-            var options = new WitComServerBuilderOptions();
+            var options = new WitServerBuilderOptions();
             options.WithService(Service);
+
+            options.WithLogger(LoggerFactory.CreateLogger("WitRPC"));
+            
             if(UseEncryption)
                 options.WithEncryption();
             else
@@ -134,50 +157,50 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
 
             switch (SerializerType)
             {
-                case WitComSerializerType.Json:
+                case WitRPCSerializerType.Json:
                     options.WithJson();
                     break;
 
-                case WitComSerializerType.MessagePack:
+                case WitRPCSerializerType.MessagePack:
                     options.WithMessagePack();
                     break;
 
 
-                case WitComSerializerType.MemoryPack:
+                case WitRPCSerializerType.MemoryPack:
                     options.WithMemoryPack();
                     break;
 
-                case WitComSerializerType.ProtoBuf:
+                case WitRPCSerializerType.ProtoBuf:
                     options.WithProtoBuf();
                     break;
             }
 
             switch (TransportType)
             {
-                case WitComTransportType.MemoryMappedFile:
+                case WitRPCTransportType.MemoryMappedFile:
                     if(!string.IsNullOrEmpty(MemoryMappedFileName))
                         options.WithMemoryMappedFile(MemoryMappedFileName, 10_000_000_000);
                     break;
 
-                case WitComTransportType.NamedPipe:
+                case WitRPCTransportType.NamedPipe:
                     if (!string.IsNullOrEmpty(PipeName))
                         options.WithNamedPipe(PipeName, 10);
                     break;
 
-                case WitComTransportType.TCP:
+                case WitRPCTransportType.TCP:
                     options.WithTcp(TcpPort, 10);
                     break;
 
 
-                case WitComTransportType.WebSocket:
-                    options.WithWebSocket($"http://localhost:{WebSocketPort}/{WebSocketPath}", 10);
+                case WitRPCTransportType.WebSocket:
+                    options.WithWebSocket($"http://127.0.0.1:{WebSocketPort}/{WebSocketPath}", 10);
                     break;
             }
 
             if(options.TransportFactory == null)
                 return;
 
-            Server = WitComServerBuilder.Build(options);
+            Server = WitServerBuilder.Build(options);
             Server.StartWaitingForConnection();
 
             CanStartServer = false;
@@ -229,10 +252,10 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
 
         private void UpdateStatus()
         {
-            IsMemoryMappedFile = TransportType == WitComTransportType.MemoryMappedFile;
-            IsNamedPipe = TransportType == WitComTransportType.NamedPipe;
-            IsTcp = TransportType == WitComTransportType.TCP;
-            IsWebSocket = TransportType == WitComTransportType.WebSocket;
+            IsMemoryMappedFile = TransportType == WitRPCTransportType.MemoryMappedFile;
+            IsNamedPipe = TransportType == WitRPCTransportType.NamedPipe;
+            IsTcp = TransportType == WitRPCTransportType.TCP;
+            IsWebSocket = TransportType == WitRPCTransportType.WebSocket;
         }
 
         #endregion
@@ -241,7 +264,7 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
 
         private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if(e.IsProperty((WitComViewModel vm)=>vm.TransportType))
+            if(e.IsProperty((WitRPCViewModel vm)=>vm.TransportType))
                 UpdateStatus();
         }
 
@@ -250,16 +273,16 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
         #region Properties
 
         [Notify] 
-        public IReadOnlyList<WitComTransportType> TransportTypes { get; private set; } = null!;
+        public IReadOnlyList<WitRPCTransportType> TransportTypes { get; private set; } = null!;
 
         [Notify]
-        public WitComTransportType? TransportType { get; set; }
+        public WitRPCTransportType? TransportType { get; set; }
 
         [Notify] 
-        public IReadOnlyList<WitComSerializerType> SerializerTypes { get; private set; } = null!;
+        public IReadOnlyList<WitRPCSerializerType> SerializerTypes { get; private set; } = null!;
 
         [Notify]
-        public WitComSerializerType? SerializerType { get; set; }
+        public WitRPCSerializerType? SerializerType { get; set; }
 
         [Notify]
         public string? MemoryMappedFileName { get; set; }
@@ -303,15 +326,17 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
         [Notify]
         public bool IsWebSocket { get; private set; }
 
-        private WitComServer? Server { get; set; }
+        private WitServer? Server { get; set; }
 
         private IBenchmarkService Service { get; set; } = null!;
+
+        public Microsoft.Extensions.Logging.ILoggerFactory LoggerFactory { get; private set; }
 
         #endregion
 
         #region Commands
 
-        [Notify] 
+       [Notify] 
         public ICommand StartServerCmd { get; private set; } = null!;
 
         [Notify]

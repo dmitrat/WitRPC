@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace OutWit.Examples.Benchmark.Client
 {
     /// <summary>
-    /// Interaction logic for WitComSettingsTab.xaml
+    /// Interaction logic for WitRPCSettingsTab.xaml
     /// </summary>
-    public partial class WitComSettingsTab : TabItem
+    public partial class WitRPCSettingsTab : TabItem
     {
-        public WitComSettingsTab()
+        public WitRPCSettingsTab()
         {
             InitializeComponent();
         }

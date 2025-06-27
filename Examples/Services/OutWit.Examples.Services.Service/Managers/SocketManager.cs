@@ -33,7 +33,7 @@ namespace OutWit.Examples.Services.Service.Managers
 
             Logger.LogInformation($"Starting WebSocket Server, url: {url}, max number of clients: {MAX_CLIENTS}");
 
-            Server = WitComServerBuilder.Build(options =>
+            Server = WitServerBuilder.Build(options =>
             {
                 options.WithService(Service);
                 options.WithWebSocket(url, MAX_CLIENTS);
@@ -54,7 +54,7 @@ namespace OutWit.Examples.Services.Service.Managers
 
         private ILogger<SocketManager> Logger { get; }
 
-        private WitComServer? Server { get; set; }
+        private WitServer? Server { get; set; }
 
         #endregion
     }

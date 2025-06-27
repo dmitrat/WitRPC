@@ -23,10 +23,10 @@ namespace OutWit.Communication.Client.WebSocket
         public WebSocketClientTransport(WebSocketClientTransportOptions options)
         {
             if (string.IsNullOrEmpty(options.Url))
-                throw new WitComException($"Url cannot be null");
+                throw new WitException($"Url cannot be null");
 
             if (options.BufferSize < 1024)
-                throw new WitComException($"Buffer size must be grater or equals 1024 bytes");
+                throw new WitException($"Buffer size must be grater or equals 1024 bytes");
 
             Options = options;
             Address = $"{options.Url}";

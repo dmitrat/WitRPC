@@ -91,12 +91,12 @@ namespace OutWit.Communication.Tests.Communication
             Assert.That(client.IsInitialized, Is.True);
             Assert.That(client.IsAuthorized, Is.True);
 
-            var request = new WitComRequest
+            var request = new WitRequest
             {
                 MethodName = "Test"
             };
 
-            WitComResponse? response = await client.SendRequest(request);
+            WitResponse? response = await client.SendRequest(request);
             Assert.That(response, Is.Not.Null);
             Assert.That(response.Status, Is.EqualTo(CommunicationStatus.Ok));
             Assert.That(response.Data.FromJsonBytes<string>(), Is.EqualTo("Test"));
@@ -138,12 +138,12 @@ namespace OutWit.Communication.Tests.Communication
             Assert.That(client.IsInitialized, Is.True);
             Assert.That(client.IsAuthorized, Is.True);
 
-            var request = new WitComRequest
+            var request = new WitRequest
             {
                 MethodName = "Test"
             };
 
-            WitComResponse? response = await client.SendRequest(request);
+            WitResponse? response = await client.SendRequest(request);
             Assert.That(response, Is.Not.Null);
             Assert.That(response.Status, Is.EqualTo(CommunicationStatus.Ok));
             Assert.That(response.Data.FromJsonBytes<string>(), Is.EqualTo("Test"));
@@ -195,12 +195,12 @@ namespace OutWit.Communication.Tests.Communication
             Assert.That(client3.IsInitialized, Is.True);
             Assert.That(client3.IsAuthorized, Is.True);
 
-            var request = new WitComRequest
+            var request = new WitRequest
             {
                 MethodName = "Test"
             };
 
-            WitComResponse? response = await client3.SendRequest(request);
+            WitResponse? response = await client3.SendRequest(request);
             Assert.That(response, Is.Not.Null);
             Assert.That(response.Status, Is.EqualTo(CommunicationStatus.Ok));
             Assert.That(response.Data.FromJsonBytes<string>(), Is.EqualTo("Test"));
@@ -338,12 +338,12 @@ namespace OutWit.Communication.Tests.Communication
             Assert.That(client.IsInitialized, Is.True);
             Assert.That(client.IsAuthorized, Is.True);
 
-            var request = new WitComRequest
+            var request = new WitRequest
             {
                 MethodName = "Test"
             };
 
-            WitComResponse? response = await client.SendRequest(request);
+            WitResponse? response = await client.SendRequest(request);
             Assert.That(response, Is.Not.Null);
             Assert.That(response.Status, Is.EqualTo(CommunicationStatus.Ok));
             Assert.That(response.Data.FromJsonBytes<string>(), Is.EqualTo("Test"));
@@ -372,7 +372,7 @@ namespace OutWit.Communication.Tests.Communication
             var server = Shared.GetServerBasic(transportType, serializerType, 11, testName);
             server.StartWaitingForConnection();
 
-            var clients = new List<WitComClient>
+            var clients = new List<WitClient>
             {
                 Shared.GetClient(transportType, serializerType, testName),
                 Shared.GetClient(transportType, serializerType, testName),
@@ -403,7 +403,7 @@ namespace OutWit.Communication.Tests.Communication
             Parallel.For(0, clients.Count, index =>
             {
                 var client = clients[index];
-                WitComResponse? response = client.SendRequest(new WitComRequest { MethodName = $"Test{index}" }).Result;
+                WitResponse? response = client.SendRequest(new WitRequest { MethodName = $"Test{index}" }).Result;
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.Status, Is.EqualTo(CommunicationStatus.Ok));
                 Assert.That(response.Data.FromJsonBytes<string>(), Is.EqualTo($"Test{index}"));

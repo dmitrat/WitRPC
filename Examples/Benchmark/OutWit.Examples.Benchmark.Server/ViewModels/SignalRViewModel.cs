@@ -216,7 +216,7 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
 
         private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.IsProperty((WitComViewModel vm) => vm.TransportType))
+            if (e.IsProperty((WitRPCViewModel vm) => vm.TransportType))
                 UpdateStatus();
         }
 

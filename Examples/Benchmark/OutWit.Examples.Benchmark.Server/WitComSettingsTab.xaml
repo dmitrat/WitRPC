@@ -1,4 +1,4 @@
-﻿<TabItem x:Class="OutWit.Examples.Benchmark.Server.WitComSettingsTab"
+﻿<TabItem x:Class="OutWit.Examples.Benchmark.Server.WitRPCSettingsTab"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -11,7 +11,7 @@
     </TabItem.Resources>
 
     <TabItem.Header>
-        <TextBlock Text="WitCom" FontWeight="Bold"/>
+        <TextBlock Text="WitRPC" FontWeight="Bold"/>
     </TabItem.Header>
 
     <Grid>
@@ -23,10 +23,10 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="WitCom Server Settings" FontSize="14" FontWeight="Medium" HorizontalAlignment="Center" Margin="0 10 0 10"/>
+        <TextBlock Grid.Row="0" Text="WitRPC Server Settings" FontSize="14" FontWeight="Medium" HorizontalAlignment="Center" Margin="0 10 0 10"/>
 
         <Grid Grid.Row="1" Margin="10 0 10 0"
-              IsEnabled="{Binding WitComVm.CanStartServer, Mode=OneWay}">
+              IsEnabled="{Binding WitRPCVm.CanStartServer, Mode=OneWay}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="5"/>
@@ -51,74 +51,74 @@
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0" Grid.Column="0" Text="Transport:"/>
-            <ComboBox Grid.Row="1" Grid.Column="0" ItemsSource="{Binding WitComVm.TransportTypes}"
-                      SelectedItem="{Binding WitComVm.TransportType, Mode=TwoWay}"/>
+            <ComboBox Grid.Row="1" Grid.Column="0" ItemsSource="{Binding WitRPCVm.TransportTypes}"
+                      SelectedItem="{Binding WitRPCVm.TransportType, Mode=TwoWay}"/>
 
             <TextBlock Grid.Row="3" Grid.Column="0" Text="Serializer:"/>
-            <ComboBox Grid.Row="4" Grid.Column="0" ItemsSource="{Binding WitComVm.SerializerTypes}"
-                      SelectedItem="{Binding WitComVm.SerializerType, Mode=TwoWay}"/>
+            <ComboBox Grid.Row="4" Grid.Column="0" ItemsSource="{Binding WitRPCVm.SerializerTypes}"
+                      SelectedItem="{Binding WitRPCVm.SerializerType, Mode=TwoWay}"/>
 
             <TextBlock Grid.Row="6" Grid.Column="0" Text="Memory Mapped File Name:"
-                       Visibility="{Binding WitComVm.IsMemoryMappedFile, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
-            <TextBox Grid.Row="7" Grid.Column="0" Text="{Binding WitComVm.MemoryMappedFileName, Mode=TwoWay}"
-                     Visibility="{Binding WitComVm.IsMemoryMappedFile, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
+                       Visibility="{Binding WitRPCVm.IsMemoryMappedFile, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
+            <TextBox Grid.Row="7" Grid.Column="0" Text="{Binding WitRPCVm.MemoryMappedFileName, Mode=TwoWay}"
+                     Visibility="{Binding WitRPCVm.IsMemoryMappedFile, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
             <Button Grid.Row="7" Grid.Column="2" Content="Reset" Padding="5 0 5 0"
-                    Command="{Binding WitComVm.ResetMemoryMappedFileNameCmd}"
-                    Visibility="{Binding WitComVm.IsMemoryMappedFile, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
+                    Command="{Binding WitRPCVm.ResetMemoryMappedFileNameCmd}"
+                    Visibility="{Binding WitRPCVm.IsMemoryMappedFile, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
 
 
             <TextBlock Grid.Row="6" Grid.Column="0" Text="Pipe Name:"
-                       Visibility="{Binding WitComVm.IsNamedPipe, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
-            <TextBox Grid.Row="7" Grid.Column="0" Text="{Binding WitComVm.PipeName, Mode=TwoWay}"
-                     Visibility="{Binding WitComVm.IsNamedPipe, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
+                       Visibility="{Binding WitRPCVm.IsNamedPipe, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
+            <TextBox Grid.Row="7" Grid.Column="0" Text="{Binding WitRPCVm.PipeName, Mode=TwoWay}"
+                     Visibility="{Binding WitRPCVm.IsNamedPipe, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
             <Button Grid.Row="7" Grid.Column="2" Content="Reset" Padding="5 0 5 0"
-                    Command="{Binding WitComVm.ResetPipeNameCmd}"
-                    Visibility="{Binding WitComVm.IsNamedPipe, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
+                    Command="{Binding WitRPCVm.ResetPipeNameCmd}"
+                    Visibility="{Binding WitRPCVm.IsNamedPipe, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
 
 
             <TextBlock Grid.Row="6" Grid.Column="0" Text="TCP Port:"
-                       Visibility="{Binding WitComVm.IsTcp, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
-            <TextBox Grid.Row="7" Grid.Column="0" Text="{Binding WitComVm.TcpPort, Mode=TwoWay}"
-                     Visibility="{Binding WitComVm.IsTcp, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
+                       Visibility="{Binding WitRPCVm.IsTcp, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
+            <TextBox Grid.Row="7" Grid.Column="0" Text="{Binding WitRPCVm.TcpPort, Mode=TwoWay}"
+                     Visibility="{Binding WitRPCVm.IsTcp, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
             <Button Grid.Row="7" Grid.Column="2" Content="Reset" Padding="5 0 5 0"
-                    Command="{Binding WitComVm.ResetTcpPortCmd}"
-                    Visibility="{Binding WitComVm.IsTcp, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
+                    Command="{Binding WitRPCVm.ResetTcpPortCmd}"
+                    Visibility="{Binding WitRPCVm.IsTcp, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
 
 
             <TextBlock Grid.Row="6" Grid.Column="0" Text="Web Socket Port:"
-                       Visibility="{Binding WitComVm.IsWebSocket, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
-            <TextBox Grid.Row="7" Grid.Column="0" Text="{Binding WitComVm.WebSocketPort, Mode=TwoWay}"
-                     Visibility="{Binding WitComVm.IsWebSocket, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
+                       Visibility="{Binding WitRPCVm.IsWebSocket, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
+            <TextBox Grid.Row="7" Grid.Column="0" Text="{Binding WitRPCVm.WebSocketPort, Mode=TwoWay}"
+                     Visibility="{Binding WitRPCVm.IsWebSocket, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
             <Button Grid.Row="7" Grid.Column="2" Content="Reset" Padding="5 0 5 0"
-                    Command="{Binding WitComVm.ResetWebSocketPortCmd}"
-                    Visibility="{Binding WitComVm.IsWebSocket, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
+                    Command="{Binding WitRPCVm.ResetWebSocketPortCmd}"
+                    Visibility="{Binding WitRPCVm.IsWebSocket, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
 
 
             <TextBlock Grid.Row="9" Grid.Column="0" Text="Web Socket Path:"
-                       Visibility="{Binding WitComVm.IsWebSocket, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
-            <TextBox Grid.Row="10" Grid.Column="0" Text="{Binding WitComVm.WebSocketPath, Mode=TwoWay}"
-                     Visibility="{Binding WitComVm.IsWebSocket, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
+                       Visibility="{Binding WitRPCVm.IsWebSocket, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
+            <TextBox Grid.Row="10" Grid.Column="0" Text="{Binding WitRPCVm.WebSocketPath, Mode=TwoWay}"
+                     Visibility="{Binding WitRPCVm.IsWebSocket, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
             <Button Grid.Row="10" Grid.Column="2" Content="Reset" Padding="5 0 5 0"
-                    Command="{Binding WitComVm.ResetWebSocketPathCmd}"
-                    Visibility="{Binding WitComVm.IsWebSocket, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
+                    Command="{Binding WitRPCVm.ResetWebSocketPathCmd}"
+                    Visibility="{Binding WitRPCVm.IsWebSocket, Mode=OneWay, Converter={StaticResource BooleanToVisibility}}"/>
 
 
 
             <StackPanel Grid.Row="1" Grid.Column="3" Orientation="Horizontal">
                 <CheckBox Content="Use Encryption" 
-                          IsChecked="{Binding WitComVm.UseEncryption, Mode=TwoWay}"/>
+                          IsChecked="{Binding WitRPCVm.UseEncryption, Mode=TwoWay}"/>
 
                 <CheckBox Content="Use Authorization" Margin="10 0 0 0"
-                          IsChecked="{Binding WitComVm.UseAuthorization, Mode=TwoWay}"/>
+                          IsChecked="{Binding WitRPCVm.UseAuthorization, Mode=TwoWay}"/>
             </StackPanel>
 
             <TextBlock Grid.Row="3" Grid.Column="3" Text="Authorization Token:"
-                       IsEnabled="{Binding WitComVm.UseAuthorization, Mode=OneWay}" />
-            <TextBox Grid.Row="4" Grid.Column="3" Text="{Binding WitComVm.AuthorizationToken, Mode=TwoWay}"
-                     IsEnabled="{Binding WitComVm.UseAuthorization, Mode=OneWay}"/>
+                       IsEnabled="{Binding WitRPCVm.UseAuthorization, Mode=OneWay}" />
+            <TextBox Grid.Row="4" Grid.Column="3" Text="{Binding WitRPCVm.AuthorizationToken, Mode=TwoWay}"
+                     IsEnabled="{Binding WitRPCVm.UseAuthorization, Mode=OneWay}"/>
             <Button Grid.Row="4" Grid.Column="5" Content="Reset" Padding="5 0 5 0"
-                    Command="{Binding WitComVm.ResetAuthorizationTokenCmd}"
-                    IsEnabled="{Binding WitComVm.UseAuthorization, Mode=OneWay}"/>
+                    Command="{Binding WitRPCVm.ResetAuthorizationTokenCmd}"
+                    IsEnabled="{Binding WitRPCVm.UseAuthorization, Mode=OneWay}"/>
 
         </Grid>
 
@@ -132,12 +132,12 @@
             </Grid.ColumnDefinitions>
 
             <Button Grid.Column="1" Content="Start Server" Padding="10"
-                    IsEnabled="{Binding  WitComVm.CanStartServer, Mode=OneWay}"
-                    Command="{Binding WitComVm.StartServerCmd}"/>
+                    IsEnabled="{Binding  WitRPCVm.CanStartServer, Mode=OneWay}"
+                    Command="{Binding WitRPCVm.StartServerCmd}"/>
 
             <Button Grid.Column="3" Content="Stop Server" Padding="10"
-                    IsEnabled="{Binding  WitComVm.CanStopServer, Mode=OneWay}"
-                    Command="{Binding WitComVm.StopServerCmd}"/>
+                    IsEnabled="{Binding  WitRPCVm.CanStopServer, Mode=OneWay}"
+                    Command="{Binding WitRPCVm.StopServerCmd}"/>
 
         </Grid>
 

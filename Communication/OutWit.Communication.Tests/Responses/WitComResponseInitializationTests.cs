@@ -11,16 +11,16 @@ using OutWit.Communication.Utils;
 namespace OutWit.Communication.Tests.Responses
 {
     [TestFixture]
-    public class WitComResponseInitializationTests
+    public class WitResponseInitializationTests
     {
         [Test]
         public void ConstructorTest()
         {
-            var response = new WitComResponseInitialization();
+            var response = new WitResponseInitialization();
             Assert.That(response.SymmetricKey, Is.Null);
             Assert.That(response.Vector, Is.Null);
 
-            response = new WitComResponseInitialization
+            response = new WitResponseInitialization
             {
                 SymmetricKey = new byte[] { 1, 2, 3 },
                 Vector = new byte[] { 4, 5 }
@@ -33,7 +33,7 @@ namespace OutWit.Communication.Tests.Responses
         [Test]
         public void IsTest()
         {
-            var response = new WitComResponseInitialization
+            var response = new WitResponseInitialization
             {
                 SymmetricKey = new byte[] { 1, 2, 3 },
                 Vector = new byte[] { 4, 5 }
@@ -47,12 +47,12 @@ namespace OutWit.Communication.Tests.Responses
         [Test]
         public void CloneTest()
         {
-            var response1 = new WitComResponseInitialization
+            var response1 = new WitResponseInitialization
             {
                 SymmetricKey = new byte[] { 1, 2, 3 },
                 Vector = new byte[] { 4, 5 }
             };
-            var response2 = response1.Clone() as WitComResponseInitialization;
+            var response2 = response1.Clone() as WitResponseInitialization;
 
             Assert.That(response2, Is.Not.Null);
             Assert.That(response1, Is.Not.SameAs(response2));
@@ -64,12 +64,12 @@ namespace OutWit.Communication.Tests.Responses
         [Test]
         public void JsonCloneTest()
         {
-            var response1 = new WitComResponseInitialization
+            var response1 = new WitResponseInitialization
             {
                 SymmetricKey = new byte[] { 1, 2, 3 },
                 Vector = new byte[] { 4, 5 }
             };
-            var response2 = response1.JsonClone() as WitComResponseInitialization;
+            var response2 = response1.JsonClone() as WitResponseInitialization;
 
             Assert.That(response2, Is.Not.Null);
             Assert.That(response1, Is.Not.SameAs(response2));
@@ -80,7 +80,7 @@ namespace OutWit.Communication.Tests.Responses
         [Test]
         public void MessagePackSerializationTest()
         {
-            var response1 = new WitComResponseInitialization
+            var response1 = new WitResponseInitialization
             {
                 SymmetricKey = new byte[] { 1, 2, 3 },
                 Vector = new byte[] { 4, 5 }
@@ -89,7 +89,7 @@ namespace OutWit.Communication.Tests.Responses
             var bytes = response1.ToMessagePackBytes();
             Assert.That(bytes, Is.Not.Null);
 
-            var response2 = bytes.FromMessagePackBytes<WitComResponseInitialization>();
+            var response2 = bytes.FromMessagePackBytes<WitResponseInitialization>();
             Assert.That(response2, Is.Not.Null);
             Assert.That(response1, Is.Not.SameAs(response2));
             Assert.That(response1.Is(response2), Is.True);
@@ -99,7 +99,7 @@ namespace OutWit.Communication.Tests.Responses
         [Test]
         public void JsonSerializationTest()
         {
-            var response1 = new WitComResponseInitialization
+            var response1 = new WitResponseInitialization
             {
                 SymmetricKey = new byte[] { 1, 2, 3 },
                 Vector = new byte[] { 4, 5 }
@@ -108,7 +108,7 @@ namespace OutWit.Communication.Tests.Responses
             var json = response1.ToJsonBytes();
             Assert.That(json, Is.Not.Null);
 
-            var response2 = json.FromJsonBytes<WitComResponseInitialization>();
+            var response2 = json.FromJsonBytes<WitResponseInitialization>();
             Assert.That(response2, Is.Not.Null);
             Assert.That(response1, Is.Not.SameAs(response2));
             Assert.That(response1.Is(response2), Is.True);
@@ -117,7 +117,7 @@ namespace OutWit.Communication.Tests.Responses
         [Test]
         public void MemoryPackSerializationTest()
         {
-            var response1 = new WitComResponseInitialization
+            var response1 = new WitResponseInitialization
             {
                 SymmetricKey = new byte[] { 1, 2, 3 },
                 Vector = new byte[] { 4, 5 }
@@ -126,7 +126,7 @@ namespace OutWit.Communication.Tests.Responses
             var json = response1.ToMemoryPackBytes();
             Assert.That(json, Is.Not.Null);
 
-            var response2 = json.FromMemoryPackBytes<WitComResponseInitialization>();
+            var response2 = json.FromMemoryPackBytes<WitResponseInitialization>();
             Assert.That(response2, Is.Not.Null);
             Assert.That(response1, Is.Not.SameAs(response2));
             Assert.That(response1.Is(response2), Is.True);
@@ -135,7 +135,7 @@ namespace OutWit.Communication.Tests.Responses
         [Test]
         public void ProtoBufSerializationTest()
         {
-            var response1 = new WitComResponseInitialization
+            var response1 = new WitResponseInitialization
             {
                 SymmetricKey = new byte[] { 1, 2, 3 },
                 Vector = new byte[] { 4, 5 }
@@ -144,7 +144,7 @@ namespace OutWit.Communication.Tests.Responses
             var json = response1.ToProtoBytes();
             Assert.That(json, Is.Not.Null);
 
-            var response2 = json.FromProtoBytes<WitComResponseInitialization>();
+            var response2 = json.FromProtoBytes<WitResponseInitialization>();
             Assert.That(response2, Is.Not.Null);
             Assert.That(response1, Is.Not.SameAs(response2));
             Assert.That(response1.Is(response2), Is.True);

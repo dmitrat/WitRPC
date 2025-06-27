@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
 
@@ -28,7 +29,7 @@ namespace OutWit.Communication.Server.Tcp
             Options = options;
 
             if (Options.Port == null)
-                throw new WitComException($"Port cannot be null");
+                throw new WitException($"Port cannot be null");
             
 
             Listener = new TcpListener(IPAddress.Any, Options.Port.Value);
@@ -38,7 +39,7 @@ namespace OutWit.Communication.Server.Tcp
 
         #region Functions
 
-        public void StartWaitingForConnection()
+        public void StartWaitingForConnection(ILogger? logger)
         {
             CancellationTokenSource = new CancellationTokenSource();
 

@@ -40,7 +40,7 @@ namespace OutWit.Examples.Discovery.Server.ViewModels
         private void InitDefaults()
         {
             ExampleService = new ExampleService();
-            Servers = new ObservableCollection<WitComServer>();
+            Servers = new ObservableCollection<WitServer>();
             SelectedServer = null;
         }
 
@@ -72,7 +72,7 @@ namespace OutWit.Examples.Discovery.Server.ViewModels
             if (dialog.ShowDialog() != true)
                 return;
 
-            var server = WitComServerBuilder.Build(options =>
+            var server = WitServerBuilder.Build(options =>
             {
                 options.WithService(ExampleService);
                 options.WithTransport(dialog.SelectedTransport, dialog.Address, dialog.Port);
@@ -132,10 +132,10 @@ namespace OutWit.Examples.Discovery.Server.ViewModels
         private IExampleService ExampleService { get; set; } = null!;
 
         [Notify]
-        public ObservableCollection<WitComServer> Servers { get; private set; }
+        public ObservableCollection<WitServer> Servers { get; private set; }
 
         [Notify]
-        public WitComServer? SelectedServer { get; set; }
+        public WitServer? SelectedServer { get; set; }
 
         [Notify]
         public string? Transport { get; private set; }

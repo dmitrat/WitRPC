@@ -6,7 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Common\OutWit.Common.Rest\OutWit.Common.Rest.csproj" />
+    <PackageReference Include="OutWit.Common.Rest" Version="1.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\OutWit.Communication.Client\OutWit.Communication.Client.csproj" />
   </ItemGroup>
 

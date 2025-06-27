@@ -12,19 +12,19 @@ namespace OutWit.Communication.Requests
     [DataContract]
     [MemoryPackable]
     [ProtoContract]
-    public partial class WitComRequestAuthorization : ModelBase
+    public partial class WitRequestAuthorization : ModelBase
     {
         public override bool Is(ModelBase modelBase, double tolerance = 1E-07)
         {
-            if (!(modelBase is WitComRequestAuthorization request))
+            if (!(modelBase is WitRequestAuthorization request))
                 return false;
 
             return Token.Is(request.Token);
         }
 
-        public override WitComRequestAuthorization Clone()
+        public override WitRequestAuthorization Clone()
         {
-            return new WitComRequestAuthorization
+            return new WitRequestAuthorization
             {
                 Token = Token
             };

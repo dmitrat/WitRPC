@@ -19,7 +19,7 @@ namespace OutWit.Examples.InterProcess.BasicHost.Models
 
         #region Constructors
 
-        public AgentInfo(Process process, WitComClient client, TransportType transport)
+        public AgentInfo(Process process, WitClient client, TransportType transport)
         {
             AgentId = ++m_count;
             Process = process;
@@ -140,7 +140,7 @@ namespace OutWit.Examples.InterProcess.BasicHost.Models
 
         public int AgentId { get; }
 
-        public WitComClient Client { get; }
+        public WitClient Client { get; }
 
         public Process Process { get; }
 

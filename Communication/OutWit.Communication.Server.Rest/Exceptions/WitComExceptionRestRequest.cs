@@ -8,20 +8,20 @@ using OutWit.Communication.Requests;
 
 namespace OutWit.Communication.Server.Rest.Exceptions
 {
-    public class WitComExceptionRest : WitComException
+    public class WitExceptionRest : WitException
     {
-        public WitComExceptionRest()
+        public WitExceptionRest()
             : this(null, null)
         {
         }
 
-        public WitComExceptionRest(string message)
+        public WitExceptionRest(string message)
             : this(message, null)
         {
 
         }
 
-        public WitComExceptionRest(string? message, Exception? innerException)
+        public WitExceptionRest(string? message, Exception? innerException)
             : base(message, innerException)
         {
         }

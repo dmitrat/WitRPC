@@ -14,36 +14,36 @@ namespace OutWit.Communication.Utils
 {
     public static class RequestUtils
     {
-        public static WitComResponse GetResponse(this byte[]? me, IMessageSerializer serializer)
+        public static WitResponse GetResponse(this byte[]? me, IMessageSerializer serializer)
         {
             if (me == null)
-                return WitComResponse.InternalServerError("Server return empty response");
+                return WitResponse.InternalServerError("Server return empty response");
 
             try
             {
-                var response = serializer.Deserialize<WitComResponse>(me);
+                var response = serializer.Deserialize<WitResponse>(me);
                 if (response == null)
-                    return WitComResponse.InternalServerError("Failed to deserialize response");
+                    return WitResponse.InternalServerError("Failed to deserialize response");
 
                 return response;
             }
             catch (Exception e)
             {
-                return WitComResponse.InternalServerError("Failed to deserialize response", e);
+                return WitResponse.InternalServerError("Failed to deserialize response", e);
             }
         }
 
-        public static WitComRequest CreateRequest(this string me, IReadOnlyList<object> parameters,
+        public static WitRequest CreateRequest(this string me, IReadOnlyList<object> parameters,
             IMessageSerializer serializer, ILogger? logger = null)
         {
-            return new WitComRequest
+            return new WitRequest
             {
                 MethodName = me,
                 Parameters = parameters.Select(parameter => serializer.Serialize(parameter, parameter.GetType(), logger)).ToArray()
             };
         }
 
-        public static object?[] GetParameters(this WitComRequest me, IMessageSerializer serializer, ILogger? logger = null)
+        public static object?[] GetParameters(this WitRequest me, IMessageSerializer serializer, ILogger? logger = null)
         {
             if (me.Parameters.Length == 0)
                 return Array.Empty<object>();
@@ -57,7 +57,7 @@ namespace OutWit.Communication.Utils
             else if(me.ParameterTypesByName.Length > 0)
                 types = me.ParameterTypesByName.Select(type => (Type)type!).ToList();
             else
-                throw new WitComExceptionSerialization("Cannot deserialize request: parameter types missing");
+                throw new WitExceptionSerialization("Cannot deserialize request: parameter types missing");
 
             var result = new List<object?>();
 
@@ -67,14 +67,14 @@ namespace OutWit.Communication.Utils
             return result.ToArray();
         }
 
-        public static WitComRequest? GetRequest(this byte[]? data, IMessageSerializer serializer)
+        public static WitRequest? GetRequest(this byte[]? data, IMessageSerializer serializer)
         {
             if (data == null)
                 return null;
 
             try
             {
-                var request = serializer.Deserialize<WitComRequest>(data);
+                var request = serializer.Deserialize<WitRequest>(data);
                 if (request == null)
                     return null;
 
@@ -88,7 +88,7 @@ namespace OutWit.Communication.Utils
                 //    else if (request.ParameterTypesByName.Count > 0)
                 //        parameterType = (Type)request.ParameterTypesByName[i]!;
                 //    else
-                //        throw new WitComExceptionSerialization("Cannot deserialize request: parameter types missing");
+                //        throw new WitExceptionSerialization("Cannot deserialize request: parameter types missing");
 
                 //    if (valueConverter.TryConvert(parameter, parameterType, out object? value) && value != null)
                 //        request.Parameters[i] = value;
@@ -104,7 +104,7 @@ namespace OutWit.Communication.Utils
         }
 
 
-        public static MethodInfo? GetMethod<TService>(this WitComRequest? me, TService service)
+        public static MethodInfo? GetMethod<TService>(this WitRequest? me, TService service)
             where TService : class
         {
             if (me == null || string.IsNullOrEmpty(me.MethodName))

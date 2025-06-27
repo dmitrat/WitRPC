@@ -37,7 +37,7 @@ namespace OutWit.Examples.InterProcess.BasicAgent.ViewModels
 
         public bool Start()
         {
-            Server = WitComServerBuilder.Build(options =>
+            Server = WitServerBuilder.Build(options =>
             {
                 options.WithService(ExampleService);
                 options.WithTransport(ApplicationVm.Parameters.TransportType, ApplicationVm.Parameters.Address);
@@ -53,7 +53,7 @@ namespace OutWit.Examples.InterProcess.BasicAgent.ViewModels
 
         #region Properties
 
-        private WitComServer? Server { get; set; }
+        private WitServer? Server { get; set; }
 
         private IExampleService ExampleService { get; set; } = null!;
 

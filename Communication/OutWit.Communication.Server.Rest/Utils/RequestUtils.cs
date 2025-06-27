@@ -15,7 +15,7 @@ namespace OutWit.Communication.Server.Rest.Utils
 {
     public static class RequestUtils
     {
-        public static WitComRequest? RestoreFromGet(this HttpListenerRequest? request,
+        public static WitRequest? RestoreFromGet(this HttpListenerRequest? request,
             IAccessTokenValidator tokenValidator, IMessageSerializer serializer)
         {
             if(request == null || request.Url == null || request.HttpMethod != HttpMethod.Get.Method)
@@ -39,7 +39,7 @@ namespace OutWit.Communication.Server.Rest.Utils
 
         }
 
-        public static WitComRequest? RestoreFromPost(this HttpListenerRequest? request, IAccessTokenValidator tokenValidator, IMessageSerializer serializer)
+        public static WitRequest? RestoreFromPost(this HttpListenerRequest? request, IAccessTokenValidator tokenValidator, IMessageSerializer serializer)
         {
             if (request == null || request.Url == null || request.HttpMethod != HttpMethod.Post.Method)
                 return null;
@@ -72,10 +72,10 @@ namespace OutWit.Communication.Server.Rest.Utils
             var token = request.GetAuthorizationToken();
 
             if (string.IsNullOrEmpty(token) && !tokenValidator.IsRequestTokenValid(""))
-                throw new WitComExceptionRest("Authorization header is empty");
+                throw new WitExceptionRest("Authorization header is empty");
 
             if (!string.IsNullOrEmpty(token) && !tokenValidator.IsRequestTokenValid(token))
-                throw new WitComExceptionRest("Authorization failed, token is not valid");
+                throw new WitExceptionRest("Authorization failed, token is not valid");
         }
 
         private static string? GetAuthorizationToken(this HttpListenerRequest? request)

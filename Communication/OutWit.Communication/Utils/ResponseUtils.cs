@@ -11,11 +11,11 @@ namespace OutWit.Communication.Utils
 {
     public static class ResponseUtils
     {
-        public static WitComResponse Success(this object? me, IMessageSerializer serializer)
+        public static WitResponse Success(this object? me, IMessageSerializer serializer)
         {
             return me == null
-                ? WitComResponse.Success(null) 
-                : WitComResponse.Success(serializer.Serialize(me, me.GetType()));
+                ? WitResponse.Success(null) 
+                : WitResponse.Success(serializer.Serialize(me, me.GetType()));
         }
     }
 }

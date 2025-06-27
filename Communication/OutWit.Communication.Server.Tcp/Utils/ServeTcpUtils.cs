@@ -7,13 +7,13 @@ namespace OutWit.Communication.Server.Tcp.Utils
 {
     public static class ServeTcpUtils
     {
-        public static WitComServerBuilderOptions WithTcp(this WitComServerBuilderOptions me, TcpServerTransportOptions options)
+        public static WitServerBuilderOptions WithTcp(this WitServerBuilderOptions me, TcpServerTransportOptions options)
         {
             me.TransportFactory = new TcpServerTransportFactory(options);
             return me;
         }
 
-        public static WitComServerBuilderOptions WithTcp(this WitComServerBuilderOptions me, int port, int maxNumberOfClients)
+        public static WitServerBuilderOptions WithTcp(this WitServerBuilderOptions me, int port, int maxNumberOfClients)
         {
             return me.WithTcp(new TcpServerTransportOptions
             {
@@ -22,7 +22,7 @@ namespace OutWit.Communication.Server.Tcp.Utils
             });
         }
 
-        public static WitComServerBuilderOptions WithTcp(this WitComServerBuilderOptions me, HostInfo hostInfo)
+        public static WitServerBuilderOptions WithTcp(this WitServerBuilderOptions me, HostInfo hostInfo)
         {
             return me.WithTcp(new TcpServerTransportOptions
             {
@@ -31,13 +31,13 @@ namespace OutWit.Communication.Server.Tcp.Utils
             });
         }
 
-        public static WitComServerBuilderOptions WithTcpSecure(this WitComServerBuilderOptions me, TcpSecureServerTransportOptions options)
+        public static WitServerBuilderOptions WithTcpSecure(this WitServerBuilderOptions me, TcpSecureServerTransportOptions options)
         {
             me.TransportFactory = new TcpSecureServerTransportFactory(options);
             return me;
         }
 
-        public static WitComServerBuilderOptions WithTcpSecure(this WitComServerBuilderOptions me, int port, int maxNumberOfClients, X509Certificate certificate)
+        public static WitServerBuilderOptions WithTcpSecure(this WitServerBuilderOptions me, int port, int maxNumberOfClients, X509Certificate certificate)
         {
             return me.WithTcpSecure(new TcpSecureServerTransportOptions
             {
@@ -47,7 +47,7 @@ namespace OutWit.Communication.Server.Tcp.Utils
             });
         }
 
-        public static WitComServerBuilderOptions WithTcpSecure(this WitComServerBuilderOptions me, HostInfo hostInfo, X509Certificate certificate)
+        public static WitServerBuilderOptions WithTcpSecure(this WitServerBuilderOptions me, HostInfo hostInfo, X509Certificate certificate)
         {
             return me.WithTcpSecure(new TcpSecureServerTransportOptions
             {

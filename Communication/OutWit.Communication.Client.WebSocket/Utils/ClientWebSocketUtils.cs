@@ -8,14 +8,14 @@ namespace OutWit.Communication.Client.WebSocket.Utils
     {
         internal const int DEFAULT_BUFFER_SIZE = 4096;
 
-        public static WitComClientBuilderOptions WithWebSocket(this WitComClientBuilderOptions me, WebSocketClientTransportOptions options)
+        public static WitClientBuilderOptions WithWebSocket(this WitClientBuilderOptions me, WebSocketClientTransportOptions options)
         {
             me.Transport = new WebSocketClientTransport(options);
 
             return me;
         }
 
-        public static WitComClientBuilderOptions WithWebSocket(this WitComClientBuilderOptions me, string url, int bufferSize = DEFAULT_BUFFER_SIZE)
+        public static WitClientBuilderOptions WithWebSocket(this WitClientBuilderOptions me, string url, int bufferSize = DEFAULT_BUFFER_SIZE)
         {
             return me.WithWebSocket(new WebSocketClientTransportOptions
             {
@@ -24,7 +24,7 @@ namespace OutWit.Communication.Client.WebSocket.Utils
             });
         }
 
-        public static WitComClientBuilderOptions WithWebSocket(this WitComClientBuilderOptions me, HostInfo hostInfo, int bufferSize = DEFAULT_BUFFER_SIZE)
+        public static WitClientBuilderOptions WithWebSocket(this WitClientBuilderOptions me, HostInfo hostInfo, int bufferSize = DEFAULT_BUFFER_SIZE)
         {
             return me.WithWebSocket(new WebSocketClientTransportOptions
             {

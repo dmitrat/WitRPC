@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace OutWit.Communication.Interfaces
 {
@@ -10,7 +11,7 @@ namespace OutWit.Communication.Interfaces
     {
         public event TransportFactoryEventHandler NewClientConnected;
 
-        public void StartWaitingForConnection();
+        public void StartWaitingForConnection(ILogger? logger);
 
         public void StopWaitingForConnection();
 

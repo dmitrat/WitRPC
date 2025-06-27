@@ -12,7 +12,7 @@ namespace OutWit.Communication.Client.Rest.Utils
 {
     public static class RequestsUtils
     {
-        public static IRequestMessage? ConstructGetRequest(this WitComRequest? me, RestClientTransportOptions options, IAccessTokenProvider tokenProvider)
+        public static IRequestMessage? ConstructGetRequest(this WitRequest? me, RestClientTransportOptions options, IAccessTokenProvider tokenProvider)
         {
             if (me == null)
                 return null;
@@ -27,7 +27,7 @@ namespace OutWit.Communication.Client.Rest.Utils
             }
         }
 
-        public static IRequestMessage? ConstructPostRequest(this WitComRequest? me, RestClientTransportOptions options, IAccessTokenProvider tokenProvider)
+        public static IRequestMessage? ConstructPostRequest(this WitRequest? me, RestClientTransportOptions options, IAccessTokenProvider tokenProvider)
         {
             if (me == null)
                 return null;

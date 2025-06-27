@@ -13,7 +13,7 @@ namespace OutWit.InterProcess.Host
     {
         #region Constructors
 
-        public HostManager(WitComClientBuilderOptions options, string servicePath, TimeSpan processTimeout)
+        public HostManager(WitClientBuilderOptions options, string servicePath, TimeSpan processTimeout)
         {
             Options = options;
             ServicePath = servicePath;
@@ -95,7 +95,7 @@ namespace OutWit.InterProcess.Host
 
         #region Properties
 
-        protected WitComClientBuilderOptions Options { get; }
+        protected WitClientBuilderOptions Options { get; }
 
         protected string ServicePath { get; }
 

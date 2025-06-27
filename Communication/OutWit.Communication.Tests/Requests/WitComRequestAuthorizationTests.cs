@@ -10,15 +10,15 @@ using OutWit.Communication.Requests;
 namespace OutWit.Communication.Tests.Requests
 {
     [TestFixture]
-    public class WitComRequestAuthorizationTests
+    public class WitRequestAuthorizationTests
     {
         [Test]
         public void ConstructorTest()
         {
-            var request = new WitComRequestAuthorization();
+            var request = new WitRequestAuthorization();
             Assert.That(request.Token, Is.Null);
 
-            request = new WitComRequestAuthorization
+            request = new WitRequestAuthorization
             {
                 Token = "token"
             };
@@ -29,7 +29,7 @@ namespace OutWit.Communication.Tests.Requests
         [Test]
         public void IsTest()
         {
-            var request = new WitComRequestAuthorization
+            var request = new WitRequestAuthorization
             {
                 Token = "token"
             };
@@ -41,11 +41,11 @@ namespace OutWit.Communication.Tests.Requests
         [Test]
         public void CloneTest()
         {
-            var request1 = new WitComRequestAuthorization
+            var request1 = new WitRequestAuthorization
             {
                 Token = "token"
             };
-            var request2 = request1.Clone() as WitComRequestAuthorization;
+            var request2 = request1.Clone() as WitRequestAuthorization;
 
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
@@ -56,11 +56,11 @@ namespace OutWit.Communication.Tests.Requests
         [Test]
         public void JsonCloneTest()
         {
-            var request1 = new WitComRequestAuthorization
+            var request1 = new WitRequestAuthorization
             {
                 Token = "token"
             };
-            var request2 = request1.JsonClone() as WitComRequestAuthorization;
+            var request2 = request1.JsonClone() as WitRequestAuthorization;
 
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
@@ -71,7 +71,7 @@ namespace OutWit.Communication.Tests.Requests
         [Test]
         public void MessagePackSerializationTest()
         {
-            var request1 = new WitComRequestAuthorization
+            var request1 = new WitRequestAuthorization
             {
                 Token = "token"
             };
@@ -79,7 +79,7 @@ namespace OutWit.Communication.Tests.Requests
             var bytes = request1.ToMessagePackBytes();
             Assert.That(bytes, Is.Not.Null);
 
-            var request2 = bytes.FromMessagePackBytes<WitComRequestAuthorization>();
+            var request2 = bytes.FromMessagePackBytes<WitRequestAuthorization>();
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
             Assert.That(request1.Is(request2), Is.True);
@@ -89,7 +89,7 @@ namespace OutWit.Communication.Tests.Requests
         [Test]
         public void JsonSerializationTest()
         {
-            var request1 = new WitComRequestAuthorization
+            var request1 = new WitRequestAuthorization
             {
                 Token = "token"
             };
@@ -97,7 +97,7 @@ namespace OutWit.Communication.Tests.Requests
             var json = request1.ToJsonBytes();
             Assert.That(json, Is.Not.Null);
 
-            var request2 = json.FromJsonBytes<WitComRequestAuthorization>();
+            var request2 = json.FromJsonBytes<WitRequestAuthorization>();
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
             Assert.That(request1.Is(request2), Is.True);
@@ -107,7 +107,7 @@ namespace OutWit.Communication.Tests.Requests
         [Test]
         public void MemoryPackSerializationTest()
         {
-            var request1 = new WitComRequestAuthorization
+            var request1 = new WitRequestAuthorization
             {
                 Token = "token"
             };
@@ -115,7 +115,7 @@ namespace OutWit.Communication.Tests.Requests
             var json = request1.ToMemoryPackBytes();
             Assert.That(json, Is.Not.Null);
 
-            var request2 = json.FromMemoryPackBytes<WitComRequestAuthorization>();
+            var request2 = json.FromMemoryPackBytes<WitRequestAuthorization>();
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
             Assert.That(request1.Is(request2), Is.True);
@@ -125,7 +125,7 @@ namespace OutWit.Communication.Tests.Requests
         [Test]
         public void ProtoBufSerializationTest()
         {
-            var request1 = new WitComRequestAuthorization
+            var request1 = new WitRequestAuthorization
             {
                 Token = "token"
             };
@@ -133,7 +133,7 @@ namespace OutWit.Communication.Tests.Requests
             var json = request1.ToProtoBytes();
             Assert.That(json, Is.Not.Null);
 
-            var request2 = json.FromProtoBytes<WitComRequestAuthorization>();
+            var request2 = json.FromProtoBytes<WitRequestAuthorization>();
             Assert.That(request2, Is.Not.Null);
             Assert.That(request1, Is.Not.SameAs(request2));
             Assert.That(request1.Is(request2), Is.True);

@@ -40,7 +40,7 @@
 	  <Compile Update="WCFSettingsTab.xaml.cs">
 	    <SubType>Code</SubType>
 	  </Compile>
-	  <Compile Update="WitComSettingsTab.xaml.cs">
+	  <Compile Update="WitRPCSettingsTab.xaml.cs">
 	    <SubType>Code</SubType>
 	  </Compile>
 	</ItemGroup>

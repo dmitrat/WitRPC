@@ -11,11 +11,11 @@ using OutWit.Communication.Serializers;
 
 namespace OutWit.Communication.Client
 {
-    public class WitComClientBuilderOptions
+    public class WitClientBuilderOptions
     {
         #region Constructors
 
-        public WitComClientBuilderOptions()
+        public WitClientBuilderOptions()
         {
             ParametersSerializer = new MessageSerializerJson();
             MessageSerializer = new MessageSerializerMemoryPack();

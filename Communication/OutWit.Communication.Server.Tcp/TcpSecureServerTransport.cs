@@ -21,7 +21,7 @@ namespace OutWit.Communication.Server.Tcp
         protected override Stream CreateStream()
         {
             if (Options.Certificate == null)
-                throw new WitComExceptionTransport($"Ssl certificate cannot be empty");
+                throw new WitExceptionTransport($"Ssl certificate cannot be empty");
 
             var stream = new SslStream(Client!.GetStream(), false);
             stream.AuthenticateAsServer(Options.Certificate);

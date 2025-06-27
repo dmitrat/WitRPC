@@ -38,10 +38,10 @@ namespace OutWit.Communication.Server.MMF
         private void InitChannel()
         {
             if (string.IsNullOrEmpty(Options.Name))
-                throw new WitComExceptionTransport($"Failed to create memory mapped file: name is empty");
+                throw new WitExceptionTransport($"Failed to create memory mapped file: name is empty");
 
             if (Options.Size <= 0)
-                throw new WitComExceptionTransport($"Failed to create memory mapped file: size is zero");
+                throw new WitExceptionTransport($"Failed to create memory mapped file: size is zero");
 
             File = MemoryMappedFile.CreateNew(Options.Name, Options.Size, MemoryMappedFileAccess.ReadWrite);
             Stream = File.CreateViewStream(0, 0);

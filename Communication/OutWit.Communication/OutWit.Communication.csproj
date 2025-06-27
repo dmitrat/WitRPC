@@ -8,6 +8,12 @@
 
   <ItemGroup>
     <PackageReference Include="Castle.Core" Version="5.1.1" />
+    <PackageReference Include="OutWit.Common.Json" Version="1.0.0" />
+    <PackageReference Include="OutWit.Common.MemoryPack" Version="1.0.0" />
+    <PackageReference Include="OutWit.Common.MessagePack" Version="1.1.1" />
+    <PackageReference Include="OutWit.Common.ProtoBuf" Version="1.0.0" />
+    <PackageReference Include="OutWit.Common.Proxy" Version="1.1.2" />
+    <PackageReference Include="OutWit.Common.Reflection" Version="1.0.1" />
   </ItemGroup>
 
 	<ItemGroup>
@@ -16,15 +22,6 @@
 
 	<ItemGroup>
 		<None Include="OutWitIcon128.png" Pack="true" PackagePath="\" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\..\Common\OutWit.Common.Json\OutWit.Common.Json.csproj" />
-	  <ProjectReference Include="..\..\Common\OutWit.Common.MemoryPack\OutWit.Common.MemoryPack.csproj" />
-	  <ProjectReference Include="..\..\Common\OutWit.Common.MessagePack\OutWit.Common.MessagePack.csproj" />
-	  <ProjectReference Include="..\..\Common\OutWit.Common.ProtoBuf\OutWit.Common.ProtoBuf.csproj" />
-	  <ProjectReference Include="..\..\Common\OutWit.Common.Proxy\OutWit.Common.Proxy.csproj" />
-	  <ProjectReference Include="..\..\Common\OutWit.Common.Reflection\OutWit.Common.Reflection.csproj" />
 	</ItemGroup>
 
 </Project>

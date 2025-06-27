@@ -105,7 +105,7 @@ namespace OutWit.Communication.Client.Tcp
                 {
                     int bytesRead = await Stream.ReadAsync(lengthBuffer, 0, lengthBuffer.Length);
                     if (bytesRead == 0)
-                        throw new WitComExceptionTransport($"Server disconnected");
+                        throw new WitExceptionTransport($"Server disconnected");
 
                     int messageLength = BitConverter.ToInt32(lengthBuffer, 0);
 
@@ -116,7 +116,7 @@ namespace OutWit.Communication.Client.Tcp
                     {
                         int read = await Stream.ReadAsync(dataBuffer, totalBytesRead, messageLength - totalBytesRead);
                         if (read == 0)
-                            throw new WitComExceptionTransport($"Server disconnected");
+                            throw new WitExceptionTransport($"Server disconnected");
 
                         totalBytesRead += read;
                     }

@@ -16,11 +16,11 @@ namespace OutWit.Communication.Requests
     [DataContract]
     [MemoryPackable]
     [ProtoContract]
-    public partial class WitComRequest : ModelBase
+    public partial class WitRequest : ModelBase
     {
         #region Constructors
 
-        public WitComRequest()
+        public WitRequest()
         {
             Token = "";
             MethodName = "";
@@ -46,7 +46,7 @@ namespace OutWit.Communication.Requests
 
         public override bool Is(ModelBase modelBase, double tolerance = 1E-07)
         {
-            if (!(modelBase is WitComRequest request))
+            if (!(modelBase is WitRequest request))
                 return false;
 
             return Token.Is(request.Token) &&
@@ -58,9 +58,9 @@ namespace OutWit.Communication.Requests
                    GenericArgumentsByName.Is(request.GenericArgumentsByName);
         }
 
-        public override WitComRequest Clone()
+        public override WitRequest Clone()
         {
-            return new WitComRequest
+            return new WitRequest
             {
                 Token = Token,
                 MethodName = MethodName,

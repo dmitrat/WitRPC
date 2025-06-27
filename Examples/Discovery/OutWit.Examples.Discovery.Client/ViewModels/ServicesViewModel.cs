@@ -41,7 +41,7 @@ namespace OutWit.Examples.Discovery.Client.ViewModels
 
         private void InitDefaults()
         {
-            DiscoveryClient = WitComClientBuilder.Discovery(options =>
+            DiscoveryClient = WitClientBuilder.Discovery(options =>
             {
 
             });
@@ -78,7 +78,7 @@ namespace OutWit.Examples.Discovery.Client.ViewModels
             if (SelectedMessage == null || SelectedMessage.ServiceId == null)
                 return;
 
-            var client = WitComClientBuilder.Build(options =>
+            var client = WitClientBuilder.Build(options =>
             {
                 options.WithTransport(SelectedMessage);
                 options.WithEncryption();

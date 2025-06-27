@@ -49,17 +49,17 @@ namespace OutWit.Communication.Processors
             Serializer = serializer;
         }
 
-        public async Task<WitComResponse> Process(WitComRequest? request)
+        public async Task<WitResponse> Process(WitRequest? request)
         {
             if(Serializer == null)
-                return WitComResponse.InternalServerError("Serializer is missing");
+                return WitResponse.InternalServerError("Serializer is missing");
             
             if (request == null)
-                return WitComResponse.BadRequest("Request is empty");
+                return WitResponse.BadRequest("Request is empty");
 
             var method = request.GetMethod(Service);
             if(method == null)
-                return WitComResponse.BadRequest($"Method not found on service, method name: {request.MethodName}");
+                return WitResponse.BadRequest($"Method not found on service, method name: {request.MethodName}");
 
             try
             {
@@ -74,39 +74,39 @@ namespace OutWit.Communication.Processors
             }
             catch (Exception e)
             {
-                return WitComResponse.InternalServerError("Failed to process request", e);
+                return WitResponse.InternalServerError("Failed to process request", e);
             }
             
         }
 
-        private async Task<WitComResponse> ProcessAsync(MethodInfo method, object?[] parameters)
+        private async Task<WitResponse> ProcessAsync(MethodInfo method, object?[] parameters)
         {
             try
             {
                 var task = method.Invoke(Service, parameters) as Task;
                 if (task == null)
-                    return WitComResponse.InternalServerError("Failed to process request");
+                    return WitResponse.InternalServerError("Failed to process request");
 
                 await task;
 
-                return WitComResponse.Success(null);
+                return WitResponse.Success(null);
             }
             catch (Exception e)
             {
-                return WitComResponse.InternalServerError("Failed to process request", e);
+                return WitResponse.InternalServerError("Failed to process request", e);
             }
         }
 
-        private async Task<WitComResponse> ProcessGenericAsync(MethodInfo method, object?[] parameters)
+        private async Task<WitResponse> ProcessGenericAsync(MethodInfo method, object?[] parameters)
         {
             try
             {
                 if(Serializer == null)
-                    return WitComResponse.InternalServerError("Serializer is missing");
+                    return WitResponse.InternalServerError("Serializer is missing");
 
                 var task = method.Invoke(Service, parameters) as Task;
                 if (task == null)
-                    return WitComResponse.InternalServerError("Failed to process request");
+                    return WitResponse.InternalServerError("Failed to process request");
 
                 object? result = await task.ContinueWith(t => (object)((dynamic)t).Result);
 
@@ -114,7 +114,7 @@ namespace OutWit.Communication.Processors
             }
             catch (Exception e)
             {
-                return WitComResponse.InternalServerError("Failed to process request", e);
+                return WitResponse.InternalServerError("Failed to process request", e);
             }
         }
 
@@ -122,7 +122,7 @@ namespace OutWit.Communication.Processors
 
         #region Functions
 
-        private void RaiseCallback(WitComRequest? request)
+        private void RaiseCallback(WitRequest? request)
         {
             Callback(request);
         }

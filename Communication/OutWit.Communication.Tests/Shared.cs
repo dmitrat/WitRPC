@@ -32,14 +32,14 @@ namespace OutWit.Communication.Tests
     {
         private const string AUTHORIZATION_TOKEN = "token";
 
-        public static IServiceBase GetServiceStatic(WitComClient client)
+        public static IServiceBase GetServiceStatic(WitClient client)
         {
             var interceptor = new RequestInterceptorDynamic(client, true);
 
             return new ServiceProxy(interceptor);
         }
 
-        public static IService GetServiceDynamic(WitComClient client)
+        public static IService GetServiceDynamic(WitClient client)
         {
             var proxyGenerator = new ProxyGenerator();
             var interceptor = new RequestInterceptorDynamic(client, true);
@@ -47,11 +47,11 @@ namespace OutWit.Communication.Tests
             return proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
         }
 
-        public static WitComServer GetServer(TransportType transportType, SerializerType serializerType, int maxNumberOfClients, string testName)
+        public static WitServer GetServer(TransportType transportType, SerializerType serializerType, int maxNumberOfClients, string testName)
         {
             var service = new MockService();
             
-            return new WitComServer(GetServerTransport(transportType, maxNumberOfClients, testName),
+            return new WitServer(GetServerTransport(transportType, maxNumberOfClients, testName),
                 new EncryptorServerFactory<EncryptorServerGeneral>(),
                 new AccessTokenValidatorStatic(AUTHORIZATION_TOKEN),
                 GetSerializer(serializerType),
@@ -66,9 +66,9 @@ namespace OutWit.Communication.Tests
                 null, null, null, null);
         }
 
-        public static WitComServer GetServerBasic(TransportType transportType, SerializerType serializerType, int maxNumberOfClients, string testName)
+        public static WitServer GetServerBasic(TransportType transportType, SerializerType serializerType, int maxNumberOfClients, string testName)
         {
-            return new WitComServer(GetServerTransport(transportType, maxNumberOfClients, testName),
+            return new WitServer(GetServerTransport(transportType, maxNumberOfClients, testName),
                 new EncryptorServerFactory<EncryptorServerGeneral>(),
                 new AccessTokenValidatorStatic(AUTHORIZATION_TOKEN),
                 GetSerializer(serializerType),
@@ -83,9 +83,9 @@ namespace OutWit.Communication.Tests
                 null, null, null, null);
         }
 
-        public static WitComClient GetClient(TransportType transportType, SerializerType serializerType, string testName)
+        public static WitClient GetClient(TransportType transportType, SerializerType serializerType, string testName)
         {
-            return new WitComClient(GetClientTransport(transportType, testName),
+            return new WitClient(GetClientTransport(transportType, testName),
                 new EncryptorClientGeneral(),
                 new AccessTokenProviderStatic(AUTHORIZATION_TOKEN),
                 GetSerializer(serializerType), 

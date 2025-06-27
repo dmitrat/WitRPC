@@ -85,7 +85,7 @@ namespace OutWit.Examples.Services.ClientPipes.ViewModels
                 CanReconnect = false;
                 Progress = 0;
 
-                Client = WitComClientBuilder.Build(options =>
+                Client = WitClientBuilder.Build(options =>
                 {
                     options.WithNamedPipe(PIPE_NAME);
                     options.WithEncryption();
@@ -234,7 +234,7 @@ namespace OutWit.Examples.Services.ClientPipes.ViewModels
 
         #region Properties
 
-        private WitComClient? Client { get; set; }
+        private WitClient? Client { get; set; }
 
         private IExampleService? Service { get; set; }
 

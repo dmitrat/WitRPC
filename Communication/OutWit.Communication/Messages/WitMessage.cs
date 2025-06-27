@@ -14,7 +14,7 @@ namespace OutWit.Communication.Messages
     [DataContract]
     [MemoryPackable]
     [ProtoContract]
-    public partial class WitComMessage: ModelBase
+    public partial class WitMessage: ModelBase
     {
         #region Functions
 
@@ -29,7 +29,7 @@ namespace OutWit.Communication.Messages
 
         public override bool Is(ModelBase modelBase, double tolerance = 1E-07)
         {
-            if (!(modelBase is WitComMessage message))
+            if (!(modelBase is WitMessage message))
                 return false;
 
             return Id.Is(message.Id) &&
@@ -37,9 +37,9 @@ namespace OutWit.Communication.Messages
                    Data.Is(message.Data);
         }
 
-        public override WitComMessage Clone()
+        public override WitMessage Clone()
         {
-            return new WitComMessage
+            return new WitMessage
             {
                 Id = Id,
                 Type = Type,
@@ -59,7 +59,7 @@ namespace OutWit.Communication.Messages
         [DataMember]
         [Key(1)]
         [ProtoMember(2)]
-        public WitComMessageType Type { get; set; }
+        public WitMessageType Type { get; set; }
 
         [DataMember]
         [Key(2)]
@@ -69,7 +69,7 @@ namespace OutWit.Communication.Messages
         #endregion
     }
 
-    public enum WitComMessageType
+    public enum WitMessageType
     {
         Unknown = 0,
         Request = 1,
