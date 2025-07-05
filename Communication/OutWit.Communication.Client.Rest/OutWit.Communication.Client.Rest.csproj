@@ -1,12 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
+	<TargetFrameworks>net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
+	  <Version>2.0.1</Version>
+
+	  <Description>REST transport client for WitRPC, allowing communication with a WitRPC server over HTTP (RESTful) calls - ideal for integrating with web services or non-.NET clients.</Description>
+	  <PackageTags>OutWit;Communication;WitRPC;Client;REST</PackageTags>
+
+	  <RepositoryUrl>https://github.com/dmitrat/WitRPC/tree/main/Communication/OutWit.Communication.Client.Rest</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OutWit.Common.Rest" Version="1.1.0" />
+    <PackageReference Include="OutWit.Common.Rest" Version="1.1.1" />
   </ItemGroup>
 
   <ItemGroup>
