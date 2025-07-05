@@ -1,8 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
+	  <TargetFrameworks>net9.0-windows;net8.0-windows;net7.0-windows;net6.0-windows</TargetFrameworks>
+	  <Version>2.0.1</Version>
+
+	  <Description>Provides host-side functionality to launch external processes and connect to them via WitRPC, allowing your application to use out-of-process services as if they were local (handles process startup and client proxy generation).</Description>
+	  <PackageTags>OutWit;Communication;InterProcess;Host</PackageTags>
+
+	  <RepositoryUrl>https://github.com/dmitrat/WitRPC/tree/main/InterProcess/OutWit.InterProcess.Host</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
