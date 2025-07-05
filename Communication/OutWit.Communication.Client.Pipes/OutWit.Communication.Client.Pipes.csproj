@@ -1,8 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
+	<TargetFrameworks>net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
+	  <Version>2.0.1</Version>
+
+	  <Description>Named Pipes transport client for WitRPC, allowing efficient inter-process communication via named pipes on the local machine (with support for multiple clients).</Description>
+	  <PackageTags>OutWit;Communication;WitRPC;Client;NamedPipes;Pipes</PackageTags>
+
+	  <RepositoryUrl>https://github.com/dmitrat/WitRPC/tree/main/Communication/OutWit.Communication.Client.Pipes</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
