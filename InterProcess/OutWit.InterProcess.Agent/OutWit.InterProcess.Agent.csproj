@@ -1,9 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-	<UseWPF>true</UseWPF>
+	<TargetFrameworks>net9.0-windows;net8.0-windows;net7.0-windows;net6.0-windows</TargetFrameworks>
+    <UseWPF>true</UseWPF>
+
+	  <Version>2.0.1</Version>
+
+	  <Description>Enables a process to act as a WitRPC server in an isolated process, allowing you to host services out-of-process for consumption by a host application (handles agent-side setup for inter-process communication).</Description>
+	  <PackageTags>OutWit;Communication;InterProcess;Agent</PackageTags>
+
+	  <RepositoryUrl>https://github.com/dmitrat/WitRPC/tree/main/InterProcess/OutWit.InterProcess.Agent</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
