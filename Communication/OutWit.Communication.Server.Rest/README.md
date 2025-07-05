@@ -1,132 +1,71 @@
+
 # OutWit.Communication.Server.Rest
 
-## Overview
+REST transport server for WitRPC, exposing your services as HTTP REST endpoints to allow calls from web or external clients via standard HTTP.
 
-The `OutWit.Communication.Server.Rest` library extends WitRPC to support RESTful communication. It provides tools to expose services via REST APIs with advanced features like authentication, request processing, and logging. This package is ideal for scenarios requiring lightweight, scalable HTTP-based communication.
+### Overview
 
-## Features
+**OutWit.Communication.Server.Rest** enables a WitRPC server to serve incoming requests over **HTTP** as a RESTful API. With this transport, the server sets up an HTTP listener on a specified URL (and port) and translates HTTP requests into calls to your service methods. This allows clients that cannot maintain persistent connections (or non-.NET clients) to interact with your service using standard HTTP calls. In effect, it makes your service accessible in a similar way to a typical Web API.
 
-### 1. REST API Server
-- Seamlessly expose services over HTTP.
-- Automatically maps HTTP requests to service methods.
+This is particularly useful for:
 
-### 2. Authentication and Authorization
-- Token-based authentication.
-- Customizable access control mechanisms.
+-   **External Integration:** Exposing services to clients written in other languages or running in environments where only HTTP is feasible. Any HTTP-capable client (cURL, browser, etc.) could call your service's methods by making requests to the correct URLs.
+    
+-   **Web Clients:** Enabling simple web front-ends to trigger server-side operations. For example, you might have a JavaScript app making AJAX calls to these REST endpoints.
+    
+-   **Quick API Deployment:** You can stand up a basic REST API for your service without writing boilerplate controllers or using a full web framework: WitRPC will handle the routing of HTTP requests to the service methods.
+    
 
-### 3. Customizable Request Processing
-- Supports both GET and POST requests.
-- Allows custom logic for processing incoming requests and parameters.
+Keep in mind that the REST transport is stateless. The server handles each HTTP request independently. It doesn't maintain session state or persistent connections with clients (unlike WebSocket or TCP). This means server-to-client events are not pushed to REST clients in real-time; those clients would need to poll or use some long-polling mechanism to receive event-like updates. If real-time feedback is crucial, consider using WebSockets or another push-capable transport.
 
-### 4. Logging and Debugging
-- Integrated support for logging errors and request/response cycles.
+### Installation
 
-## Installation
-
-Install the package via NuGet:
-```bash
+```shell
 Install-Package OutWit.Communication.Server.Rest
 ```
 
-## Getting Started
+### Usage
 
-### Basic Setup
+To expose a service over REST, specify an HTTP URL prefix when configuring the server:
+
 ```csharp
+using OutWit.Communication.Server;
 using OutWit.Communication.Server.Rest;
 
-var server = WitServerRestBuilder.Build(options =>
+var server = WitServerBuilder.Build(options =>
 {
-    options.WithUrl("http://localhost:5000/");
     options.WithService(new MyService());
-    options.WithAccessToken("my-secret-token");
-    options.WithLogger(new ConsoleLogger());
-    options.WithTimeout(TimeSpan.FromMinutes(5));
+    options.WithRest("http://localhost:5000/api/example/");
+    options.WithAccessToken("MySecretToken"); // optional: require a token for requests
+    // Note: The REST transport uses JSON serialization by default for requests/responses
 });
-
 server.StartWaitingForConnection();
+Console.WriteLine("RESTful RPC server running at http://localhost:5000/api/example/");
 ```
 
-### Exposing a Service
-Define your service with public methods to be exposed via REST API.
-```csharp
-public class MyService
-{
-    public string Greet(string name)
-    {
-        return $"Hello, {name}!";
-    }
-}
-```
-Access this service with:
-```http
-GET http://localhost:5000/Greet?name=John
-```
-Response:
-```json
-"Hello, John!"
-```
+In this configuration, the server will listen for HTTP requests at the base URL `http://localhost:5000/api/example/`. Each RPC method call is mapped to an HTTP endpoint:
 
-### Advanced Configuration
+-   A client performing an HTTP POST to `http://localhost:5000/api/example/SomeMethod` (with JSON payload) will invoke `SomeMethod` on `MyService`.
+    
+-   If the method returns a result, the server will return it as a JSON response body. If the method is void (or one-way), the server might return a 204 No Content or similar.
+    
+-   If a token is set (as in the example), the server expects an `Authorization: Bearer MySecretToken` header on incoming requests. Unauthorized requests will receive an HTTP 401 response.
+    
 
-#### Custom Request Processor
-You can define custom logic for processing incoming requests:
-```csharp
-using OutWit.Communication.Server.Rest;
+On the client side, you could use OutWit.Communication.Client.Rest (if it's a .NET client) or simply make HTTP requests using any HTTP client. The WitRPC client will handle constructing the proper URLs and payloads if you use the Client.Rest package.
 
-var server = WitServerRestBuilder.Build(options =>
-{
-    options.WithUrl("http://localhost:5000/");
-    options.WithRequestProcessor(new CustomRequestProcessor());
-});
-```
+**Security and HTTPS:** In production, you should run the REST endpoint over HTTPS (TLS) to ensure encryption of data in transit. To do this, you would:
 
-#### Disable Authorization
-Disable authorization entirely for public APIs:
-```csharp
-var server = WitServerRestBuilder.Build(options =>
-{
-    options.WithUrl("http://localhost:5000/");
-    options.WithoutAuthorization();
-});
-```
+-   Configure an HTTPS URL in `WithRest`, e.g., `options.WithRest("https://myhost.example.com/api/example/")`.
+    
+-   Ensure that the specified host and port have a certificate bound (HttpListener on Windows requires you to configure this, often via `netsh` or using a certificate that matches the domain).
+    
+-   Clients would then use `https://` for their requests. WitRPC's REST client will happily work with an HTTPS address as well.  
+    If HTTPS is used, you might not need WitRPC's message-level encryption (`WithEncryption()`), since TLS already provides transport security. However, using token auth is still recommended to ensure only authorized clients call your endpoints.
+    
 
-#### Logging Support
-Integrate logging for debugging and monitoring:
-```csharp
-var server = WitServerRestBuilder.Build(options =>
-{
-    options.WithUrl("http://localhost:5000/");
-    options.WithLogger(new MyCustomLogger());
-});
-```
+**Response Codes and Errors:** The REST server will map WitRPC's responses to HTTP status codes. For example, if a method throws an exception or returns an error status, the server might respond with a 400 or 500 series status code and possibly a JSON error message. This design allows non-.NET clients to handle errors in a straightforward way via HTTP responses.
 
-## API Reference
+### Further Documentation
 
-### `WitServerRest`
-The core server class that handles HTTP requests and responses.
-
-#### Methods
-- `StartWaitingForConnection()`: Starts listening for incoming connections.
-- `StopWaitingForConnection()`: Stops the server and releases resources.
-
-### `WitServerRestBuilder`
-Provides a fluent interface for configuring and creating a `WitServerRest` instance.
-
-#### Configuration Options
-- `.WithUrl(string url)`: Sets the server's base URL.
-- `.WithService<TService>(TService service)`: Binds a service instance to the server.
-- `.WithAccessToken(string token)`: Enables token-based authentication.
-- `.WithoutAuthorization()`: Disables authentication.
-- `.WithLogger(ILogger logger)`: Configures logging.
-- `.WithTimeout(TimeSpan timeout)`: Sets request timeout.
-
-## Error Handling
-Errors encountered during request processing are logged and returned as HTTP responses with appropriate status codes.
-
-Example error response:
-```json
-{
-  "status": 400,
-  "message": "Failed to process request"
-}
-```
+Visit the [witrpc.io](https://witrpc.io/) documentation for detailed information on the REST transport, including how method parameters and return values are serialized in the HTTP requests/responses and how to handle things like binary data or complex types in a REST scenario.

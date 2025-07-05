@@ -1,8 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
+	  <TargetFrameworks>net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
+	  <Version>2.0.1</Version>
+
+	  <Description>REST transport server for WitRPC, exposing your services as HTTP REST endpoints to allow calls from web or external clients via standard HTTP.</Description>
+	  <PackageTags>OutWit;Communication;WitCom;Server;REST</PackageTags>
+
+	  <RepositoryUrl>https://github.com/dmitrat/WitRPC/tree/main/Communication/OutWit.Communication.Server.Rest</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
