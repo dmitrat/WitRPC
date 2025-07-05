@@ -1,8 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
+	  <TargetFrameworks>net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
+
+	  <Version>2.0.1</Version>
+
+	  <Description>Base client library for the WitRPC framework, providing functionality to connect to WitRPC servers and create dynamic proxies for calling remote services over various transports.</Description>
+	  <PackageTags>OutWit;Communication;WitRPC;Client</PackageTags>
+
+	  <RepositoryUrl>https://github.com/dmitrat/WitRPC/tree/main/Communication/OutWit.Communication.Client</RepositoryUrl>
+
   </PropertyGroup>
 
   <ItemGroup>
