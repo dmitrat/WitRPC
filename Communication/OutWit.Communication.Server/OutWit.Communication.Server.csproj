@@ -1,8 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
+	  <TargetFrameworks>net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
+	  <Version>2.0.1</Version>
+
+	  <Description>Base server library for the WitRPC framework, providing core functionality to host services and handle incoming RPC connections over various transports.</Description>
+	  <PackageTags>OutWit;Communication;WitRPC;Server</PackageTags>
+
+	  <RepositoryUrl>https://github.com/dmitrat/WitRPC/tree/main/Communication/OutWit.Communication.Server</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
