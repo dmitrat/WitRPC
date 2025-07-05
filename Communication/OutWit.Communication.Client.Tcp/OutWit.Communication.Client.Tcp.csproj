@@ -1,8 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
+	<TargetFrameworks>net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
+	  <Version>2.0.1</Version>
+
+	  <Description>TCP transport client for WitRPC, enabling network communication over TCP sockets (with optional TLS support) to connect to WitRPC servers.</Description>
+	  <PackageTags>OutWit;Communication;WitRPC;Client;TCP</PackageTags>
+
+	  <RepositoryUrl>https://github.com/dmitrat/WitRPC/tree/main/Communication/OutWit.Communication.Client.Tcp</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
