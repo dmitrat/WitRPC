@@ -94,7 +94,7 @@ namespace OutWit.Examples.Services.ClientWinUI.ViewModels
                 {
                     options.WithWebSocket($"ws://localhost:{PORT}/webSocket/");
                     options.WithEncryption();
-                    options.WithMessagePack();
+                    options.WithJson();
                     options.WithLogger(Logger!);
                     options.WithTimeout(TimeSpan.FromSeconds(1));
                 });

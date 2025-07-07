@@ -40,9 +40,9 @@
 		<None Include="README.md" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
-	<Target Name="PostBuild" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release' AND '$(IsTestProject)' != 'true'">
+	<!--<Target Name="PostBuild" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release' AND '$(IsTestProject)' != 'true'">
 		<Exec WorkingDirectory="$(TargetDir)" Command="echo D|xcopy &quot;$(TargetDir)*$(TargetName).nupkg&quot; &quot;$(SolutionDir)@NuGet\&quot; /Y/S" />
 		<Exec WorkingDirectory="$(TargetDir)" Command="echo D|xcopy &quot;$(TargetDir)*$(TargetName).snupkg&quot; &quot;$(SolutionDir)@NuGet\&quot; /Y/S" />
-	</Target>
+	</Target>-->
 	
 </Project>

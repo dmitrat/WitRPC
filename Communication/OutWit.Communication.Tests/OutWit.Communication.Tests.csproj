@@ -22,7 +22,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="NUnit3TestAdapter" Version="5.0.0" />
-    <PackageReference Include="OutWit.Common.Proxy.Generator" Version="1.1.2" />
+    <PackageReference Include="OutWit.Common.Proxy.Generator" Version="1.1.7" />
   </ItemGroup>
 
   <ItemGroup>

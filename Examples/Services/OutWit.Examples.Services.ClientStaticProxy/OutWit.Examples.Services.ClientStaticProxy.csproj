@@ -10,9 +10,9 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
-		<PackageReference Include="OutWit.Common.Logging" Version="1.1.0" />
-		<PackageReference Include="OutWit.Common.MVVM" Version="1.1.0" />
-		<PackageReference Include="OutWit.Common.Proxy.Generator" Version="1.1.2" />
+		<PackageReference Include="OutWit.Common.Logging" Version="1.1.1" />
+		<PackageReference Include="OutWit.Common.MVVM" Version="1.1.1" />
+		<PackageReference Include="OutWit.Common.Proxy.Generator" Version="1.1.7" />
 	</ItemGroup>
 
 	<ItemGroup>
