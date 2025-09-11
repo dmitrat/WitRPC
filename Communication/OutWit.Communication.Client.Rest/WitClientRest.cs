@@ -40,8 +40,8 @@ namespace OutWit.Communication.Client.Rest
             if(request == null)
                 return WitResponse.BadRequest("Empty request");
 
-            IRequestMessage? requestMessage = request.ConstructGetRequest(Options, TokenProvider) ??
-                                              request.ConstructPostRequest(Options, TokenProvider);
+            IRequestMessage? requestMessage = await request.ConstructGetRequest(Options, TokenProvider) ??
+                                              await request.ConstructPostRequest(Options, TokenProvider);
 
             if(requestMessage == null)
                 return WitResponse.BadRequest("Cannot construct request");

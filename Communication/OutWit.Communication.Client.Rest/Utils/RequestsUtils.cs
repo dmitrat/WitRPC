@@ -12,14 +12,14 @@ namespace OutWit.Communication.Client.Rest.Utils
 {
     public static class RequestsUtils
     {
-        public static IRequestMessage? ConstructGetRequest(this WitRequest? me, RestClientTransportOptions options, IAccessTokenProvider tokenProvider)
+        public static async Task<IRequestMessage?> ConstructGetRequest(this WitRequest? me, RestClientTransportOptions options, IAccessTokenProvider tokenProvider)
         {
             if (me == null)
                 return null;
 
             try
             {
-                return new RequestGet(options, me, tokenProvider.GetToken());
+                return new RequestGet(options, me, await tokenProvider.GetToken());
             }
             catch (Exception e)
             {
@@ -27,14 +27,14 @@ namespace OutWit.Communication.Client.Rest.Utils
             }
         }
 
-        public static IRequestMessage? ConstructPostRequest(this WitRequest? me, RestClientTransportOptions options, IAccessTokenProvider tokenProvider)
+        public static async Task<IRequestMessage?> ConstructPostRequest(this WitRequest? me, RestClientTransportOptions options, IAccessTokenProvider tokenProvider)
         {
             if (me == null)
                 return null;
 
             try
             {
-                return new RequestPost(options, me, tokenProvider.GetToken());
+                return new RequestPost(options, me, await tokenProvider.GetToken());
             }
             catch (Exception e)
             {

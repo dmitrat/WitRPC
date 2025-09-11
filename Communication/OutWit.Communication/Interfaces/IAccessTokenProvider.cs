@@ -8,6 +8,6 @@ namespace OutWit.Communication.Interfaces
 {
     public interface IAccessTokenProvider
     {
-        public string GetToken();
+        public Task<string> GetToken();
     }
 }

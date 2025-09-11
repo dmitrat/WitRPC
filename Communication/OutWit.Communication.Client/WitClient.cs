@@ -116,7 +116,7 @@ namespace OutWit.Communication.Client
                 Type = WitMessageType.Authorization,
                 Data = MessageSerializer.Serialize(new WitRequestAuthorization
                 {
-                    Token = TokenProvider.GetToken()
+                    Token = await TokenProvider.GetToken()
                 })
             };
 
@@ -195,7 +195,7 @@ namespace OutWit.Communication.Client
                 return WitResponse.BadRequest($"Empty request");
             }
 
-            request.Token = TokenProvider.GetToken();
+            request.Token = await TokenProvider.GetToken();
 
             var messageRequest = new WitMessage
             {

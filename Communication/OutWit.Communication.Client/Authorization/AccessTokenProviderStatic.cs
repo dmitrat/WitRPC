@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using OutWit.Communication.Interfaces;
 
 namespace OutWit.Communication.Client.Authorization
@@ -16,9 +17,9 @@ namespace OutWit.Communication.Client.Authorization
 
         #region IAccessTokenProvider
 
-        public string GetToken()
+        public async Task<string> GetToken()
         {
-            return AccessToken;
+            return await Task.FromResult(AccessToken);
         }
 
         #endregion
