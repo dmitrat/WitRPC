@@ -1,12 +1,4 @@
 <Solution>
-  <Configurations>
-    <BuildType Name="Debug" />
-    <BuildType Name="Net5" />
-    <BuildType Name="Release" />
-    <Platform Name="Any CPU" />
-    <Platform Name="x64" />
-    <Platform Name="x86" />
-  </Configurations>
   <Folder Name="/@Build/">
     <File Path="README.md" />
   </Folder>
@@ -17,124 +9,54 @@
     <File Path="InterProcess/Directory.Build.props" />
   </Folder>
   <Folder Name="/Communication/">
-    <Project Path="Communication/OutWit.Communication.Client.MMF/OutWit.Communication.Client.MMF.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Communication/OutWit.Communication.Client.Pipes/OutWit.Communication.Client.Pipes.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Communication/OutWit.Communication.Client.Rest/OutWit.Communication.Client.Rest.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Communication/OutWit.Communication.Client.Tcp/OutWit.Communication.Client.Tcp.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Communication/OutWit.Communication.Client.WebSocket/OutWit.Communication.Client.WebSocket.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Communication/OutWit.Communication.Client/OutWit.Communication.Client.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Communication/OutWit.Communication.Server.MMF/OutWit.Communication.Server.MMF.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Communication/OutWit.Communication.Server.Pipes/OutWit.Communication.Server.Pipes.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Communication/OutWit.Communication.Server.Rest/OutWit.Communication.Server.Rest.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Communication/OutWit.Communication.Server.Tcp/OutWit.Communication.Server.Tcp.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Communication/OutWit.Communication.Server.WebSocket/OutWit.Communication.Server.WebSocket.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Communication/OutWit.Communication.Server/OutWit.Communication.Server.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Communication/OutWit.Communication.Tests/OutWit.Communication.Tests.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Communication/OutWit.Communication/OutWit.Communication.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
+    <Project Path="Communication/OutWit.Communication.Client.MMF/OutWit.Communication.Client.MMF.csproj" />
+    <Project Path="Communication/OutWit.Communication.Client.Pipes/OutWit.Communication.Client.Pipes.csproj" />
+    <Project Path="Communication/OutWit.Communication.Client.Rest/OutWit.Communication.Client.Rest.csproj" />
+    <Project Path="Communication/OutWit.Communication.Client.Tcp/OutWit.Communication.Client.Tcp.csproj" />
+    <Project Path="Communication/OutWit.Communication.Client.WebSocket/OutWit.Communication.Client.WebSocket.csproj" />
+    <Project Path="Communication/OutWit.Communication.Client/OutWit.Communication.Client.csproj" />
+    <Project Path="Communication/OutWit.Communication.Server.MMF/OutWit.Communication.Server.MMF.csproj" />
+    <Project Path="Communication/OutWit.Communication.Server.Pipes/OutWit.Communication.Server.Pipes.csproj" />
+    <Project Path="Communication/OutWit.Communication.Server.Rest/OutWit.Communication.Server.Rest.csproj" />
+    <Project Path="Communication/OutWit.Communication.Server.Tcp/OutWit.Communication.Server.Tcp.csproj" />
+    <Project Path="Communication/OutWit.Communication.Server.WebSocket/OutWit.Communication.Server.WebSocket.csproj" />
+    <Project Path="Communication/OutWit.Communication.Server/OutWit.Communication.Server.csproj" />
+    <Project Path="Communication/OutWit.Communication.Tests/OutWit.Communication.Tests.csproj" />
+    <Project Path="Communication/OutWit.Communication/OutWit.Communication.csproj" />
   </Folder>
   <Folder Name="/Examples/">
-    <Project Path="Examples/OutWit.Examples.Contracts/OutWit.Examples.Contracts.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Examples/OutWit.Examples.Services/OutWit.Examples.Services.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
+    <Project Path="Examples/OutWit.Examples.Contracts/OutWit.Examples.Contracts.csproj" />
+    <Project Path="Examples/OutWit.Examples.Services/OutWit.Examples.Services.csproj" />
   </Folder>
   <Folder Name="/Examples/Benchmark/">
-    <Project Path="Examples/Benchmark/OutWit.Examples.Benchmark.Client/OutWit.Examples.Benchmark.Client.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Examples/Benchmark/OutWit.Examples.Benchmark.Server/OutWit.Examples.Benchmark.Server.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
+    <Project Path="Examples/Benchmark/OutWit.Examples.Benchmark.Client/OutWit.Examples.Benchmark.Client.csproj" />
+    <Project Path="Examples/Benchmark/OutWit.Examples.Benchmark.Server/OutWit.Examples.Benchmark.Server.csproj" />
   </Folder>
   <Folder Name="/Examples/Discovery/">
-    <Project Path="Examples/Discovery/OutWit.Examples.Discovery.Client/OutWit.Examples.Discovery.Client.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Examples/Discovery/OutWit.Examples.Discovery.Server/OutWit.Examples.Discovery.Server.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
+    <Project Path="Examples/Discovery/OutWit.Examples.Discovery.Client/OutWit.Examples.Discovery.Client.csproj" />
+    <Project Path="Examples/Discovery/OutWit.Examples.Discovery.Server/OutWit.Examples.Discovery.Server.csproj" />
   </Folder>
   <Folder Name="/Examples/InterProcess/">
-    <Project Path="Examples/InterProcess/OutWit.Examples.InterProcess.BasicAgent/OutWit.Examples.InterProcess.BasicAgent.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Examples/InterProcess/OutWit.Examples.InterProcess.BasicHost/OutWit.Examples.InterProcess.BasicHost.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Examples/InterProcess/OutWit.Examples.InterProcess.Shared/OutWit.Examples.InterProcess.Shared.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
+    <Project Path="Examples/InterProcess/OutWit.Examples.InterProcess.BasicAgent/OutWit.Examples.InterProcess.BasicAgent.csproj" />
+    <Project Path="Examples/InterProcess/OutWit.Examples.InterProcess.BasicHost/OutWit.Examples.InterProcess.BasicHost.csproj" />
+    <Project Path="Examples/InterProcess/OutWit.Examples.InterProcess.Shared/OutWit.Examples.InterProcess.Shared.csproj" />
   </Folder>
   <Folder Name="/Examples/Services/">
-    <Project Path="Examples/Services/OutWit.Examples.Services.ClientBlazor/OutWit.Examples.Services.ClientBlazor.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Examples/Services/OutWit.Examples.Services.ClientPipes/OutWit.Examples.Services.ClientPipes.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Examples/Services/OutWit.Examples.Services.ClientStaticProxy/OutWit.Examples.Services.ClientStaticProxy.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Examples/Services/OutWit.Examples.Services.ClientTcp/OutWit.Examples.Services.ClientTcp.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
+    <Project Path="Examples/Services/OutWit.Examples.Services.ClientBlazor/OutWit.Examples.Services.ClientBlazor.csproj" />
+    <Project Path="Examples/Services/OutWit.Examples.Services.ClientPipes/OutWit.Examples.Services.ClientPipes.csproj" />
+    <Project Path="Examples/Services/OutWit.Examples.Services.ClientStaticProxy/OutWit.Examples.Services.ClientStaticProxy.csproj" />
+    <Project Path="Examples/Services/OutWit.Examples.Services.ClientTcp/OutWit.Examples.Services.ClientTcp.csproj" />
     <Project Path="Examples/Services/OutWit.Examples.Services.ClientWinUI/OutWit.Examples.Services.ClientWinUI.csproj">
-      <BuildType Solution="Debug|Any CPU" Project="Release" />
-      <BuildType Solution="Net5|*" Project="Debug" />
-      <Platform Solution="*|Any CPU" Project="x64" />
-      <Platform Solution="*|x64" Project="x64" />
-      <Platform Solution="*|x86" Project="x86" />
+      <Platform Project="x64" />
       <Deploy />
     </Project>
-    <Project Path="Examples/Services/OutWit.Examples.Services.Service/OutWit.Examples.Services.Service.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="Examples/Services/OutWit.Examples.Services.WebSocket/OutWit.Examples.Services.WebSocket.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
+    <Project Path="Examples/Services/OutWit.Examples.Services.Service/OutWit.Examples.Services.Service.csproj" />
+    <Project Path="Examples/Services/OutWit.Examples.Services.WebSocket/OutWit.Examples.Services.WebSocket.csproj" />
   </Folder>
   <Folder Name="/InterProcess/">
-    <Project Path="InterProcess/OutWit.InterProcess.Agent/OutWit.InterProcess.Agent.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="InterProcess/OutWit.InterProcess.Host/OutWit.InterProcess.Host.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="InterProcess/OutWit.InterProcess.Tests/OutWit.InterProcess.Tests.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
-    <Project Path="InterProcess/OutWit.InterProcess/OutWit.InterProcess.csproj">
-      <BuildType Solution="Net5|*" Project="Debug" />
-    </Project>
+    <Project Path="InterProcess/OutWit.InterProcess.Agent/OutWit.InterProcess.Agent.csproj" />
+    <Project Path="InterProcess/OutWit.InterProcess.Host/OutWit.InterProcess.Host.csproj" />
+    <Project Path="InterProcess/OutWit.InterProcess.Tests/OutWit.InterProcess.Tests.csproj" />
+    <Project Path="InterProcess/OutWit.InterProcess/OutWit.InterProcess.csproj" />
   </Folder>
 </Solution>

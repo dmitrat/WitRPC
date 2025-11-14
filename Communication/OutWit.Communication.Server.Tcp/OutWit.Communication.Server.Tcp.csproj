@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFrameworks>net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
-	  <Version>2.1.0</Version>
+	  <TargetFrameworks>net10.0;net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
+	  <Version>2.2.0</Version>
 
 	  <Description>TCP transport server for WitRPC, enabling a server to host services over a TCP port (supports plaintext or TLS-secured connections).</Description>
 	  <PackageTags>OutWit;Communication;WitCom;Server;TCP</PackageTags>

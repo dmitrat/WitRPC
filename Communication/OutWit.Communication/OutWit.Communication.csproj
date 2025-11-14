@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<TargetFrameworks>net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
+	<TargetFrameworks>net10.0;net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
 
-	<Version>2.1.0</Version>
+	<Version>2.2.0</Version>
 
 	<Description>The core communication library of the WitRPC framework, providing base RPC functionality such as messaging, dynamic proxy support, and extensibility for multiple transports, serialization formats, and encryption.</Description>
 	<PackageTags>OutWit;Communication;WitRPC</PackageTags>
@@ -13,13 +13,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Castle.Core" Version="5.1.1" />
-    <PackageReference Include="OutWit.Common.Json" Version="1.0.1" />
-    <PackageReference Include="OutWit.Common.MemoryPack" Version="1.0.1" />
-    <PackageReference Include="OutWit.Common.MessagePack" Version="1.1.2" />
-    <PackageReference Include="OutWit.Common.ProtoBuf" Version="1.0.1" />
-    <PackageReference Include="OutWit.Common.Proxy" Version="1.1.3" />
-    <PackageReference Include="OutWit.Common.Reflection" Version="1.1.0" />
+    <PackageReference Include="Castle.Core" Version="5.2.1" />
+    <PackageReference Include="OutWit.Common.Json" Version="1.1.1" />
+    <PackageReference Include="OutWit.Common.MemoryPack" Version="1.1.1" />
+    <PackageReference Include="OutWit.Common.MessagePack" Version="1.2.1" />
+    <PackageReference Include="OutWit.Common.ProtoBuf" Version="1.1.1" />
+    <PackageReference Include="OutWit.Common.Proxy" Version="1.2.0" />
+    <PackageReference Include="OutWit.Common.Reflection" Version="1.2.0" />
   </ItemGroup>
 
 </Project>

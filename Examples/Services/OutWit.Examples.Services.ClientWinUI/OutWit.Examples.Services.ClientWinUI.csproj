@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>OutWit.Examples.Services.ClientWinUI</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -37,12 +37,12 @@
     <ProjectCapability Include="Msix" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.250108002" />
-    <PackageReference Include="OutWit.Common.Logging" Version="1.1.1" />
-    <PackageReference Include="OutWit.Common.Proxy" Version="1.1.3" />
-    <PackageReference Include="OutWit.Common.Proxy.Generator" Version="1.1.7" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.6901" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.251106002" />
+    <PackageReference Include="OutWit.Common.Logging" Version="1.2.1" />
+    <PackageReference Include="OutWit.Common.Proxy" Version="1.2.0" />
+    <PackageReference Include="OutWit.Common.Proxy.Generator" Version="2.0.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Communication\OutWit.Communication.Client.WebSocket\OutWit.Communication.Client.WebSocket.csproj" />

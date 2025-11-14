@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<TargetFrameworks>net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
-	  <Version>2.1.0</Version>
+	<TargetFrameworks>net10.0;net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
+	  <Version>2.2.0</Version>
 
 	  <Description>WebSocket transport client for WitRPC, enabling real-time, full-duplex communication over WebSocket connections (great for internet or browser-based clients).</Description>
 	  <PackageTags>OutWit;Communication;WitRPC;Client;WebSocket</PackageTags>
