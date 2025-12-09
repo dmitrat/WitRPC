@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Threading.Tasks;
 using Castle.DynamicProxy;
 using Microsoft.Extensions.Logging;
 using OutWit.Common.Json;
@@ -10,9 +11,11 @@ using OutWit.Common.Proxy.Interfaces;
 using OutWit.Communication.Client.Authorization;
 using OutWit.Communication.Client.Discovery;
 using OutWit.Communication.Client.Encryption;
+using OutWit.Communication.Client.Reconnection;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interceptors;
 using OutWit.Communication.Interfaces;
+using OutWit.Communication.Resilience;
 using OutWit.Communication.Serializers;
 
 namespace OutWit.Communication.Client
@@ -24,8 +27,9 @@ namespace OutWit.Communication.Client
             if (options.Transport == null)
                 throw new WitException("Transport cannot be empty");
 
-            return new WitClient(options.Transport, options.Encryptor, options.TokenProvider, options.ParametersSerializer, options.MessageSerializer,
-                options.Logger, options.Timeout);
+            return new WitClient(options.Transport, options.Encryptor, options.TokenProvider, 
+                options.ParametersSerializer, options.MessageSerializer,
+                options.ReconnectionOptions, options.RetryOptions, options.Logger, options.Timeout);
         }
 
         public static WitClient Build(Action<WitClientBuilderOptions> optionsBuilder)
@@ -62,6 +66,32 @@ namespace OutWit.Communication.Client
         public static WitClientBuilderOptions WithAccessToken(this WitClientBuilderOptions me, string accessToken)
         {
             me.TokenProvider = new AccessTokenProviderStatic(accessToken);
+            return me;
+        }
+
+        /// <summary>
+        /// Configures dynamic token retrieval using a callback function.
+        /// Useful for scenarios where the token needs to be refreshed (e.g., OAuth tokens).
+        /// The callback is invoked on every authorization request, including reconnections.
+        /// </summary>
+        /// <param name="me">The builder options.</param>
+        /// <param name="getTokenAsync">Async function that returns the current valid token.</param>
+        public static WitClientBuilderOptions WithAccessToken(this WitClientBuilderOptions me, Func<Task<string>> getTokenAsync)
+        {
+            me.TokenProvider = new AccessTokenProviderCallback(getTokenAsync);
+            return me;
+        }
+
+        /// <summary>
+        /// Configures dynamic token retrieval using a callback function.
+        /// Useful for scenarios where the token needs to be refreshed (e.g., OAuth tokens).
+        /// The callback is invoked on every authorization request, including reconnections.
+        /// </summary>
+        /// <param name="me">The builder options.</param>
+        /// <param name="getToken">Function that returns the current valid token.</param>
+        public static WitClientBuilderOptions WithAccessToken(this WitClientBuilderOptions me, Func<string> getToken)
+        {
+            me.TokenProvider = new AccessTokenProviderCallback(getToken);
             return me;
         }
 
@@ -314,6 +344,70 @@ namespace OutWit.Communication.Client
         public static WitClientBuilderOptions WithTimeout(this WitClientBuilderOptions me, TimeSpan timeout)
         {
             me.Timeout = timeout;
+            return me;
+        }
+
+        #endregion
+
+        #region Reconnection
+
+        /// <summary>
+        /// Configures automatic reconnection for the client.
+        /// </summary>
+        public static WitClientBuilderOptions WithAutoReconnect(this WitClientBuilderOptions me, Action<ReconnectionOptions> configure)
+        {
+            me.ReconnectionOptions.Enabled = true;
+            configure(me.ReconnectionOptions);
+            return me;
+        }
+
+        /// <summary>
+        /// Enables automatic reconnection with default settings.
+        /// </summary>
+        public static WitClientBuilderOptions WithAutoReconnect(this WitClientBuilderOptions me)
+        {
+            me.ReconnectionOptions.Enabled = true;
+            return me;
+        }
+
+        /// <summary>
+        /// Disables automatic reconnection.
+        /// </summary>
+        public static WitClientBuilderOptions WithoutAutoReconnect(this WitClientBuilderOptions me)
+        {
+            me.ReconnectionOptions.Enabled = false;
+            return me;
+        }
+
+        #endregion
+
+        #region Retry
+
+        /// <summary>
+        /// Configures retry policy for the client.
+        /// </summary>
+        public static WitClientBuilderOptions WithRetryPolicy(this WitClientBuilderOptions me, Action<RetryOptions> configure)
+        {
+            me.RetryOptions.Enabled = true;
+            configure(me.RetryOptions);
+            return me;
+        }
+
+        /// <summary>
+        /// Enables retry policy with default settings.
+        /// </summary>
+        public static WitClientBuilderOptions WithRetryPolicy(this WitClientBuilderOptions me)
+        {
+            me.RetryOptions.Enabled = true;
+            return me;
+        }
+
+        /// <summary>
+        /// Disables retry policy.
+        /// </summary>
+        public static WitClientBuilderOptions WithoutRetryPolicy(this WitClientBuilderOptions me)
+        {
+            me.RetryOptions.Enabled = false;
             return me;
         }
 

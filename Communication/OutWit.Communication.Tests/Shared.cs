@@ -6,6 +6,7 @@ using OutWit.Communication.Client.Authorization;
 using OutWit.Communication.Client.Encryption;
 using OutWit.Communication.Client.Pipes;
 using OutWit.Communication.Client;
+using OutWit.Communication.Client.Reconnection;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Serializers;
 using OutWit.Communication.Server.Authorization;
@@ -91,6 +92,24 @@ namespace OutWit.Communication.Tests
                 new AccessTokenProviderStatic(AUTHORIZATION_TOKEN),
                 GetSerializer(serializerType), 
                 new MessageSerializerMemoryPack(),
+                null, null);
+        }
+
+        /// <summary>
+        /// Creates a client with auto-reconnection options.
+        /// </summary>
+        public static WitClient GetClientWithReconnection(TransportType transportType, SerializerType serializerType, 
+            string testName, Action<ReconnectionOptions> configureReconnection)
+        {
+            var reconnectionOptions = new ReconnectionOptions();
+            configureReconnection(reconnectionOptions);
+
+            return new WitClient(GetClientTransport(transportType, testName),
+                new EncryptorClientGeneral(),
+                new AccessTokenProviderStatic(AUTHORIZATION_TOKEN),
+                GetSerializer(serializerType), 
+                new MessageSerializerMemoryPack(),
+                reconnectionOptions,
                 null, null);
         }
 

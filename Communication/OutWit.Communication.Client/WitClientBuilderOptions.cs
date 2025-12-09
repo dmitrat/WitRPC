@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OutWit.Communication.Client.Authorization;
 using OutWit.Communication.Client.Encryption;
+using OutWit.Communication.Client.Reconnection;
 using OutWit.Communication.Interfaces;
+using OutWit.Communication.Resilience;
 using OutWit.Communication.Serializers;
 
 namespace OutWit.Communication.Client
@@ -21,6 +23,8 @@ namespace OutWit.Communication.Client
             MessageSerializer = new MessageSerializerMemoryPack();
             Encryptor = new EncryptorClientPlain();
             TokenProvider = new AccessTokenProviderPlain();
+            ReconnectionOptions = new ReconnectionOptions();
+            RetryOptions = new RetryOptions();
 
             Logger = null;
             Timeout = null;
@@ -39,6 +43,10 @@ namespace OutWit.Communication.Client
         public IEncryptorClient Encryptor { get; set; }
 
         public IAccessTokenProvider TokenProvider { get; set; }
+
+        public ReconnectionOptions ReconnectionOptions { get; set; }
+
+        public RetryOptions RetryOptions { get; set; }
 
         public ILogger? Logger { get; set; }
 
