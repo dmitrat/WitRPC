@@ -156,12 +156,18 @@ namespace OutWit.Communication.Tests
 
                 case TransportType.WebSocket:
                 default:
-                    return new WebSocketServerTransportFactory(new WebSocketServerTransportOptions
                     {
-                        Host = (HostInfo?)$"http://localhost:5000/{name}/",
-                        MaxNumberOfClients = maxNumberOfClients,
-                        BufferSize = 1024 * 1024
-                    });
+                        // Use hash-based port to ensure same port for same test name
+                        var random = new Random(name.GetHashCode());
+                        var port = random.Next(5100, 5900);
+                        
+                        return new WebSocketServerTransportFactory(new WebSocketServerTransportOptions
+                        {
+                            Host = (HostInfo?)$"http://localhost:{port}/{name}/",
+                            MaxNumberOfClients = maxNumberOfClients,
+                            BufferSize = 1024 * 1024
+                        });
+                    }
             }
         }
 
@@ -206,11 +212,17 @@ namespace OutWit.Communication.Tests
 
                 case TransportType.WebSocket:
                 default:
-                    return new WebSocketClientTransport(new WebSocketClientTransportOptions
                     {
-                        Url = $"ws://localhost:5000/{name}/",
-                        BufferSize = 1024 * 1024
-                    });
+                        // Use same hash-based port as server
+                        var random = new Random(name.GetHashCode());
+                        var port = random.Next(5100, 5900);
+                        
+                        return new WebSocketClientTransport(new WebSocketClientTransportOptions
+                        {
+                            Url = $"ws://localhost:{port}/{name}/",
+                            BufferSize = 1024 * 1024
+                        });
+                    }
             }
         }
 

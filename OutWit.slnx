@@ -9,12 +9,15 @@
     <File Path="InterProcess/Directory.Build.props" />
   </Folder>
   <Folder Name="/Communication/">
+    <Project Path="Communication/OutWit.Communication.Client.DependencyInjection/OutWit.Communication.Client.DependencyInjection.csproj" />
+    <Project Path="Communication/OutWit.Communication.Client.HealthChecks/OutWit.Communication.Client.HealthChecks.csproj" />
     <Project Path="Communication/OutWit.Communication.Client.MMF/OutWit.Communication.Client.MMF.csproj" />
     <Project Path="Communication/OutWit.Communication.Client.Pipes/OutWit.Communication.Client.Pipes.csproj" />
     <Project Path="Communication/OutWit.Communication.Client.Rest/OutWit.Communication.Client.Rest.csproj" />
     <Project Path="Communication/OutWit.Communication.Client.Tcp/OutWit.Communication.Client.Tcp.csproj" />
     <Project Path="Communication/OutWit.Communication.Client.WebSocket/OutWit.Communication.Client.WebSocket.csproj" />
     <Project Path="Communication/OutWit.Communication.Client/OutWit.Communication.Client.csproj" />
+    <Project Path="Communication/OutWit.Communication.Server.DependencyInjection/OutWit.Communication.Server.DependencyInjection.csproj" />
     <Project Path="Communication/OutWit.Communication.Server.MMF/OutWit.Communication.Server.MMF.csproj" />
     <Project Path="Communication/OutWit.Communication.Server.Pipes/OutWit.Communication.Server.Pipes.csproj" />
     <Project Path="Communication/OutWit.Communication.Server.Rest/OutWit.Communication.Server.Rest.csproj" />

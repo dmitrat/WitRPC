@@ -14,6 +14,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="8.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageReference Include="NUnit" Version="4.4.0" />
@@ -26,12 +29,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\OutWit.Communication.Client.DependencyInjection\OutWit.Communication.Client.DependencyInjection.csproj" />
+    <ProjectReference Include="..\OutWit.Communication.Client.HealthChecks\OutWit.Communication.Client.HealthChecks.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Client.MMF\OutWit.Communication.Client.MMF.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Client.Pipes\OutWit.Communication.Client.Pipes.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Client.Rest\OutWit.Communication.Client.Rest.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Client.Tcp\OutWit.Communication.Client.Tcp.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Client.WebSocket\OutWit.Communication.Client.WebSocket.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Client\OutWit.Communication.Client.csproj" />
+    <ProjectReference Include="..\OutWit.Communication.Server.DependencyInjection\OutWit.Communication.Server.DependencyInjection.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Server.MMF\OutWit.Communication.Server.MMF.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Server.Pipes\OutWit.Communication.Server.Pipes.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Server.Rest\OutWit.Communication.Server.Rest.csproj" />

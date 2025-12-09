@@ -11,7 +11,7 @@ namespace OutWit.Communication.Tests.Resilience
         #region RetryOptions Tests
 
         [Test]
-        public void RetryOptions_DefaultValues()
+        public void RetryOptionsDefaultValues()
         {
             var options = new RetryOptions();
 
@@ -24,7 +24,7 @@ namespace OutWit.Communication.Tests.Resilience
         }
 
         [Test]
-        public void RetryOptions_GetDelayForAttempt_FixedBackoff()
+        public void RetryOptionsGetDelayForAttemptFixedBackoff()
         {
             var options = new RetryOptions
             {
@@ -38,7 +38,7 @@ namespace OutWit.Communication.Tests.Resilience
         }
 
         [Test]
-        public void RetryOptions_GetDelayForAttempt_LinearBackoff()
+        public void RetryOptionsGetDelayForAttemptLinearBackoff()
         {
             var options = new RetryOptions
             {
@@ -53,7 +53,7 @@ namespace OutWit.Communication.Tests.Resilience
         }
 
         [Test]
-        public void RetryOptions_GetDelayForAttempt_ExponentialBackoff()
+        public void RetryOptionsGetDelayForAttemptExponentialBackoff()
         {
             var options = new RetryOptions
             {
@@ -70,7 +70,7 @@ namespace OutWit.Communication.Tests.Resilience
         }
 
         [Test]
-        public void RetryOptions_GetDelayForAttempt_CappedAtMaxDelay()
+        public void RetryOptionsGetDelayForAttemptCappedAtMaxDelay()
         {
             var options = new RetryOptions
             {
@@ -85,7 +85,7 @@ namespace OutWit.Communication.Tests.Resilience
         }
 
         [Test]
-        public void RetryOptions_ShouldRetry_Status()
+        public void RetryOptionsShouldRetryStatus()
         {
             var options = new RetryOptions { Enabled = true };
             
@@ -97,7 +97,7 @@ namespace OutWit.Communication.Tests.Resilience
         }
 
         [Test]
-        public void RetryOptions_ShouldRetry_Exception()
+        public void RetryOptionsShouldRetryException()
         {
             var options = new RetryOptions { Enabled = true };
             
@@ -108,7 +108,7 @@ namespace OutWit.Communication.Tests.Resilience
         }
 
         [Test]
-        public void RetryOptions_ShouldRetry_DisabledReturnsFalse()
+        public void RetryOptionsShouldRetryDisabledReturnsFalse()
         {
             var options = new RetryOptions { Enabled = false };
 
@@ -117,7 +117,7 @@ namespace OutWit.Communication.Tests.Resilience
         }
 
         [Test]
-        public void RetryOptions_Clone()
+        public void RetryOptionsClone()
         {
             var original = new RetryOptions
             {
@@ -140,7 +140,7 @@ namespace OutWit.Communication.Tests.Resilience
         #region RetryPolicy Tests
 
         [Test]
-        public async Task RetryPolicy_ExecuteAsync_SuccessOnFirstAttempt()
+        public async Task RetryPolicyExecuteAsyncSuccessOnFirstAttempt()
         {
             var options = new RetryOptions { Enabled = true, MaxRetries = 3 };
             var policy = new RetryPolicy(options);
@@ -157,7 +157,7 @@ namespace OutWit.Communication.Tests.Resilience
         }
 
         [Test]
-        public async Task RetryPolicy_ExecuteAsync_SuccessAfterRetries()
+        public async Task RetryPolicyExecuteAsyncSuccessAfterRetries()
         {
             var options = new RetryOptions 
             { 
@@ -182,7 +182,7 @@ namespace OutWit.Communication.Tests.Resilience
         }
 
         [Test]
-        public void RetryPolicy_ExecuteAsync_ThrowsAfterMaxRetries()
+        public void RetryPolicyExecuteAsyncThrowsAfterMaxRetries()
         {
             var options = new RetryOptions 
             { 
@@ -207,7 +207,7 @@ namespace OutWit.Communication.Tests.Resilience
         }
 
         [Test]
-        public async Task RetryPolicy_ExecuteAsync_CallsOnRetryCallback()
+        public async Task RetryPolicyExecuteAsyncCallsOnRetryCallback()
         {
             var retryAttempts = new List<int>();
             var options = new RetryOptions 
@@ -233,7 +233,7 @@ namespace OutWit.Communication.Tests.Resilience
         }
 
         [Test]
-        public async Task RetryPolicy_ExecuteAsync_WitResponse_SuccessOnFirstAttempt()
+        public async Task RetryPolicyExecuteAsyncWitResponseSuccessOnFirstAttempt()
         {
             var options = new RetryOptions { Enabled = true, MaxRetries = 3 };
             var policy = new RetryPolicy(options);
@@ -250,7 +250,7 @@ namespace OutWit.Communication.Tests.Resilience
         }
 
         [Test]
-        public async Task RetryPolicy_ExecuteAsync_WitResponse_RetryOnServerError()
+        public async Task RetryPolicyExecuteAsyncWitResponseRetryOnServerError()
         {
             var options = new RetryOptions 
             { 
@@ -277,7 +277,7 @@ namespace OutWit.Communication.Tests.Resilience
         }
 
         [Test]
-        public async Task RetryPolicy_ExecuteAsync_WitResponse_NoRetryOnBadRequest()
+        public async Task RetryPolicyExecuteAsyncWitResponseNoRetryOnBadRequest()
         {
             var options = new RetryOptions 
             { 
@@ -301,7 +301,7 @@ namespace OutWit.Communication.Tests.Resilience
         }
 
         [Test]
-        public async Task RetryPolicy_Disabled_NoRetry()
+        public async Task RetryPolicyDisabledNoRetry()
         {
             var options = new RetryOptions { Enabled = false, MaxRetries = 3 };
             var policy = new RetryPolicy(options);
