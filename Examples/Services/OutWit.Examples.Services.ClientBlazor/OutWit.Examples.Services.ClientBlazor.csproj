@@ -11,7 +11,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
     <PackageReference Include="MudBlazor" Version="8.14.0" />
-    <PackageReference Include="OutWit.Common.Logging" Version="1.2.1" />
+    <PackageReference Include="OutWit.Common.Logging" Version="1.2.2" />
     <PackageReference Include="OutWit.Common.Proxy" Version="1.2.0" />
     <PackageReference Include="OutWit.Common.Proxy.Generator" Version="2.0.2" />
   </ItemGroup>

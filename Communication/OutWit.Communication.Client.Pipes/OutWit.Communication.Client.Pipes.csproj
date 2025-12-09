@@ -2,7 +2,7 @@
 
   <PropertyGroup>
 	<TargetFrameworks>net10.0;net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
-	  <Version>2.2.0</Version>
+	  <Version>2.3.0</Version>
 
 	  <Description>Named Pipes transport client for WitRPC, allowing efficient inter-process communication via named pipes on the local machine (with support for multiple clients).</Description>
 	  <PackageTags>OutWit;Communication;WitRPC;Client;NamedPipes;Pipes</PackageTags>

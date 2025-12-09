@@ -4,7 +4,7 @@
 	<TargetFrameworks>net10.0-windows;net9.0-windows;net8.0-windows;net7.0-windows;net6.0-windows</TargetFrameworks>
     <UseWPF>true</UseWPF>
 
-	  <Version>2.1.0</Version>
+	  <Version>2.3.0</Version>
 
 	  <Description>Enables a process to act as a WitRPC server in an isolated process, allowing you to host services out-of-process for consumption by a host application (handles agent-side setup for inter-process communication).</Description>
 	  <PackageTags>OutWit;Communication;InterProcess;Agent</PackageTags>

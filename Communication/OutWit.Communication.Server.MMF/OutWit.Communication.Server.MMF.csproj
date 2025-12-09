@@ -2,7 +2,7 @@
 
   <PropertyGroup>
 	  <TargetFrameworks>net10.0-windows;net9.0-windows;net8.0-windows;net7.0-windows;net6.0-windows</TargetFrameworks>
-	  <Version>2.2.0</Version>
+	  <Version>2.3.0</Version>
 
 	  <Description>Memory-mapped file transport server for WitRPC, allowing a server to listen for client connections via a shared memory segment (for high-performance on-machine communication).</Description>
 	  <PackageTags>OutWit;Communication;WitCom;Server;MMF;MemoryMappedFiles</PackageTags>

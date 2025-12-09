@@ -2,7 +2,7 @@
 
   <PropertyGroup>
 	<TargetFrameworks>net10.0;net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
-	  <Version>2.2.0</Version>
+	  <Version>2.3.0</Version>
 
 	  <Description>REST transport client for WitRPC, allowing communication with a WitRPC server over HTTP (RESTful) calls - ideal for integrating with web services or non-.NET clients.</Description>
 	  <PackageTags>OutWit;Communication;WitRPC;Client;REST</PackageTags>

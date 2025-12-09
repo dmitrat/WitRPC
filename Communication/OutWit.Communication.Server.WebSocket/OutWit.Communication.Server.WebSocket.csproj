@@ -2,7 +2,7 @@
 
   <PropertyGroup>
 	  <TargetFrameworks>net10.0;net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
-	  <Version>2.2.0</Version>
+	  <Version>2.3.0</Version>
 
 	  <Description>WebSocket transport server for WitRPC, enabling a server to accept clients over WebSocket (great for real-time, browser-friendly communication).</Description>
 	  <PackageTags>OutWit;Communication;WitCom;Server;WebSocket</PackageTags>
