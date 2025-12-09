@@ -94,6 +94,27 @@ namespace OutWit.Communication.Tests
                 null, null, null, null);
         }
 
+        public static WitServer GetServerWithCompositeServices(TransportType transportType, SerializerType serializerType, int maxNumberOfClients, string testName)
+        {
+            var processor = new CompositeRequestProcessor()
+                .Register<ITestChannel1>(new TestChannel1Impl())
+                .Register<ITestChannel2>(new TestChannel2Impl());
+
+            return new WitServer(GetServerTransport(transportType, maxNumberOfClients, testName),
+                new EncryptorServerFactory<EncryptorServerGeneral>(),
+                new AccessTokenValidatorStatic(AUTHORIZATION_TOKEN),
+                GetSerializer(serializerType),
+                new MessageSerializerMemoryPack(),
+                processor,
+                new DiscoveryServer(new DiscoveryServerOptions
+                {
+                    IpAddress = IPAddress.Parse("239.255.255.250"),
+                    Port = 3702,
+                    Mode = DiscoveryServerMode.StartStop
+                }),
+                null, null, null, null);
+        }
+
         public static WitServer GetServerBasic(TransportType transportType, SerializerType serializerType, int maxNumberOfClients, string testName)
         {
             return new WitServer(GetServerTransport(transportType, maxNumberOfClients, testName),

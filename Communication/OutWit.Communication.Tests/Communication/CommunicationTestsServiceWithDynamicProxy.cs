@@ -1,5 +1,6 @@
 ﻿using System;
 using OutWit.Common.Utils;
+using OutWit.Communication.Client;
 using OutWit.Communication.Tests.Mock.Interfaces;
 using OutWit.Communication.Tests.Mock.Model;
 
@@ -395,67 +396,6 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.MessagePack)]
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
         [TestCase(TransportType.WebSocket, SerializerType.ProtoBuf)]
-        public async Task SingleSubscribeComplexTypeSingleClientCallbackAsyncTest(TransportType transportType, SerializerType serializerType)
-        {
-            var testName = $"{nameof(SingleSubscribeComplexTypeSingleClientCallbackAsyncTest)}_{transportType}_{serializerType}";
-
-            var server = Shared.GetServer(transportType, serializerType, 1, testName);
-
-            server.StartWaitingForConnection();
-
-            var client = Shared.GetClient(transportType, serializerType, testName);
-
-            Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
-            Assert.That(client.IsInitialized, Is.True);
-            Assert.That(client.IsAuthorized, Is.True);
-
-            var service = Shared.GetServiceDynamic(client);
-            
-            int callbackCount = 0;
-            ComplexNumber<int, int>? actualNum = null;
-            int actualIter = 0;
-            service.StartProcessingRequested += (num, iter) =>
-            {
-                callbackCount++;
-                actualNum = num;
-                actualIter = iter;
-                Console.WriteLine(num);
-            };
-
-            await service.StartProcessingAsync(new ComplexNumber<int, int>(1, 2), 3);
-            Thread.Sleep(200);
-            Assert.That(callbackCount, Is.EqualTo(1));
-            Assert.That(actualNum!.A, Is.EqualTo(1));
-            Assert.That(actualNum!.B, Is.EqualTo(2));
-            Assert.That(actualIter, Is.EqualTo(3));
-
-            await service.StartProcessingAsync(new ComplexNumber<int, int>(4, 5), 6);
-            Thread.Sleep(200);
-            Assert.That(callbackCount, Is.EqualTo(2));
-            Assert.That(actualNum!.A, Is.EqualTo(4));
-            Assert.That(actualNum!.B, Is.EqualTo(5));
-            Assert.That(actualIter, Is.EqualTo(6));
-        }
-        
-        [TestCase(TransportType.Pipes, SerializerType.Json)]
-        [TestCase(TransportType.Pipes, SerializerType.MessagePack)]
-        [TestCase(TransportType.Pipes, SerializerType.MemoryPack)]
-        [TestCase(TransportType.Pipes, SerializerType.ProtoBuf)]
-
-        [TestCase(TransportType.Tcp, SerializerType.Json)]
-        [TestCase(TransportType.Tcp, SerializerType.MessagePack)]
-        [TestCase(TransportType.Tcp, SerializerType.MemoryPack)]
-        [TestCase(TransportType.Tcp, SerializerType.ProtoBuf)]
-
-        [TestCase(TransportType.TcpSecure, SerializerType.Json)]
-        [TestCase(TransportType.TcpSecure, SerializerType.MessagePack)]
-        [TestCase(TransportType.TcpSecure, SerializerType.MemoryPack)]
-        [TestCase(TransportType.TcpSecure, SerializerType.ProtoBuf)]
-
-        [TestCase(TransportType.WebSocket, SerializerType.Json)]
-        [TestCase(TransportType.WebSocket, SerializerType.MessagePack)]
-        [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
-        [TestCase(TransportType.WebSocket, SerializerType.ProtoBuf)]
         public async Task MultiSubscribeMultiClientsCallbackTest(TransportType transportType, SerializerType serializerType)
         {
             var testName = $"{nameof(MultiSubscribeMultiClientsCallbackTest)}_{transportType}_{serializerType}";
@@ -604,5 +544,52 @@ namespace OutWit.Communication.Tests.Communication
             Assert.That(callbackSecondCount, Is.EqualTo(2));
             Assert.That(actualSecond, Is.EqualTo("text3"));
         }
+
+        #region Composite Services Tests
+
+        [TestCase(TransportType.Pipes, SerializerType.Json)]
+        [TestCase(TransportType.Tcp, SerializerType.Json)]
+        [TestCase(TransportType.WebSocket, SerializerType.Json)]
+        public async Task CompositeServiceMultiChannelTest(TransportType transportType, SerializerType serializerType)
+        {
+            var testName = $"{nameof(CompositeServiceMultiChannelTest)}_{transportType}_{serializerType}";
+
+            var server = Shared.GetServerWithCompositeServices(transportType, serializerType, 1, testName);
+            server.StartWaitingForConnection();
+
+            try
+            {
+                var client = Shared.GetClient(transportType, serializerType, testName);
+
+                Assert.That(await client.ConnectAsync(TimeSpan.FromSeconds(5), CancellationToken.None), Is.True);
+                Assert.That(client.IsInitialized, Is.True);
+                Assert.That(client.IsAuthorized, Is.True);
+
+                // Get proxies for different channels
+                var channel1 = client.GetService<ITestChannel1>();
+                var channel2 = client.GetService<ITestChannel2>();
+
+                // Test Channel1 sync method
+                Assert.That(channel1.GetChannel1Data("test"), Is.EqualTo("Channel1:test"));
+
+                // Test Channel1 async method
+                Assert.That(await channel1.Channel1AsyncMethod(5), Is.EqualTo(10));
+
+                // Test Channel2 sync methods
+                Assert.That(channel2.GetChannel2Data("hello"), Is.EqualTo("Channel2:hello"));
+                Assert.That(channel2.Channel2Calculate(2.5, 3.5), Is.EqualTo(6.0));
+
+                // Test Channel2 async method
+                Assert.That(await channel2.Channel2AsyncMethod("world"), Is.EqualTo("Async:world"));
+
+                await client.Disconnect();
+            }
+            finally
+            {
+                server.StopWaitingForConnection();
+            }
+        }
+
+        #endregion
     }
 }

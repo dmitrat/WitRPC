@@ -1,4 +1,3 @@
-
 # OutWit.Communication.Client
 
 Base client library for the WitRPC framework, providing functionality to connect to WitRPC servers and create dynamic proxies for calling remote services over various transports.
@@ -10,12 +9,18 @@ Base client library for the WitRPC framework, providing functionality to connect
 Key capabilities of this client library include:
 
 -   **Dynamic Service Proxies:** The client produces a proxy for your service interface (e.g. `IMyService`) via `client.GetService<IMyService>()`. This proxy forwards your method calls to the server and raises server-sent events on the client, supporting a natural, object-oriented usage of remote services (no need to manually serialize calls).
+
+-   **Multiple Service Interfaces:** When the server hosts multiple service interfaces (using composite services), a single client connection can access all of them. Just call `client.GetService<T>()` with different interface types to get proxies for each service.
     
 -   **Transport Agnostic:** The client library works with any supported transport (Named Pipes, TCP, WebSocket, Memory-Mapped Files, REST, etc.). The actual transport is provided by a transport-specific package, but the client API remains the same. You simply configure the desired transport during setup (for example, using `.WithTcp(...)`, `.WithWebSocket(...)`, etc.) and the library handles the details.
     
 -   **Serialization & Encryption:** The client supports all WitRPC serialization options (JSON by default, or MessagePack/others) and can enable encryption and authentication to match the server's configuration. These are toggled via builder options like `.WithJson()`, `.WithMessagePack()`, `.WithEncryption()`, and `.WithAccessToken("token")` for providing credentials.
     
 -   **Error Handling & Timeouts:** You can specify timeouts for connection and calls. The framework will return error statuses or throw exceptions if calls fail or time out, making it easier to handle network issues. The `ConnectAsync` method allows you to gracefully attempt connections within a specified timeframe.
+
+-   **Auto-Reconnection:** The client supports automatic reconnection with configurable retry strategies using `WithAutoReconnect()`.
+
+-   **Retry Policies:** Failed calls can be automatically retried using configurable retry policies with `WithRetryPolicy()`.
     
 Under the hood, OutWit.Communication.Client works with the core OutWit.Communication components to format requests and decode responses. In most cases, you will use this package by including a transport-specific client package which depends on it, rather than using OutWit.Communication.Client alone.
 
@@ -70,6 +75,67 @@ In this example, we built a client to connect via a named pipe called `"MyAppPip
 **Dynamic Proxies:** After connecting, calling `client.GetService<T>()` returns an object of interface `T` that acts as a live proxy to the server. You do not need to write any networking code: simply call methods on this proxy as you would on a local object. The WitRPC client takes care of packaging the call, sending it to the server, and unwrapping the response. If the server triggers an event, the proxy raises that event on the client side.
 
 **Tip:** This base client library works behind the scenes. In a typical application, you will primarily interact with the builder (to configure transports/security) and the proxy object. The heavy lifting of managing sockets, threads, or pipe streams is handled internally by this library and the transport plugins.
+
+### Accessing Multiple Services
+
+When the server hosts multiple service interfaces using composite services, a single client can access all of them:
+
+```csharp
+// Server hosts IUserService, IOrderService, and INotificationService
+var client = WitClientBuilder.Build(options =>
+{
+    options.WithTcp("localhost", 5000);
+    options.WithJson();
+    options.WithEncryption();
+});
+
+await client.ConnectAsync(TimeSpan.FromSeconds(5));
+
+// Get proxies for different service interfaces
+var userService = client.GetService<IUserService>();
+var orderService = client.GetService<IOrderService>();
+var notificationService = client.GetService<INotificationService>();
+
+// Use each service
+var user = userService.GetUser(userId);
+var orders = orderService.GetOrdersForUser(userId);
+notificationService.SendNotification(user.Email, "Your orders are ready!");
+```
+
+### Transport Selection
+
+The above used Named Pipes for illustration, but you would use the transport relevant to your scenario:
+
+```csharp
+// TCP
+options.WithTcp("server-address", port);
+
+// WebSocket
+options.WithWebSocket("ws://server:port/path");
+
+// Named Pipes
+options.WithNamedPipe("PipeName");
+```
+
+Just ensure the server is using the corresponding server transport with matching parameters (pipe name, port number, URL path, etc.).
+
+### Auto-Reconnection
+
+Enable automatic reconnection for resilient connections:
+
+```csharp
+var client = WitClientBuilder.Build(options =>
+{
+    options.WithTcp("localhost", 5000);
+    options.WithJson();
+    options.WithAutoReconnect(reconnect =>
+    {
+        reconnect.MaxAttempts = 5;
+        reconnect.InitialDelay = TimeSpan.FromSeconds(1);
+        reconnect.MaxDelay = TimeSpan.FromSeconds(30);
+    });
+});
+```
 
 ### Further Documentation
 

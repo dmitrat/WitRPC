@@ -549,5 +549,52 @@ namespace OutWit.Communication.Tests.Communication
             Assert.That(actualSecond, Is.EqualTo("text3"));
         }
 
+        #region Composite Services Tests
+
+        [TestCase(TransportType.Pipes, SerializerType.Json)]
+        [TestCase(TransportType.Tcp, SerializerType.Json)]
+        [TestCase(TransportType.WebSocket, SerializerType.Json)]
+        public async Task CompositeServiceMultiChannelTest(TransportType transportType, SerializerType serializerType)
+        {
+            var testName = $"{nameof(CompositeServiceMultiChannelTest)}_{transportType}_{serializerType}";
+
+            var server = Shared.GetServerWithCompositeServices(transportType, serializerType, 1, testName);
+            server.StartWaitingForConnection();
+
+            try
+            {
+                var client = Shared.GetClient(transportType, serializerType, testName);
+
+                Assert.That(await client.ConnectAsync(TimeSpan.FromSeconds(5), CancellationToken.None), Is.True);
+                Assert.That(client.IsInitialized, Is.True);
+                Assert.That(client.IsAuthorized, Is.True);
+
+                // Get proxies for different channels using dynamic proxy
+                var channel1 = client.GetService<ITestChannel1>();
+                var channel2 = client.GetService<ITestChannel2>();
+
+                // Test Channel1 sync method
+                Assert.That(channel1.GetChannel1Data("test"), Is.EqualTo("Channel1:test"));
+
+                // Test Channel1 async method
+                Assert.That(await channel1.Channel1AsyncMethod(5), Is.EqualTo(10));
+
+                // Test Channel2 sync methods
+                Assert.That(channel2.GetChannel2Data("hello"), Is.EqualTo("Channel2:hello"));
+                Assert.That(channel2.Channel2Calculate(2.5, 3.5), Is.EqualTo(6.0));
+
+                // Test Channel2 async method
+                Assert.That(await channel2.Channel2AsyncMethod("world"), Is.EqualTo("Async:world"));
+
+                await client.Disconnect();
+            }
+            finally
+            {
+                server.StopWaitingForConnection();
+            }
+        }
+
+        #endregion
+
     }
 }

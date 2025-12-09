@@ -1,4 +1,3 @@
-
 # OutWit.Communication.Server
 
 Base server library for the WitRPC framework, providing core functionality to host services and handle incoming RPC connections over various transports.
@@ -9,7 +8,9 @@ Base server library for the WitRPC framework, providing core functionality to ho
 
 Key capabilities include:
 
--   **Service Hosting:** You register your service instances (objects implementing your service interfaces) with the server using `options.WithService(...)`. The server will expose those services to clients, ensuring that method calls from clients are routed to the correct service object and results (or exceptions) are sent back. You can register multiple services if your application has several interfaces to expose.
+-   **Service Hosting:** You register your service instances (objects implementing your service interfaces) with the server using `options.WithService(...)`. The server will expose those services to clients, ensuring that method calls from clients are routed to the correct service object and results (or exceptions) are sent back.
+    
+-   **Composite Services:** You can register **multiple service interfaces** using `WithServices()` builder. This allows clients to request proxies for different interfaces from a single server connection, enabling modular service design without creating a "super-interface".
     
 -   **Multi-Client Management:** The server can handle multiple concurrent client connections (depending on the transport and configuration). You can control the maximum number of clients for certain transports (e.g. set a client limit for TCP or WebSocket listeners). The server manages each connected client's requests and keeps track of subscriptions to events, allowing the server to push events to all subscribed clients.
     
@@ -53,17 +54,48 @@ server.StartWaitingForConnection();
 Console.WriteLine("Server is now listening for clients on TCP port 5000...");
 ```
 
-In this example, we create a server that will listen on TCP port 5000 and handle up to 100 simultaneous clients. We register an instance of `MyService` (which implements some service interface `IMyService`) so that clients can call its methods. We also enabled JSON serialization, turned on encryption, and set an access token for security. Once `StartWaitingForConnection()` is called, the server begins listening asynchronously for incoming client connections. (This call is non-blocking; the server runs in the background, so your program can continue executing other tasks or wait for a shutdown signal.)
+### Composite Services (Multiple Interfaces)
+
+You can register **multiple service interfaces** on a single server, allowing clients to request proxies for different interfaces:
+
+```csharp
+using OutWit.Communication.Server;
+using OutWit.Communication.Server.Tcp;
+
+var server = WitServerBuilder.Build(options =>
+{
+    options.WithServices()                              // Start composite service registration
+        .AddService<IUserService>(new UserService())
+        .AddService<IOrderService>(new OrderService())
+        .AddService<INotificationService>(new NotificationService())
+        .Build();                                       // Complete registration
+    
+    options.WithTcp(port: 5000, maxNumberOfClients: 100);
+    options.WithJson();
+    options.WithEncryption();
+});
+server.StartWaitingForConnection();
+```
+
+Clients can then request proxies for any registered interface:
+
+```csharp
+var userService = client.GetService<IUserService>();
+var orderService = client.GetService<IOrderService>();
+var notificationService = client.GetService<INotificationService>();
+```
+
+This approach is cleaner than creating a single "super-interface" that inherits from all service interfaces.
+
+### Server Lifecycle
 
 When clients connect and invoke methods:
 
 -   The WitRPC server will accept the connection and handle the handshake (including token verification and encryption setup if those are enabled).
     
--   When a client calls a service method, the server receives the request, deserializes it to a `WitRequest` object, and invokes the corresponding method on your `MyService` object. The return value (or any exception) is captured and sent back as a response.
+-   When a client calls a service method, the server receives the request, deserializes it to a `WitRequest` object, and invokes the corresponding method on your service object. The return value (or any exception) is captured and sent back as a response.
     
 -   If your service raises an event (e.g., calls an event delegate to notify of some change), the server framework will automatically forward that event to all connected clients that have subscribed to it. This allows for real-time push notifications from server to clients.
-    
-You can host multiple services by calling `options.WithService(...)` multiple times (with different service instances implementing different interfaces). Clients will specify which interface they want to use when calling `GetService<T>()`, and WitRPC will route calls appropriately.
 
 To stop the server when your application is shutting down:
 

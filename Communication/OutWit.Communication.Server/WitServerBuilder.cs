@@ -78,6 +78,21 @@ namespace OutWit.Communication.Server
 
         #endregion
 
+        #region Composite Services
+
+        /// <summary>
+        /// Starts building a composite service that can handle multiple service interfaces.
+        /// </summary>
+        /// <param name="me">The server builder options.</param>
+        /// <param name="isStrongAssemblyMatch">Whether to use strong assembly matching for method resolution.</param>
+        /// <returns>A composite service builder for chaining.</returns>
+        public static CompositeServiceBuilder WithServices(this WitServerBuilderOptions me, bool isStrongAssemblyMatch = true)
+        {
+            return new CompositeServiceBuilder(me, isStrongAssemblyMatch);
+        }
+
+        #endregion
+
         #region Authorization
 
         public static WitServerBuilderOptions WithAccessTokenValidator(this WitServerBuilderOptions me, IAccessTokenValidator validator)
@@ -282,5 +297,71 @@ namespace OutWit.Communication.Server
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// Builder for composing multiple service interfaces into a single server.
+    /// </summary>
+    public class CompositeServiceBuilder
+    {
+        private readonly WitServerBuilderOptions _options;
+        private readonly CompositeRequestProcessor _processor;
+
+        internal CompositeServiceBuilder(WitServerBuilderOptions options, bool isStrongAssemblyMatch)
+        {
+            _options = options;
+            _processor = new CompositeRequestProcessor(isStrongAssemblyMatch);
+        }
+
+        /// <summary>
+        /// Adds a service to the composite.
+        /// </summary>
+        /// <typeparam name="TService">The service interface type.</typeparam>
+        /// <param name="service">The service implementation.</param>
+        /// <returns>This builder for chaining.</returns>
+        public CompositeServiceBuilder AddService<TService>(TService service)
+            where TService : class
+        {
+            _processor.Register(service);
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a service to the composite using a factory function.
+        /// </summary>
+        /// <typeparam name="TService">The service interface type.</typeparam>
+        /// <param name="serviceFactory">Factory function to create the service.</param>
+        /// <returns>This builder for chaining.</returns>
+        public CompositeServiceBuilder AddService<TService>(Func<TService> serviceFactory)
+            where TService : class
+        {
+            _processor.Register(serviceFactory());
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a service to the composite with explicit interface type.
+        /// </summary>
+        /// <typeparam name="TInterface">The service interface type.</typeparam>
+        /// <typeparam name="TImplementation">The service implementation type.</typeparam>
+        /// <param name="service">The service implementation.</param>
+        /// <returns>This builder for chaining.</returns>
+        public CompositeServiceBuilder AddService<TInterface, TImplementation>(TImplementation service)
+            where TInterface : class
+            where TImplementation : class, TInterface
+        {
+            _processor.Register<TInterface, TImplementation>(service);
+            return this;
+        }
+
+        /// <summary>
+        /// Completes the composite service configuration and returns to the main options builder.
+        /// </summary>
+        /// <returns>The server builder options for continued configuration.</returns>
+        public WitServerBuilderOptions Build()
+        {
+            _options.RequestProcessor = _processor;
+            return _options;
+        }
     }
 }
