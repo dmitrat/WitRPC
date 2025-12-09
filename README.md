@@ -1,7 +1,6 @@
 # WitRPC
 
 [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.svg)](https://www.nuget.org/packages/OutWit.Communication/)
-[![License](https://img.shields.io/github/license/dmitrat/WitRPC)](LICENSE)
 
 WitRPC is a modern API for client-server communication designed to simplify development and provide a robust, extensible framework. It offers a seamless way to handle real-time and event-driven interactions with minimal setup, acting as a powerful alternative to traditional frameworks like WCF and SignalR.
 
