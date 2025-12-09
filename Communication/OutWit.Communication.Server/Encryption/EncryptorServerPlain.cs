@@ -23,6 +23,12 @@ namespace OutWit.Communication.Server.Encryption
             
         }
 
+        public Task<byte[]> EncryptForClient(byte[] data, byte[] clientPublicKey)
+        {
+            // Plain encryptor does not encrypt
+            return Task.FromResult(data);
+        }
+
         #endregion
 
         #region IEncryptor

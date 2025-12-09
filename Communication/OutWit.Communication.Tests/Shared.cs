@@ -27,6 +27,8 @@ using OutWit.Communication.Tests.Mock.Interfaces;
 using Castle.DynamicProxy;
 using OutWit.Communication.Interceptors;
 using OutWit.Communication.Tests._Mock.Interfaces;
+using OutWit.Communication.Client.Encryption.BouncyCastle;
+using OutWit.Communication.Server.Encryption.BouncyCastle;
 
 namespace OutWit.Communication.Tests
 {
@@ -41,12 +43,17 @@ namespace OutWit.Communication.Tests
             return new ServiceProxy(interceptor);
         }
 
-        public static IService GetServiceDynamic(WitClient client)
+        public static IService GetService(WitClient client)
         {
             var proxyGenerator = new ProxyGenerator();
             var interceptor = new RequestInterceptorDynamic(client, true);
 
             return proxyGenerator.CreateInterfaceProxyWithoutTarget<IService>(interceptor);
+        }
+
+        public static IService GetServiceDynamic(WitClient client)
+        {
+            return GetService(client);
         }
 
         public static WitServer GetServer(TransportType transportType, SerializerType serializerType, int maxNumberOfClients, string testName)
@@ -55,6 +62,25 @@ namespace OutWit.Communication.Tests
             
             return new WitServer(GetServerTransport(transportType, maxNumberOfClients, testName),
                 new EncryptorServerFactory<EncryptorServerGeneral>(),
+                new AccessTokenValidatorStatic(AUTHORIZATION_TOKEN),
+                GetSerializer(serializerType),
+                new MessageSerializerMemoryPack(),
+                new RequestProcessor<IService>(service),
+                new DiscoveryServer(new DiscoveryServerOptions
+                {
+                    IpAddress = IPAddress.Parse("239.255.255.250"),
+                    Port = 3702,
+                    Mode = DiscoveryServerMode.StartStop
+                }),
+                null, null, null, null);
+        }
+
+        public static WitServer GetServerWithBouncyCastle(TransportType transportType, SerializerType serializerType, int maxNumberOfClients, string testName)
+        {
+            var service = new MockService();
+            
+            return new WitServer(GetServerTransport(transportType, maxNumberOfClients, testName),
+                new EncryptorServerBouncyCastleFactory(),
                 new AccessTokenValidatorStatic(AUTHORIZATION_TOKEN),
                 GetSerializer(serializerType),
                 new MessageSerializerMemoryPack(),
@@ -89,6 +115,16 @@ namespace OutWit.Communication.Tests
         {
             return new WitClient(GetClientTransport(transportType, testName),
                 new EncryptorClientGeneral(),
+                new AccessTokenProviderStatic(AUTHORIZATION_TOKEN),
+                GetSerializer(serializerType), 
+                new MessageSerializerMemoryPack(),
+                null, null);
+        }
+
+        public static WitClient GetClientWithBouncyCastle(TransportType transportType, SerializerType serializerType, string testName)
+        {
+            return new WitClient(GetClientTransport(transportType, testName),
+                new EncryptorClientBouncyCastle(),
                 new AccessTokenProviderStatic(AUTHORIZATION_TOKEN),
                 GetSerializer(serializerType), 
                 new MessageSerializerMemoryPack(),

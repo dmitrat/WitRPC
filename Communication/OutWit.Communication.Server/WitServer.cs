@@ -98,9 +98,9 @@ namespace OutWit.Communication.Server
                     Vector = connection.Encryptor.GetVector()
                 };
 
-                byte[] responseBytes = MessageSerializer
-                    .Serialize(response)
-                    .EncryptRsa(request.PublicKey.ToRsaParameters());
+                byte[] responseBytes = connection.Encryptor
+                    .EncryptForClient(MessageSerializer.Serialize(response), request.PublicKey)
+                    .GetAwaiter().GetResult();
 
                 connection.IsInitialized = true;
 

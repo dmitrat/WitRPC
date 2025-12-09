@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Castle.Components.DictionaryAdapter.Xml;
 using OutWit.Communication.Interfaces;
+using OutWit.Communication.Utils;
 
 namespace OutWit.Communication.Server.Encryption
 {
@@ -36,6 +37,11 @@ namespace OutWit.Communication.Server.Encryption
             Aes.Padding = PaddingMode.PKCS7;
         }
 
+        public Task<byte[]> EncryptForClient(byte[] data, byte[] clientPublicKey)
+        {
+            return Task.FromResult(data.EncryptRsa(clientPublicKey.ToRsaParameters()));
+        }
+
         #endregion
 
         #region IEncryptor
@@ -55,9 +61,6 @@ namespace OutWit.Communication.Server.Encryption
             }
             catch (Exception e)
             {
-
-                int hh = 0;
-
                 return new byte[0];
             }
       
