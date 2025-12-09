@@ -35,7 +35,7 @@ var server = WitServerBuilder.Build(options =>
 });
 ```
 
-> ?? **Important**: BouncyCastle encryption is NOT compatible with standard .NET encryption. Both client and server must use `WithBouncyCastleEncryption()`.
+> **Important**: BouncyCastle encryption is NOT compatible with standard .NET encryption. Both client and server must use `WithBouncyCastleEncryption()`.
 
 #### Composite Services (Multiple Interfaces per Server)
 - **New Class**: `CompositeRequestProcessor` - Request processor that handles multiple service interfaces
