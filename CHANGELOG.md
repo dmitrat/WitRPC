@@ -63,6 +63,48 @@ var orderService = client.GetService<IOrderService>();
 var notificationService = client.GetService<INotificationService>();
 ```
 
+#### Composite Services with Dependency Injection
+- **New Method**: `AddWitRpcServerWithServices()` - Register composite services with automatic DI resolution
+- **New Class**: `CompositeServiceRegistration` - Helper for configuring composite services in DI context
+- Services can be resolved from DI container or registered inline
+- Three registration patterns: pre-registered services, inline registration, and factory functions
+
+```csharp
+// Option 1: Services already registered in DI
+services.AddSingleton<IUserService, UserServiceImpl>();
+services.AddSingleton<IOrderService, OrderServiceImpl>();
+
+services.AddWitRpcServerWithServices("api-server",
+    options =>
+    {
+        options.WithTcp(5000, maxClients: 100);
+        options.WithJson();
+    },
+    svcs =>
+    {
+        svcs.AddService<IUserService>();    // Resolved from DI
+        svcs.AddService<IOrderService>();   // Resolved from DI
+    });
+
+// Option 2: Register and add in one step
+services.AddWitRpcServerWithServices("api-server",
+    options => { /* ... */ },
+    svcs =>
+    {
+        svcs.AddService<IUserService, UserServiceImpl>();
+        svcs.AddService<IOrderService, OrderServiceImpl>();
+    });
+
+// Option 3: Factory functions
+services.AddWitRpcServerWithServices("api-server",
+    options => { /* ... */ },
+    svcs =>
+    {
+        svcs.AddService<IUserService>(sp => new UserServiceImpl(
+            sp.GetRequiredService<ILogger<UserServiceImpl>>()));
+    });
+```
+
 #### Dependency Injection Integration
 - **New Package**: `OutWit.Communication.Client.DependencyInjection` - Microsoft.Extensions.DependencyInjection support for WitRPC clients
 - **New Package**: `OutWit.Communication.Server.DependencyInjection` - Microsoft.Extensions.DependencyInjection support for WitRPC servers
@@ -168,6 +210,7 @@ app.MapHealthChecks("/health");
 #### Documentation
 - Updated `README.md` for `OutWit.Communication.Server` with composite services documentation
 - Updated `README.md` for `OutWit.Communication.Client` with multiple service access documentation
+- Updated `README.md` for `OutWit.Communication.Server.DependencyInjection` with composite services DI documentation
 - Created comprehensive README files for BouncyCastle encryption packages with compatibility tables
 - Updated main `README.md` with full package list, badges, and advanced features documentation
 - Created `CHANGELOG.md` for tracking version history

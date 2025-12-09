@@ -9,6 +9,7 @@ Microsoft.Extensions.DependencyInjection integration for WitRPC server, providin
 Key features:
 - **Named server registration** - Register multiple WitRPC servers with different configurations
 - **Service resolution from DI** - Automatically resolve service implementations from the container
+- **Composite services with DI** - Register multiple service interfaces with automatic DI resolution
 - **Auto-start support** - Automatically start servers when the application starts
 - **Factory pattern** - Use `IWitServerFactory` to create and manage servers dynamically
 
@@ -51,6 +52,72 @@ services.AddWitRpcServer<IMyService, MyServiceImpl>("my-server", options =>
 });
 ```
 
+#### Composite Services with DI (Multiple Interfaces)
+
+Register multiple service interfaces on a single server, with automatic resolution from DI:
+
+```csharp
+// Option 1: Services already registered in DI
+services.AddSingleton<IUserService, UserServiceImpl>();
+services.AddSingleton<IOrderService, OrderServiceImpl>();
+services.AddSingleton<INotificationService, NotificationServiceImpl>();
+
+services.AddWitRpcServerWithServices("api-server",
+    options =>
+    {
+        options.WithTcp(5000, maxClients: 100);
+        options.WithJson();
+        options.WithEncryption();
+    },
+    services =>
+    {
+        services.AddService<IUserService>();       // Resolved from DI
+        services.AddService<IOrderService>();      // Resolved from DI
+        services.AddService<INotificationService>(); // Resolved from DI
+    });
+```
+
+```csharp
+// Option 2: Register services and add to composite in one step
+services.AddWitRpcServerWithServices("api-server",
+    options =>
+    {
+        options.WithTcp(5000, maxClients: 100);
+        options.WithJson();
+    },
+    services =>
+    {
+        // Registers implementation in DI AND adds to composite
+        services.AddService<IUserService, UserServiceImpl>();
+        services.AddService<IOrderService, OrderServiceImpl>();
+        services.AddService<INotificationService, NotificationServiceImpl>();
+    });
+```
+
+```csharp
+// Option 3: Use factory functions
+services.AddWitRpcServerWithServices("api-server",
+    options =>
+    {
+        options.WithTcp(5000, maxClients: 100);
+        options.WithJson();
+    },
+    services =>
+    {
+        services.AddService<IUserService>(sp => 
+            new UserServiceImpl(sp.GetRequiredService<ILogger<UserServiceImpl>>()));
+        services.AddService<IOrderService>(sp => 
+            new OrderServiceImpl(sp.GetRequiredService<IDbContext>()));
+    });
+```
+
+Clients can then access any registered service:
+
+```csharp
+var userService = client.GetService<IUserService>();
+var orderService = client.GetService<IOrderService>();
+```
+
 #### Auto-Start on Startup
 
 Enable automatic server start when the application starts:
@@ -61,6 +128,12 @@ services.AddWitRpcServer("my-server", options =>
     options.WithTcp(5000, maxClients: 50);
     options.WithJson();
 }, autoStart: true);
+
+// Also works with composite services
+services.AddWitRpcServerWithServices("api-server",
+    options => { /* ... */ },
+    services => { /* ... */ },
+    autoStart: true);
 ```
 
 #### Using the Factory
