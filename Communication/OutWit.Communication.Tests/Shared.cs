@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using OutWit.Communication.Client.Authorization;
 using OutWit.Communication.Client.Encryption;
@@ -180,6 +181,7 @@ namespace OutWit.Communication.Tests
                             Port = random.Next(100, 300),
                             Host = "127.0.0.1",
                             TargetHost = "localhost",
+                            SslValidationCallback = AcceptAllCertificates
                         });
                     }
 
@@ -191,6 +193,15 @@ namespace OutWit.Communication.Tests
                         BufferSize = 1024 * 1024
                     });
             }
+        }
+
+        /// <summary>
+        /// SSL validation callback that accepts all certificates. 
+        /// Used only for testing with self-signed certificates.
+        /// </summary>
+        private static bool AcceptAllCertificates(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
+        {
+            return true;
         }
 
         public static IMessageSerializer GetSerializer(SerializerType serializerType)
