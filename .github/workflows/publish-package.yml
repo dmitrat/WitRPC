@@ -1,0 +1,145 @@
+name: Publish Package
+run-name: "Publish Package: ${{ inputs.project }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: 'Project to publish (equals .csproj base name)'
+        required: true
+        type: choice
+        options:
+          # Core Communication
+          - OutWit.Communication
+          - OutWit.Communication.Client
+          - OutWit.Communication.Server
+          # Client Transports
+          - OutWit.Communication.Client.Pipes
+          - OutWit.Communication.Client.Tcp
+          - OutWit.Communication.Client.WebSocket
+          - OutWit.Communication.Client.MMF
+          - OutWit.Communication.Client.Rest
+          # Server Transports
+          - OutWit.Communication.Server.Pipes
+          - OutWit.Communication.Server.Tcp
+          - OutWit.Communication.Server.WebSocket
+          - OutWit.Communication.Server.MMF
+          - OutWit.Communication.Server.Rest
+          # Client Extensions
+          - OutWit.Communication.Client.DependencyInjection
+          - OutWit.Communication.Client.HealthChecks
+          - OutWit.Communication.Client.Encryption.BouncyCastle
+          # Server Extensions
+          - OutWit.Communication.Server.DependencyInjection
+          - OutWit.Communication.Server.Encryption.BouncyCastle
+          # InterProcess
+          - OutWit.InterProcess
+          - OutWit.InterProcess.Host
+          - OutWit.InterProcess.Agent
+      pushToNuGet:
+        description: 'Push to nuget.org'
+        type: boolean
+        required: true
+        default: true
+      pushToGitHubPackages:
+        description: 'Push to GitHub Packages'
+        type: boolean
+        required: true
+        default: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    env:
+      PROJECT: ${{ github.event.inputs.project }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET SDKs (6/7/8/9/10)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            6.0.x
+            7.0.x
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.sln*', '**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Resolve library project path
+        id: paths
+        shell: pwsh
+        run: |
+          $name = "${{ env.PROJECT }}"
+          $lib = Get-ChildItem -Recurse -Filter "$name.csproj" | Select-Object -Expand FullName -First 1
+          if (-not $lib) { Write-Error "Library project '$name.csproj' not found"; exit 1 }
+          "libCsproj=$lib" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Resolved: $lib"
+
+      - name: Build (all target frameworks)
+        run: dotnet build "${{ steps.paths.outputs.libCsproj }}" -c Release -p:ContinuousIntegrationBuild=true
+
+      - name: Pack (no build)
+        run: dotnet pack "${{ steps.paths.outputs.libCsproj }}" -c Release --no-build
+
+      - name: Collect packages
+        shell: pwsh
+        run: |
+          if (!(Test-Path "NuGet")) { New-Item -ItemType Directory -Force -Path "NuGet" | Out-Null }
+          Get-ChildItem -Recurse -Include *.nupkg,*.snupkg -Path . |
+            Where-Object { $_.FullName -match "\\bin\\Release\\" } |
+            Copy-Item -Destination "NuGet" -Force
+          Write-Host "Collected packages:"; Get-ChildItem NuGet | Select-Object Name
+
+      - name: Add GitHub Packages source
+        if: github.event.inputs.pushToGitHubPackages == 'true'
+        run: >
+          dotnet nuget add source
+          --username ${{ github.actor }}
+          --password ${{ secrets.GITHUB_TOKEN }}
+          --store-password-in-clear-text
+          --name github
+          "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+
+      - name: Push to nuget.org (.nupkg)
+        if: github.event.inputs.pushToNuGet == 'true'
+        run: >
+          dotnet nuget push "NuGet\*.nupkg"
+          --api-key ${{ secrets.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
+
+      - name: Push symbols to nuget.org (.snupkg)
+        if: github.event.inputs.pushToNuGet == 'true'
+        run: >
+          dotnet nuget push "NuGet\*.snupkg"
+          --api-key ${{ secrets.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
+
+      - name: Push to GitHub Packages (.nupkg)
+        if: github.event.inputs.pushToGitHubPackages == 'true'
+        run: >
+          dotnet nuget push "NuGet\*.nupkg"
+          --api-key ${{ secrets.GITHUB_TOKEN }}
+          --source github
+          --skip-duplicate
+          
+      - name: Upload NuGet artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PROJECT }}-nuget
+          path: NuGet/*
+          retention-days: 7
