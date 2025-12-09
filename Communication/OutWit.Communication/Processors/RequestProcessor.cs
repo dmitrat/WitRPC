@@ -136,16 +136,17 @@ namespace OutWit.Communication.Processors
             if(sender.Serializer == null)
                 return;
 
-            var request = eventName.CreateRequest(parameters, sender.Serializer);
+            var parameterTypes = parameters.Select(x => x?.GetType() ?? typeof(object)).ToArray();
+            var request = eventName.CreateRequest(parameters, parameterTypes, sender.Serializer);
 
             if (sender.IsStrongAssemblyMatch)
             {
-                request.ParameterTypes = parameters.Select(x => x.GetType()).ToArray();
+                request.ParameterTypes = parameterTypes;
                 request.GenericArguments = Array.Empty<Type>();
             }
             else
             {
-                request.ParameterTypesByName = parameters.Select(x => (ParameterType)x.GetType()).ToArray();
+                request.ParameterTypesByName = parameterTypes.Select(x => (ParameterType)x).ToArray();
                 request.GenericArgumentsByName = Array.Empty<ParameterType>();
             }
 

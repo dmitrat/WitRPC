@@ -14,7 +14,7 @@ using OutWit.Communication.Utils;
 
 namespace OutWit.Communication.Client
 {
-    public class WitClient : IClient
+    public class WitClient : IClient, IDisposable
     {
         #region Events
 
@@ -174,7 +174,7 @@ namespace OutWit.Communication.Client
         {
             await Disconnect();
 
-            Thread.Sleep(500);
+            await Task.Delay(500, cancellationToken);
 
             return await ConnectAsync(timeout, cancellationToken);
         }
@@ -345,6 +345,18 @@ namespace OutWit.Communication.Client
         }
 
         #endregion
+
+        #region IDisposable
+
+        public void Dispose()
+        {
+            WaitForRequest?.Dispose();
+            Encryptor?.Dispose();
+            Transport?.Dispose();
+        }
+
+        #endregion
+
 
         #region Properties
 

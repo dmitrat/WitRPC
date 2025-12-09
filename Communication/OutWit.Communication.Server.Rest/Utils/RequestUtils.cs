@@ -35,7 +35,7 @@ namespace OutWit.Communication.Server.Rest.Utils
                     parameters.Add(parameter);
             }
 
-            return methodName.CreateRequest(parameters, serializer);
+            return methodName.CreateRequestRaw(parameters, serializer);
 
         }
 
@@ -56,11 +56,11 @@ namespace OutWit.Communication.Server.Rest.Utils
 
                 var dictionary = JsonSerializer.Deserialize<Dictionary<string, object>>(data);
                 if (dictionary != null)
-                    return methodName.CreateRequest(dictionary.Values.ToArray(), serializer); 
+                    return methodName.CreateRequestRaw(dictionary.Values.ToArray(), serializer); 
 
                 var list = JsonSerializer.Deserialize<List<object>>(data);
                 if (list != null)
-                    return methodName.CreateRequest(list, serializer);
+                    return methodName.CreateRequestRaw(list, serializer);
             }
 
             return null;

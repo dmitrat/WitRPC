@@ -24,7 +24,21 @@ namespace OutWit.Communication.Tests._Mock.Interfaces
 
         public string RequestData(string message);
 
+        public string RequestDataNullable(string? message);
+
         public Task<string> RequestDataAsync(string message);
+
+        public Task<string> RequestDataNullableAsync(string? message);
+
+
+        public string? RequestWithNullableResult(string? message);
+
+        public Task<string?> RequestWithNullableResultAsync(string? message);
+
+
+        public string RequestWithMultipleNullableParams(string? first, int? second, ComplexNumber<int, int>? third);
+
+        public Task<string> RequestWithMultipleNullableParamsAsync(string? first, int? second, ComplexNumber<int, int>? third);
 
 
         public ComplexNumber<int, int> StartProcessing(ComplexNumber<int, int> number, int iterations);

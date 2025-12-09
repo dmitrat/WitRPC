@@ -33,13 +33,34 @@ namespace OutWit.Communication.Utils
             }
         }
 
-        public static WitRequest CreateRequest(this string me, IReadOnlyList<object> parameters,
+        public static WitRequest CreateRequest(this string me, IReadOnlyList<object?> parameters, IReadOnlyList<Type> parameterTypes,
+            IMessageSerializer serializer, ILogger? logger = null)
+        {
+            if (parameters.Count != parameterTypes.Count)
+                throw new WitExceptionSerialization($"Parameters count ({parameters.Count}) does not match parameter types count ({parameterTypes.Count})");
+
+            return new WitRequest
+            {
+                MethodName = me,
+                Parameters = parameters.Select((parameter, index) => 
+                    parameter == null 
+                        ? Array.Empty<byte>() 
+                        : serializer.Serialize(parameter, parameterTypes[index], logger)).ToArray()
+            };
+        }
+
+        /// <summary>
+        /// Creates a request without explicit parameter types. Used for REST API compatibility.
+        /// Does not support null parameters - each parameter must have a non-null value.
+        /// </summary>
+        public static WitRequest CreateRequestRaw(this string me, IReadOnlyList<object> parameters,
             IMessageSerializer serializer, ILogger? logger = null)
         {
             return new WitRequest
             {
                 MethodName = me,
-                Parameters = parameters.Select(parameter => serializer.Serialize(parameter, parameter.GetType(), logger)).ToArray()
+                Parameters = parameters.Select(parameter => 
+                    serializer.Serialize(parameter, parameter.GetType(), logger)).ToArray()
             };
         }
 
@@ -62,7 +83,12 @@ namespace OutWit.Communication.Utils
             var result = new List<object?>();
 
             for (int i = 0; i < Math.Min(bytes.Count, types.Count); i++)
-                result.Add(serializer.Deserialize(bytes[i], types[i]));
+            {
+                if (bytes[i] == null || bytes[i].Length == 0)
+                    result.Add(null);
+                else
+                    result.Add(serializer.Deserialize(bytes[i], types[i]));
+            }
 
             return result.ToArray();
         }

@@ -71,16 +71,17 @@ namespace OutWit.Communication.Interceptors
 
         public async Task<object?> InterceptMethodAsync(IProxyInvocation invocation)
         {
-            var request = invocation.MethodName.CreateRequest(invocation.Parameters, Client.ParametersSerializer);
+            var parameterTypes = invocation.GetParametersTypes();
+            var request = invocation.MethodName.CreateRequest(invocation.Parameters, parameterTypes, Client.ParametersSerializer);
 
             if (IsStrongAssemblyMatch)
             {
-                request.ParameterTypes = invocation.GetParametersTypes();
+                request.ParameterTypes = parameterTypes;
                 request.GenericArguments = invocation.GetGenericArguments();
             }
             else
             {
-                request.ParameterTypesByName = invocation.GetParametersTypes().Select(type => new ParameterType(type)).ToArray();
+                request.ParameterTypesByName = parameterTypes.Select(type => new ParameterType(type)).ToArray();
                 request.GenericArgumentsByName = invocation.GetGenericArguments().Select(type => new ParameterType(type)).ToArray();
             }
 
@@ -99,8 +100,8 @@ namespace OutWit.Communication.Interceptors
 
             try
             {
-                if(response.Data == null)
-                    throw response.CreateFaultException();
+                if(response.Data == null || response.Data.Length == 0)
+                    return null;
                 
                 return Client.ParametersSerializer.Deserialize(response.Data, returnType);
             }
@@ -127,10 +128,10 @@ namespace OutWit.Communication.Interceptors
             var eventName = invocation.MethodName.Substring(EVENT_SUBSCRIBE_PREFIX.Length);
             var handler = (Delegate)invocation.Parameters[0];
 
-            if (m_eventDelegates.TryGetValue(eventName, out Delegate? existing))
-                m_eventDelegates[eventName] = Delegate.Combine(existing, handler);
-            else
-                m_eventDelegates.TryAdd(eventName, handler);
+            m_eventDelegates.AddOrUpdate(
+                eventName,
+                handler,
+                (_, existing) => Delegate.Combine(existing, handler));
         }
 
         private void UnsubscribeEvent(IProxyInvocation invocation)

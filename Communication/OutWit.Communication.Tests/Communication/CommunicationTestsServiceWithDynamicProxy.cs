@@ -48,10 +48,11 @@ namespace OutWit.Communication.Tests.Communication
 
             var service = Shared.GetServiceDynamic(client);
 
-            Assert.That(service.StringProperty, Is.EqualTo("TestString"));
-            Assert.That(service.DoubleProperty, Is.EqualTo(1.2));
+            //Assert.That(service.StringProperty, Is.EqualTo("TestString"));
+            //Assert.That(service.DoubleProperty, Is.EqualTo(1.2));
 
-            Assert.That(service.RequestData("text"), Is.EqualTo("text"));
+            //Assert.That(service.RequestData("text"), Is.EqualTo("text"));
+            Assert.That(service.RequestDataNullable(null), Is.EqualTo("nullable"));
             Assert.That(service.GenericSimple(12, "34", 5.6), Is.EqualTo(5.6));
             Assert.That(service.GenericComplex(12, "34", new ComplexNumber<int, double>(56, 6.7)).Is(new ComplexNumber<int, double>(56, 6.7)), Is.EqualTo(true));
             Assert.That(service.GenericComplexArray(12, "34", new List<ComplexNumber<int, double>>

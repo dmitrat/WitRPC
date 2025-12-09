@@ -42,9 +42,50 @@ namespace OutWit.Communication.Tests.Mock
             return message;
         }
 
+        public string RequestDataNullable(string? message)
+        {
+            return message ?? "nullable";
+        }
+
         public async Task<string> RequestDataAsync(string message)
         {
             return await Task.Run(() => RequestData(message));
+        }
+
+        public async Task<string> RequestDataNullableAsync(string? message)
+        {
+            return await Task.Run(() => RequestDataNullable(message));
+        }
+
+        #endregion
+
+        #region RequestWithNullableResult
+
+        public string? RequestWithNullableResult(string? message)
+        {
+            return message; // Returns null if message is null
+        }
+
+        public async Task<string?> RequestWithNullableResultAsync(string? message)
+        {
+            return await Task.Run(() => RequestWithNullableResult(message));
+        }
+
+        #endregion
+
+        #region RequestWithMultipleNullableParams
+
+        public string RequestWithMultipleNullableParams(string? first, int? second, ComplexNumber<int, int>? third)
+        {
+            var firstStr = first ?? "null";
+            var secondStr = second?.ToString() ?? "null";
+            var thirdStr = third != null ? $"({third.A},{third.B})" : "null";
+            return $"{firstStr}|{secondStr}|{thirdStr}";
+        }
+
+        public async Task<string> RequestWithMultipleNullableParamsAsync(string? first, int? second, ComplexNumber<int, int>? third)
+        {
+            return await Task.Run(() => RequestWithMultipleNullableParams(first, second, third));
         }
 
         #endregion
