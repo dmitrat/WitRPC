@@ -243,4 +243,4 @@ See [CHANGELOG.md](CHANGELOG.md) for a list of changes.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Non-Commercial License (NCL) - see the [LICENSE](LICENSE) file for details.
