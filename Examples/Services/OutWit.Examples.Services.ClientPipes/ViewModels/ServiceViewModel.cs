@@ -15,7 +15,6 @@ using OutWit.Communication.Client;
 using OutWit.Communication.Client.Pipes.Utils;
 using OutWit.Communication.Interfaces;
 using OutWit.Examples.Contracts;
-using static OutWit.Common.MVVM.Utils.Extensions;
 
 namespace OutWit.Examples.Services.ClientPipes.ViewModels
 {
@@ -49,11 +48,11 @@ namespace OutWit.Examples.Services.ClientPipes.ViewModels
 
         private void InitCommands()
         {
-            ReconnectCmd = new DelegateCommand(x=> Reconnect());
-            StartProcessingCmd = new DelegateCommand(x=> StartProcessing());
-            InterruptProcessingCmd = new DelegateCommand(x=>InterruptProcessing());
-            InterruptProcessingCmd = new DelegateCommand(x => InterruptProcessing());
-            InterruptProcessingAsyncCmd = new DelegateCommand(x => InterruptProcessingAsync());
+            ReconnectCmd = new RelayCommand(x => Reconnect());
+            StartProcessingCmd = new RelayCommand(x => StartProcessing());
+            InterruptProcessingCmd = new RelayCommand(x => InterruptProcessing());
+            InterruptProcessingCmd = new RelayCommand(x => InterruptProcessing());
+            InterruptProcessingAsyncCmd = new RelayCommand(x => InterruptProcessingAsync());
         }
 
         private void InitClient()

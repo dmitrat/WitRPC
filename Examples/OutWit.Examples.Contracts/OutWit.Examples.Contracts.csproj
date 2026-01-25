@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="CoreWCF.Primitives" Version="1.8.0" />
-    <PackageReference Include="OutWit.Common.Proxy" Version="1.2.0" />
+    <PackageReference Include="OutWit.Common.Proxy" Version="1.2.9" />
     <PackageReference Include="protobuf-net.ServiceModel" Version="3.2.52" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="10.0.652802" />
   </ItemGroup>

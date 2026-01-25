@@ -111,10 +111,10 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
 
         private void InitCommands()
         {
-            StartServerCmd = new DelegateCommand(x => StartServer());
-            StopServerCmd = new DelegateCommand(x => StopServer());
-            ResetHttpPathCmd = new DelegateCommand(x => ResetWebSocketPath());
-            ResetHttpPortCmd = new DelegateCommand(x => ResetWebSocketPort());
+            StartServerCmd = new RelayCommand(x => StartServer());
+            StopServerCmd = new RelayCommand(x => StopServer());
+            ResetHttpPathCmd = new RelayCommand(x => ResetWebSocketPath());
+            ResetHttpPortCmd = new RelayCommand(x => ResetWebSocketPort());
         }
 
         #endregion

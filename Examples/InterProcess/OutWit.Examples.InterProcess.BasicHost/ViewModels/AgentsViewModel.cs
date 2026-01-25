@@ -57,10 +57,10 @@ namespace OutWit.Examples.InterProcess.BasicHost.ViewModels
 
         private void InitCommands()
         {
-            AddAgentCmd = new DelegateCommand(x => AddAgent());
-            RemoveAgentCmd = new DelegateCommand(x => RemoveAgent());
-            StartProcessingCmd = new DelegateCommand(x => StartProcessing());
-            InterruptProcessingCmd = new DelegateCommand(x => InterruptProcessing());
+            AddAgentCmd = new RelayCommand(x => AddAgent());
+            RemoveAgentCmd = new RelayCommand(x => RemoveAgent());
+            StartProcessingCmd = new RelayCommand(x => StartProcessing());
+            InterruptProcessingCmd = new RelayCommand(x => InterruptProcessing());
         }
 
         #endregion

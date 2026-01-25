@@ -65,8 +65,8 @@ namespace OutWit.Examples.Discovery.Client.ViewModels
 
         private void InitCommands()
         {
-            ConnectCmd = new DelegateCommand(x => Connect());
-            DisconnectCmd = new DelegateCommand(x => RemoveServer());
+            ConnectCmd = new RelayCommand(x => Connect());
+            DisconnectCmd = new RelayCommand(x => RemoveServer());
         }
 
         #endregion

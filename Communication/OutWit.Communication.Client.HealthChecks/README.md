@@ -1,4 +1,3 @@
-
 # OutWit.Communication.Client.HealthChecks
 
 ASP.NET Core health checks integration for WitRPC client, providing health monitoring for WitRPC client connectivity.
@@ -127,3 +126,24 @@ The health check returns the following data:
 ### Further Documentation
 
 For more about WitRPC and health monitoring, see the official documentation on [witrpc.io](https://witrpc.io/).
+
+## License
+
+Licensed under the Apache License, Version 2.0. See `LICENSE`.
+
+## Attribution (optional)
+
+If you use OutWit.Communication.Client.HealthChecks in a product, a mention is appreciated (but not required), for example:
+"Powered by WitRPC (https://witrpc.io/)".
+
+## Trademark / Project name
+
+"WitRPC" and the WitRPC logo are used to identify the official project by Dmitry Ratner.
+
+You may:
+- refer to the project name in a factual way (e.g., "built with WitRPC");
+- use the name to indicate compatibility (e.g., "WitRPC-compatible").
+
+You may not:
+- use "WitRPC" as the name of a fork or a derived product in a way that implies it is the official project;
+- use the WitRPC logo to promote forks or derived products without permission.

@@ -48,8 +48,8 @@ namespace OutWit.Examples.Discovery.Client.Model
 
         private void InitCommands()
         {
-            StartProcessingCmd = new DelegateCommand(x => StartProcessing());
-            InterruptProcessingCmd = new DelegateCommand(x => InterruptProcessing());
+            StartProcessingCmd = new RelayCommand(x => StartProcessing());
+            InterruptProcessingCmd = new RelayCommand(x => InterruptProcessing());
         }
 
         #endregion

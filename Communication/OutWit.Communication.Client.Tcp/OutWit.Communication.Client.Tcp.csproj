@@ -2,7 +2,7 @@
 
   <PropertyGroup>
 	<TargetFrameworks>net10.0;net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
-	  <Version>2.3.0</Version>
+	  <Version>2.3.1</Version>
 
 	  <Description>TCP transport client for WitRPC, enabling network communication over TCP sockets (with optional TLS support) to connect to WitRPC servers.</Description>
 	  <PackageTags>OutWit;Communication;WitRPC;Client;TCP</PackageTags>

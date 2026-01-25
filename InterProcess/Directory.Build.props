@@ -18,11 +18,11 @@
 	<IncludeSymbols>true</IncludeSymbols>
 	<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 	<EmbedUntrackedSources>true</EmbedUntrackedSources>
+	<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 
 	<GeneratePackageOnBuild Condition=" '$(Configuration)' == 'Release' ">true</GeneratePackageOnBuild>
 
 	  <PackageIcon>WitRPC-logo.png</PackageIcon>
-	  <PackageLicenseFile>LICENSE</PackageLicenseFile>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 
   </PropertyGroup>

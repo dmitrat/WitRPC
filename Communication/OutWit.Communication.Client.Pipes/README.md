@@ -1,4 +1,3 @@
-
 # OutWit.Communication.Client.Pipes
 
 Named Pipes transport client for WitRPC, allowing efficient inter-process communication via named pipes on the local machine (with support for multiple clients).
@@ -55,3 +54,24 @@ After the client is connected, using `service` is the same as with any other tra
 ### Further Documentation
 
 For more about using named pipes in WitRPC and advanced pipe usage (including setting custom security or handling remote connections), see the official documentation on [witrpc.io](https://witrpc.io/).
+
+## License
+
+Licensed under the Apache License, Version 2.0. See `LICENSE`.
+
+## Attribution (optional)
+
+If you use OutWit.Communication.Client.Pipes in a product, a mention is appreciated (but not required), for example:
+"Powered by WitRPC (https://witrpc.io/)".
+
+## Trademark / Project name
+
+"WitRPC" and the WitRPC logo are used to identify the official project by Dmitry Ratner.
+
+You may:
+- refer to the project name in a factual way (e.g., "built with WitRPC");
+- use the name to indicate compatibility (e.g., "WitRPC-compatible").
+
+You may not:
+- use "WitRPC" as the name of a fork or a derived product in a way that implies it is the official project;
+- use the WitRPC logo to promote forks or derived products without permission.

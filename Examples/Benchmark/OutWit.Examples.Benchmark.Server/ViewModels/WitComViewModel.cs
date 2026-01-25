@@ -106,14 +106,14 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
 
         private void InitCommands()
         {
-            StartServerCmd = new DelegateCommand(x => StartServer());
-            StopServerCmd = new DelegateCommand(x => StopServer());
-            ResetMemoryMappedFileNameCmd = new DelegateCommand(x => ResetMemoryMappedFileName());
-            ResetPipeNameCmd = new DelegateCommand(x => ResetPipeName());
-            ResetWebSocketPathCmd = new DelegateCommand(x => ResetWebSocketPath());
-            ResetWebSocketPortCmd = new DelegateCommand(x => ResetWebSocketPort());
-            ResetTcpPortCmd = new DelegateCommand(x => ResetTcpPort());
-            ResetAuthorizationTokenCmd = new DelegateCommand(x => ResetAuthorizationToken());
+            StartServerCmd = new RelayCommand(x => StartServer());
+            StopServerCmd = new RelayCommand(x => StopServer());
+            ResetMemoryMappedFileNameCmd = new RelayCommand(x => ResetMemoryMappedFileName());
+            ResetPipeNameCmd = new RelayCommand(x => ResetPipeName());
+            ResetWebSocketPathCmd = new RelayCommand(x => ResetWebSocketPath());
+            ResetWebSocketPortCmd = new RelayCommand(x => ResetWebSocketPort());
+            ResetTcpPortCmd = new RelayCommand(x => ResetTcpPort());
+            ResetAuthorizationTokenCmd = new RelayCommand(x => ResetAuthorizationToken());
         }
 
         private void InitLog()

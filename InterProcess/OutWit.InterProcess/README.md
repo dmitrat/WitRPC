@@ -1,4 +1,5 @@
 ﻿
+
 # OutWit.InterProcess
 
 **Inter-process communication base logic for the WitRPC framework.** This package provides the foundation for launching and communicating with external processes within the WitRPC ecosystem. It enables .NET applications to call services in separate processes as if they were local, using WitRPC’s dynamic proxies and transports. OutWit.InterProcess is ideal for scenarios where you need to run parts of your application in isolation or in a different environment (e.g. a 32-bit legacy component from a 64-bit host). It works seamlessly with the rest of WitRPC, allowing event-driven, secure communication between processes just like standard in-process or network calls.
@@ -108,3 +109,24 @@ By using OutWit.InterProcess alongside the rest of WitRPC, you ensure that *all*
 ## Further Documentation
 
 For more details on the WitRPC framework and advanced usage of inter-process features, visit the official WitRPC documentation site at  [witrpc.io](https://witrpc.io/). There you will find guides, additional examples, and reference documentation covering topics such as custom transports, security, and performance tuning within the WitRPC/OutWit ecosystem
+
+## License
+
+Licensed under the Apache License, Version 2.0. See `LICENSE`.
+
+## Attribution (optional)
+
+If you use OutWit.InterProcess in a product, a mention is appreciated (but not required), for example:
+"Powered by WitRPC (https://witrpc.io/)".
+
+## Trademark / Project name
+
+"WitRPC" and the WitRPC logo are used to identify the official project by Dmitry Ratner.
+
+You may:
+- refer to the project name in a factual way (e.g., "built with WitRPC");
+- use the name to indicate compatibility (e.g., "WitRPC-compatible").
+
+You may not:
+- use "WitRPC" as the name of a fork or a derived product in a way that implies it is the official project;
+- use the WitRPC logo to promote forks or derived products without permission.

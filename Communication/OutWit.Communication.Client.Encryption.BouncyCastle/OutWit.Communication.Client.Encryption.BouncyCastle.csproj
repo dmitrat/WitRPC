@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net10.0;net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
 
-    <Version>2.3.0</Version>
+    <Version>2.3.1</Version>
 
     <Description>BouncyCastle-based encryption for WitRPC client, providing cross-platform RSA/AES encryption that works in Blazor WebAssembly and all .NET platforms.</Description>
     <PackageTags>OutWit;Communication;WitRPC;Encryption;BouncyCastle;Blazor;WebAssembly</PackageTags>

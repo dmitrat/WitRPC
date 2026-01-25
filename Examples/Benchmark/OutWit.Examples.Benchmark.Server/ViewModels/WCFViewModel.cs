@@ -92,12 +92,12 @@ namespace OutWit.Examples.Benchmark.Server.ViewModels
 
         private void InitCommands()
         {
-            StartServerCmd = new DelegateCommand(x => StartServer());
-            StopServerCmd = new DelegateCommand(x => StopServer());
-            ResetPipeNameCmd = new DelegateCommand(x => ResetPipeName());
-            ResetHttpPathCmd = new DelegateCommand(x => ResetWebSocketPath());
-            ResetHttpPortCmd = new DelegateCommand(x => ResetWebSocketPort());
-            ResetTcpPortCmd = new DelegateCommand(x => ResetTcpPort());
+            StartServerCmd = new RelayCommand(x => StartServer());
+            StopServerCmd = new RelayCommand(x => StopServer());
+            ResetPipeNameCmd = new RelayCommand(x => ResetPipeName());
+            ResetHttpPathCmd = new RelayCommand(x => ResetWebSocketPath());
+            ResetHttpPortCmd = new RelayCommand(x => ResetWebSocketPort());
+            ResetTcpPortCmd = new RelayCommand(x => ResetTcpPort());
         }
 
         #endregion

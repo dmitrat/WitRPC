@@ -3,9 +3,8 @@ using System.Net.Sockets;
 using System.Net;
 using System.Windows;
 using System.Windows.Input;
-using OutWit.Common.MVVM.Aspects;
+using OutWit.Common.MVVM.Attributes;
 using OutWit.Common.MVVM.Commands;
-using OutWit.Common.MVVM.Utils;
 using OutWit.Common.Random;
 using OutWit.Examples.Discovery.Server.Model;
 
@@ -16,32 +15,6 @@ namespace OutWit.Examples.Discovery.Server
     /// </summary>
     public partial class AddServicePrompt : Window
     {
-        public static readonly DependencyProperty ItemsSourceProperty = BindingUtils.Register<AddServicePrompt, IEnumerable<Model.TransportType>>(nameof(ItemsSource));
-
-        public static readonly DependencyProperty SelectedTransportProperty = BindingUtils.Register<AddServicePrompt, Model.TransportType>(nameof(SelectedTransport), OnSelectedTransportChanged);
-
-        public static readonly DependencyProperty ServerNameProperty = BindingUtils.Register<AddServicePrompt, string>(nameof(ServerName), OnServerNameChanged);
-        
-        public static readonly DependencyProperty ServerDescriptionProperty = BindingUtils.Register<AddServicePrompt, string>(nameof(ServerDescription));
-
-        public static readonly DependencyProperty AddressProperty = BindingUtils.Register<AddServicePrompt, string>(nameof(Address));
-
-        public static readonly DependencyProperty CanSetAddressProperty = BindingUtils.Register<AddServicePrompt, bool>(nameof(CanSetAddress));
-
-        public static readonly DependencyProperty PortProperty = BindingUtils.Register<AddServicePrompt, int>(nameof(Port));
-
-        public static readonly DependencyProperty CanSetPortProperty = BindingUtils.Register<AddServicePrompt, bool>(nameof(CanSetPort));
-
-        public static readonly DependencyProperty CanAddServerProperty = BindingUtils.Register<AddServicePrompt, bool>(nameof(CanAddServer));
-
-        public static readonly DependencyProperty OkCmdProperty = BindingUtils.Register<AddServicePrompt, ICommand>(nameof(OkCmd));
-
-        public static readonly DependencyProperty CancelCmdProperty = BindingUtils.Register<AddServicePrompt, ICommand>(nameof(CancelCmd));
-
-        public static readonly DependencyProperty ResetAddressCmdProperty = BindingUtils.Register<AddServicePrompt, ICommand>(nameof(ResetAddressCmd));
-
-        public static readonly DependencyProperty ResetPortCmdProperty = BindingUtils.Register<AddServicePrompt, ICommand>(nameof(ResetPortCmd));
-
         #region Constructors
 
         public AddServicePrompt()
@@ -68,10 +41,10 @@ namespace OutWit.Examples.Discovery.Server
 
         private void InitCommands()
         {
-            OkCmd = new DelegateCommand(x => Ok());
-            CancelCmd = new DelegateCommand(x => Cancel());
-            ResetAddressCmd = new DelegateCommand(x => ResetAddress());
-            ResetPortCmd = new DelegateCommand(x => ResetPort());
+            OkCmd = new RelayCommand(x => Ok());
+            CancelCmd = new RelayCommand(x => Cancel());
+            ResetAddressCmd = new RelayCommand(x => ResetAddress());
+            ResetPortCmd = new RelayCommand(x => ResetPort());
         }
 
         #endregion
@@ -169,47 +142,47 @@ namespace OutWit.Examples.Discovery.Server
 
         #region Properties
 
-        [Bindable]
+        [StyledProperty]
         public IEnumerable<Model.TransportType> ItemsSource { get; private set; }
 
-        [Bindable]
+        [StyledProperty]
         public Model.TransportType SelectedTransport { get; set; }
 
-        [Bindable]
+        [StyledProperty]
         public string ServerName { get; set; }
 
-        [Bindable]
+        [StyledProperty]
         public string ServerDescription { get; set; }
 
-        [Bindable]
+        [StyledProperty]
         public string Address { get; set; }
 
-        [Bindable]
+        [StyledProperty]
         public int Port { get; set; }
 
-        [Bindable]
+        [StyledProperty]
         public bool CanAddServer { get; private set; }
 
-        [Bindable]
+        [StyledProperty]
         public bool CanSetAddress { get; private set; }
 
-        [Bindable]
+        [StyledProperty]
         public bool CanSetPort { get; private set; }
 
         #endregion
 
         #region Commands
 
-        [Bindable]
+        [StyledProperty]
         public ICommand OkCmd { get; private set; }
 
-        [Bindable]
+        [StyledProperty]
         public ICommand CancelCmd { get; private set; }
 
-        [Bindable]
+        [StyledProperty]
         public ICommand ResetAddressCmd { get; private set; }
 
-        [Bindable]
+        [StyledProperty]
         public ICommand ResetPortCmd { get; private set; }
 
         #endregion

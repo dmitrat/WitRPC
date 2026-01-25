@@ -10,12 +10,12 @@
 
 	<ItemGroup>
 		<PackageReference Include="CsvHelper" Version="33.1.0" />
-		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.0" />
-		<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.Json" Version="10.0.0" />
-		<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="10.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
-		<PackageReference Include="OutWit.Common.Logging" Version="1.2.2" />
-		<PackageReference Include="OutWit.Common.MVVM" Version="1.1.3" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.Json" Version="10.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="10.0.2" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.2" />
+		<PackageReference Include="OutWit.Common.Logging" Version="1.2.3" />
+		<PackageReference Include="OutWit.Common.MVVM" Version="2.0.2" />
 		<PackageReference Include="protobuf-net.Grpc.ClientFactory" Version="1.2.2" />
 		<PackageReference Include="System.ServiceModel.Http" Version="10.0.652802" />
 		<PackageReference Include="System.ServiceModel.NetNamedPipe" Version="10.0.652802" />

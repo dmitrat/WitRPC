@@ -42,12 +42,12 @@ namespace OutWit.Examples.Services.WebSocket.ViewModels
 
         private void InitCommands()
         {
-            ReconnectCmd = new DelegateCommand(x=> Reconnect());
-            StartProcessingCmd = new DelegateCommand(x=> StartProcessing());
-            StartProcessingAsyncCmd = new DelegateCommand(x=> StartProcessingAsync());
+            ReconnectCmd = new RelayCommand(x=> Reconnect());
+            StartProcessingCmd = new RelayCommand(x=> StartProcessing());
+            StartProcessingAsyncCmd = new RelayCommand(x=> StartProcessingAsync());
 
-            InterruptProcessingCmd = new DelegateCommand(x=>InterruptProcessing());
-            InterruptProcessingAsyncCmd = new DelegateCommand(x=>InterruptProcessingAsync());
+            InterruptProcessingCmd = new RelayCommand(x=>InterruptProcessing());
+            InterruptProcessingAsyncCmd = new RelayCommand(x=>InterruptProcessingAsync());
         }
 
         private void InitClient()

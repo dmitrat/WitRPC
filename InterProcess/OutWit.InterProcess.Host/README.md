@@ -97,6 +97,27 @@ OutWit.InterProcess.Host is built on the WitRPC client framework, meaning it inh
     
 ## Further Resources
 
-For more information on using the Host and Agent pattern with WitRPC, refer to the official documentation on [witrpc.io](https://witrpc.io/). You’ll find examples, troubleshooting tips (for example, if an agent fails to launch or connect), and guidance on performance tuning (such as when to use memory-mapped files vs. pipes for IPC). The WitRPC community and documentation can also provide patterns for scenarios like gracefully updating an agent or sharing data between host and agent beyond RPC calls.
+For more information on using the Host and Agent pattern with WitRPC, refer to the official documentation on [witrpc.io](https://witrpc.io/). You'll find examples, troubleshooting tips (for example, if an agent fails to launch or connect), and guidance on performance tuning (such as when to use memory-mapped files vs. pipes for IPC). The WitRPC community and documentation can also provide patterns for scenarios like gracefully updating an agent or sharing data between host and agent beyond RPC calls.
 
 By understanding both OutWit.InterProcess.Host and Agent, you can architect flexible applications that take full advantage of process isolation while still communicating effectively and safely.
+
+## License
+
+Licensed under the Apache License, Version 2.0. See `LICENSE`.
+
+## Attribution (optional)
+
+If you use OutWit.InterProcess.Host in a product, a mention is appreciated (but not required), for example:
+"Powered by WitRPC (https://witrpc.io/)".
+
+## Trademark / Project name
+
+"WitRPC" and the WitRPC logo are used to identify the official project by Dmitry Ratner.
+
+You may:
+- refer to the project name in a factual way (e.g., "built with WitRPC");
+- use the name to indicate compatibility (e.g., "WitRPC-compatible").
+
+You may not:
+- use "WitRPC" as the name of a fork or a derived product in a way that implies it is the official project;
+- use the WitRPC logo to promote forks or derived products without permission.

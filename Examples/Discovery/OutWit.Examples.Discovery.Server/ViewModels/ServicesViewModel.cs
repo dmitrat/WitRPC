@@ -51,8 +51,8 @@ namespace OutWit.Examples.Discovery.Server.ViewModels
 
         private void InitCommands()
         {
-            AddServerCmd = new DelegateCommand(x => AddServer());
-            RemoveServerCmd = new DelegateCommand(x => RemoveServer());
+            AddServerCmd = new RelayCommand(x => AddServer());
+            RemoveServerCmd = new RelayCommand(x => RemoveServer());
         }
 
         #endregion

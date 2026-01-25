@@ -1,5 +1,4 @@
-﻿
-# OutWit.InterProcess.Agent
+﻿# OutWit.InterProcess.Agent
 
 **Agent-side library for running WitRPC services in an isolated process.** This package is used inside the **external process (agent)** to host a WitRPC server and register services that the host process can call. OutWit.InterProcess.Agent works in tandem with the Host package to set up communication channels automatically, so you can focus on implementing your service. It’s essentially the “server-side” counterpart in the inter-process model: you include this in the child process that performs the work, such as a legacy component or a plugin that runs out-of-process.
 
@@ -109,3 +108,24 @@ When using OutWit.InterProcess.Agent, you’re leveraging the standard WitRPC se
 ## Further Documentation
 
 To learn more about WitRPC and advanced agent configurations, visit [witrpc.io](https://witrpc.io/). The documentation contains guides on topics like custom security setups, troubleshooting connections, and optimizing performance for inter-process calls. Understanding the basics of WitRPC (events, serialization, etc.) will also help in making the most of the Host/Agent architecture.
+
+## License
+
+Licensed under the Apache License, Version 2.0. See `LICENSE`.
+
+## Attribution (optional)
+
+If you use OutWit.InterProcess.Agent in a product, a mention is appreciated (but not required), for example:
+"Powered by WitRPC (https://witrpc.io/)".
+
+## Trademark / Project name
+
+"WitRPC" and the WitRPC logo are used to identify the official project by Dmitry Ratner.
+
+You may:
+- refer to the project name in a factual way (e.g., "built with WitRPC");
+- use the name to indicate compatibility (e.g., "WitRPC-compatible").
+
+You may not:
+- use "WitRPC" as the name of a fork or a derived product in a way that implies it is the official project;
+- use the WitRPC logo to promote forks or derived products without permission.

@@ -114,11 +114,11 @@ namespace OutWit.Examples.Benchmark.Client.ViewModels
 
         private void InitCommands()
         {
-            ConnectClientCmd = new DelegateCommand(x => ConnectClient());
-            DisconnectClientCmd = new DelegateCommand(x => DisconnectClient());
-            OneWayBenchmarkCmd = new DelegateCommand(x => OneWayBenchmark());
-            TwoWaysBenchmarkCmd = new DelegateCommand(x => TwoWaysBenchmark());
-            ExportCsvCmd = new DelegateCommand(x => ExportCsv());
+            ConnectClientCmd = new RelayCommand(x => ConnectClient());
+            DisconnectClientCmd = new RelayCommand(x => DisconnectClient());
+            OneWayBenchmarkCmd = new RelayCommand(x => OneWayBenchmark());
+            TwoWaysBenchmarkCmd = new RelayCommand(x => TwoWaysBenchmark());
+            ExportCsvCmd = new RelayCommand(x => ExportCsv());
         }
 
         #endregion

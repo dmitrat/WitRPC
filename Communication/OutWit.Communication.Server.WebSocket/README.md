@@ -1,4 +1,3 @@
-
 # OutWit.Communication.Server.WebSocket
 
 **NuGet Description:** WebSocket transport server for WitRPC, enabling a server to accept clients over WebSocket (great for real-time, browser-friendly communication).
@@ -71,3 +70,24 @@ Once the server is running, it will accept WebSocket handshake requests at the s
 ### Further Documentation
 
 For more details about using WebSockets with WitRPC (and how to configure things like custom headers or handle large message sizes), please refer to the official documentation on [witrpc.io](https://witrpc.io/). It also provides troubleshooting tips for WebSocket connection issues and examples of integrating with web clients.
+
+## License
+
+Licensed under the Apache License, Version 2.0. See `LICENSE`.
+
+## Attribution (optional)
+
+If you use OutWit.Communication.Server.WebSocket in a product, a mention is appreciated (but not required), for example:
+"Powered by WitRPC (https://witrpc.io/)".
+
+## Trademark / Project name
+
+"WitRPC" and the WitRPC logo are used to identify the official project by Dmitry Ratner.
+
+You may:
+- refer to the project name in a factual way (e.g., "built with WitRPC");
+- use the name to indicate compatibility (e.g., "WitRPC-compatible").
+
+You may not:
+- use "WitRPC" as the name of a fork or a derived product in a way that implies it is the official project;
+- use the WitRPC logo to promote forks or derived products without permission.
