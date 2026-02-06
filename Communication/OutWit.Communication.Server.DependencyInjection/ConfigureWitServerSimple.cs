@@ -37,9 +37,9 @@ namespace OutWit.Communication.Server.DependencyInjection
         public string Name { get; }
 
         /// <inheritdoc />
-        public void Configure(WitServerBuilderOptions options, IServiceProvider serviceProvider)
+        public void Configure(WitServerBuilderContext context)
         {
-            m_configure(options);
+            m_configure(context.Options);
         }
 
         #endregion

@@ -68,7 +68,8 @@ namespace OutWit.Communication.Server.DependencyInjection
                     throw new InvalidOperationException($"No WitRPC server configuration found for name '{name}'. Make sure to register it using AddWitRpcServer.");
 
                 var options = new WitServerBuilderOptions();
-                configure.Configure(options, m_serviceProvider);
+                var context = new WitServerBuilderContext(options, m_serviceProvider);
+                configure.Configure(context);
                 var server = WitServerBuilder.Build(options);
                 
                 m_servers[name] = server;

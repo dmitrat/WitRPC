@@ -15,7 +15,7 @@ namespace OutWit.Communication.Client.DependencyInjection.Interfaces
         /// <summary>
         /// Configures the client options.
         /// </summary>
-        /// <param name="options">The client builder options to configure.</param>
-        void Configure(WitClientBuilderOptions options);
+        /// <param name="context">The client builder context containing options and service provider.</param>
+        void Configure(WitClientBuilderContext context);
     }
 }

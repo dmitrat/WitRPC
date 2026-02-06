@@ -197,17 +197,44 @@ services.AddWitRpcServer("pipe-server", options =>
 
 #### With Service Provider Access
 
-Access the service provider during configuration:
+Access the service provider during configuration to resolve dependencies like loggers, validators, or services:
 
 ```csharp
-services.AddWitRpcServer("my-server", (options, serviceProvider) =>
+services.AddWitRpcServer("my-server", ctx =>
 {
-    var config = serviceProvider.GetRequiredService<IConfiguration>();
+    var config = ctx.ServiceProvider.GetRequiredService<IConfiguration>();
     var port = config.GetValue<int>("WitRpc:Port");
     
-    options.WithTcp(port, maxNumberOfClients: 100);
-    options.WithJson();
+    ctx.Options.WithTcp(port, maxNumberOfClients: 100);
+    ctx.Options.WithJson();
+    ctx.Options.WithEncryption();
+    ctx.WithLogger<ILogger<MyServer>>();
+    ctx.WithAccessTokenValidator<IMyTokenValidator>();
 });
+```
+
+The `WitServerBuilderContext` wraps both `WitServerBuilderOptions` (via `ctx.Options`) and `IServiceProvider` (via `ctx.ServiceProvider`), so extension methods can resolve services without explicitly passing the service provider:
+
+| Method | Resolves |
+|--------|----------|
+| `ctx.WithLogger<T>()` | Logger instance (e.g. `ILogger<MyServer>`) |
+| `ctx.WithLogger(categoryName)` | Logger via `ILoggerFactory` |
+| `ctx.WithAccessTokenValidator<T>()` | `IAccessTokenValidator` implementation |
+| `ctx.WithEncryptor<T>()` | `IEncryptorServerFactory` implementation |
+| `ctx.WithService<T>()` | Service implementation for request processing |
+
+Example with service resolved from DI:
+
+```csharp
+services.AddSingleton<IMyService, MyServiceImpl>();
+
+services.AddWitRpcServer("my-server", ctx =>
+{
+    ctx.Options.WithTcp(5000, maxNumberOfClients: 100);
+    ctx.Options.WithJson();
+    ctx.WithService<IMyService>();
+    ctx.WithLogger<ILogger<MyServer>>();
+}, autoStart: true);
 ```
 
 ### Further Documentation

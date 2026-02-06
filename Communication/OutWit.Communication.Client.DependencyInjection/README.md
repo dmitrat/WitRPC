@@ -9,6 +9,7 @@ Microsoft.Extensions.DependencyInjection integration for WitRPC client, providin
 Key features:
 - **Named client registration** - Register multiple WitRPC clients with different configurations
 - **Typed service registration** - Inject service interfaces directly into your classes
+- **Service resolution from DI** - Access `IServiceProvider` during configuration to resolve loggers, tokens, etc.
 - **Auto-connect support** - Automatically connect clients when the application starts
 - **Factory pattern** - Use `IWitClientFactory` to create and manage clients dynamically
 
@@ -130,6 +131,43 @@ services.AddWitRpcClient("service-c", options =>
     options.WithNamedPipe("MyLocalPipe");
     options.WithProtoBuf();
 });
+```
+
+#### With Service Provider Access
+
+Access the service provider during configuration to resolve dependencies like loggers, token providers, or configuration:
+
+```csharp
+services.AddWitRpcClient("my-service", ctx =>
+{
+    var config = ctx.ServiceProvider.GetRequiredService<IConfiguration>();
+    
+    ctx.Options.WithWebSocket(config["WitRpc:Url"]!);
+    ctx.Options.WithJson();
+    ctx.Options.WithEncryption();
+    ctx.WithLogger<ILogger<MyApp>>();
+    ctx.WithAccessTokenProvider<IMyTokenProvider>();
+});
+```
+
+The `WitClientBuilderContext` wraps both `WitClientBuilderOptions` (via `ctx.Options`) and `IServiceProvider` (via `ctx.ServiceProvider`), so extension methods can resolve services without explicitly passing the service provider:
+
+| Method | Resolves |
+|--------|----------|
+| `ctx.WithLogger<T>()` | Logger instance (e.g. `ILogger<MyApp>`) |
+| `ctx.WithLogger(categoryName)` | Logger via `ILoggerFactory` |
+| `ctx.WithAccessTokenProvider<T>()` | `IAccessTokenProvider` implementation |
+| `ctx.WithEncryptor<T>()` | `IEncryptorClient` implementation |
+
+This also works with typed registration and auto-connect:
+
+```csharp
+services.AddWitRpcClient<IMyService>("my-service", ctx =>
+{
+    ctx.Options.WithTcp("127.0.0.1", 5000);
+    ctx.Options.WithJson();
+    ctx.WithLogger<ILogger<MyApp>>();
+}, autoConnect: true, connectionTimeout: TimeSpan.FromSeconds(30));
 ```
 
 ### Further Documentation

@@ -17,6 +17,7 @@ namespace OutWit.Communication.Client.DependencyInjection
 
         private readonly ConcurrentDictionary<string, WitClient> m_clients = new();
         private readonly ConcurrentDictionary<string, IConfigureWitClient> m_configurations = new();
+        private readonly IServiceProvider m_serviceProvider;
         private readonly object m_lock = new();
 
         private bool m_disposed;
@@ -29,11 +30,14 @@ namespace OutWit.Communication.Client.DependencyInjection
         /// Initializes a new instance of <see cref="WitClientFactory"/>.
         /// </summary>
         /// <param name="configurations">The registered client configurations.</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="configurations"/> is null.</exception>
-        public WitClientFactory(IEnumerable<IConfigureWitClient> configurations)
+        /// <param name="serviceProvider">The service provider for resolving dependencies.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="configurations"/> or <paramref name="serviceProvider"/> is null.</exception>
+        public WitClientFactory(IEnumerable<IConfigureWitClient> configurations, IServiceProvider serviceProvider)
         {
             if (configurations == null)
                 throw new ArgumentNullException(nameof(configurations));
+
+            m_serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
 
             foreach (var config in configurations)
             {
@@ -66,7 +70,8 @@ namespace OutWit.Communication.Client.DependencyInjection
                     throw new InvalidOperationException($"No WitRPC client configuration found for name '{name}'. Make sure to register it using AddWitRpcClient.");
 
                 var options = new WitClientBuilderOptions();
-                configure.Configure(options);
+                var context = new WitClientBuilderContext(options, m_serviceProvider);
+                configure.Configure(context);
                 var client = WitClientBuilder.Build(options);
                 
                 m_clients[name] = client;

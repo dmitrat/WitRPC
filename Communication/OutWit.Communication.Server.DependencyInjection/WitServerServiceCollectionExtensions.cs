@@ -59,13 +59,13 @@ namespace OutWit.Communication.Server.DependencyInjection
         /// </summary>
         /// <param name="services">The service collection.</param>
         /// <param name="name">The name of the server configuration.</param>
-        /// <param name="configure">Action to configure the server options with access to service provider.</param>
+        /// <param name="configure">Action to configure the server with access to service provider.</param>
         /// <returns>The service collection for chaining.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/>, <paramref name="name"/>, or <paramref name="configure"/> is null.</exception>
         public static IServiceCollection AddWitRpcServer(
             this IServiceCollection services,
             string name,
-            Action<WitServerBuilderOptions, IServiceProvider> configure)
+            Action<WitServerBuilderContext> configure)
         {
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
@@ -111,14 +111,14 @@ namespace OutWit.Communication.Server.DependencyInjection
         /// </summary>
         /// <param name="services">The service collection.</param>
         /// <param name="name">The name of the server configuration.</param>
-        /// <param name="configure">Action to configure the server options with access to service provider.</param>
+        /// <param name="configure">Action to configure the server with access to service provider.</param>
         /// <param name="autoStart">Whether to auto-start on application startup.</param>
         /// <returns>The service collection for chaining.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/>, <paramref name="name"/>, or <paramref name="configure"/> is null.</exception>
         public static IServiceCollection AddWitRpcServer(
             this IServiceCollection services,
             string name,
-            Action<WitServerBuilderOptions, IServiceProvider> configure,
+            Action<WitServerBuilderContext> configure,
             bool autoStart)
         {
             services.AddWitRpcServer(name, configure);
@@ -151,11 +151,11 @@ namespace OutWit.Communication.Server.DependencyInjection
             services.TryAddSingleton<TImplementation>();
             services.TryAddSingleton<TService>(sp => sp.GetRequiredService<TImplementation>());
 
-            services.AddWitRpcServer(name, (options, sp) =>
+            services.AddWitRpcServer(name, (WitServerBuilderContext ctx) =>
             {
-                configure(options);
-                var service = sp.GetRequiredService<TService>();
-                options.WithService(service);
+                configure(ctx.Options);
+                var service = ctx.ServiceProvider.GetRequiredService<TService>();
+                ctx.Options.WithService(service);
             });
 
             return services;
@@ -221,21 +221,21 @@ namespace OutWit.Communication.Server.DependencyInjection
 
             services.AddSingleton<IConfigureWitServer>(sp =>
             {
-                return new ConfigureWitServer(name, (options, serviceProvider) =>
+                return new ConfigureWitServer(name, (WitServerBuilderContext ctx) =>
                 {
-                    configure(options);
+                    configure(ctx.Options);
 
                     var processor = new CompositeRequestProcessor();
                     foreach (var serviceType in registration.ServiceTypes)
                     {
-                        var service = serviceProvider.GetRequiredService(serviceType);
+                        var service = ctx.ServiceProvider.GetRequiredService(serviceType);
                         var registerMethod = typeof(CompositeRequestProcessor)
                             .GetMethod(nameof(CompositeRequestProcessor.Register))!
                             .MakeGenericMethod(serviceType);
                         registerMethod.Invoke(processor, new[] { service });
                     }
 
-                    options.WithRequestProcessor(processor);
+                    ctx.Options.WithRequestProcessor(processor);
                 });
             });
 
