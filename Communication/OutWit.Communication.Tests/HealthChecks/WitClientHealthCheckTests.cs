@@ -27,10 +27,10 @@ namespace OutWit.Communication.Tests.HealthChecks
             // Add logging (required by HealthCheckService)
             services.AddLogging();
             
-            services.AddWitRpcClient("test-client", options =>
+            services.AddWitRpcClient("test-client", ctx =>
             {
-                options.WithNamedPipe("health-test-pipe");
-                options.WithJson();
+                ctx.Options.WithNamedPipe("health-test-pipe");
+                ctx.Options.WithJson();
             });
             
             services.AddHealthChecks()
@@ -50,10 +50,10 @@ namespace OutWit.Communication.Tests.HealthChecks
             // Add logging (required by HealthCheckService)
             services.AddLogging();
             
-            services.AddWitRpcClient("test-client", options =>
+            services.AddWitRpcClient("test-client", ctx =>
             {
-                options.WithNamedPipe("health-test-pipe-name");
-                options.WithJson();
+                ctx.Options.WithNamedPipe("health-test-pipe-name");
+                ctx.Options.WithJson();
             });
             
             services.AddHealthChecks()
@@ -74,12 +74,12 @@ namespace OutWit.Communication.Tests.HealthChecks
         {
             var services = new ServiceCollection();
             
-            services.AddWitRpcClient("test-client", options =>
+            services.AddWitRpcClient("test-client", ctx =>
             {
-                options.WithNamedPipe("health-disconnected");
-                options.WithJson();
-                options.WithoutEncryption();
-                options.WithoutAuthorization();
+                ctx.Options.WithNamedPipe("health-disconnected");
+                ctx.Options.WithJson();
+                ctx.Options.WithoutEncryption();
+                ctx.Options.WithoutAuthorization();
             });
             
             var provider = services.BuildServiceProvider();
@@ -113,12 +113,12 @@ namespace OutWit.Communication.Tests.HealthChecks
             {
                 var services = new ServiceCollection();
                 
-                services.AddWitRpcClient("test-client", options =>
+                services.AddWitRpcClient("test-client", ctx =>
                 {
-                    options.WithNamedPipe(testName);
-                    options.WithJson();
-                    options.WithEncryption();
-                    options.WithAccessToken("token");
+                    ctx.Options.WithNamedPipe(testName);
+                    ctx.Options.WithJson();
+                    ctx.Options.WithEncryption();
+                    ctx.Options.WithAccessToken("token");
                 });
                 
                 var provider = services.BuildServiceProvider();
@@ -151,10 +151,10 @@ namespace OutWit.Communication.Tests.HealthChecks
         {
             var services = new ServiceCollection();
             
-            services.AddWitRpcClient("test-client", options =>
+            services.AddWitRpcClient("test-client", ctx =>
             {
-                options.WithNamedPipe("health-data-test");
-                options.WithJson();
+                ctx.Options.WithNamedPipe("health-data-test");
+                ctx.Options.WithJson();
             });
             
             var provider = services.BuildServiceProvider();

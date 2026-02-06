@@ -26,12 +26,12 @@ Install-Package OutWit.Communication.Server.DependencyInjection
 Register a WitRPC server with a name:
 
 ```csharp
-services.AddWitRpcServer("my-server", options =>
+services.AddWitRpcServer("my-server", ctx =>
 {
-    options.WithWebSocket("http://localhost:5000", maxNumberOfClients: 100);
-    options.WithJson();
-    options.WithEncryption();
-    options.WithAccessToken("server-token");
+    ctx.Options.WithWebSocket("http://localhost:5000", maxNumberOfClients: 100);
+    ctx.Options.WithJson();
+    ctx.Options.WithEncryption();
+    ctx.Options.WithAccessToken("server-token");
 });
 ```
 
@@ -44,11 +44,11 @@ Register a server with a service implementation from DI:
 services.AddSingleton<IMyService, MyServiceImpl>();
 
 // Register the WitRPC server
-services.AddWitRpcServer<IMyService, MyServiceImpl>("my-server", options =>
+services.AddWitRpcServer<IMyService, MyServiceImpl>("my-server", ctx =>
 {
-    options.WithNamedPipe("MyServicePipe", maxNumberOfClients: 10);
-    options.WithJson();
-    options.WithEncryption();
+    ctx.Options.WithNamedPipe("MyServicePipe", maxNumberOfClients: 10);
+    ctx.Options.WithJson();
+    ctx.Options.WithEncryption();
 });
 ```
 
@@ -63,11 +63,11 @@ services.AddSingleton<IOrderService, OrderServiceImpl>();
 services.AddSingleton<INotificationService, NotificationServiceImpl>();
 
 services.AddWitRpcServerWithServices("api-server",
-    options =>
+    ctx =>
     {
-        options.WithTcp(5000, maxNumberOfClients: 100);
-        options.WithJson();
-        options.WithEncryption();
+        ctx.Options.WithTcp(5000, maxNumberOfClients: 100);
+        ctx.Options.WithJson();
+        ctx.Options.WithEncryption();
     },
     composite =>
     {
@@ -80,10 +80,10 @@ services.AddWitRpcServerWithServices("api-server",
 ```csharp
 // Option 2: Register services and add to composite in one step
 services.AddWitRpcServerWithServices("api-server",
-    options =>
+    ctx =>
     {
-        options.WithTcp(5000, maxNumberOfClients: 100);
-        options.WithJson();
+        ctx.Options.WithTcp(5000, maxNumberOfClients: 100);
+        ctx.Options.WithJson();
     },
     composite =>
     {
@@ -97,10 +97,10 @@ services.AddWitRpcServerWithServices("api-server",
 ```csharp
 // Option 3: Use factory functions
 services.AddWitRpcServerWithServices("api-server",
-    options =>
+    ctx =>
     {
-        options.WithTcp(5000, maxNumberOfClients: 100);
-        options.WithJson();
+        ctx.Options.WithTcp(5000, maxNumberOfClients: 100);
+        ctx.Options.WithJson();
     },
     composite =>
     {
@@ -123,22 +123,22 @@ var orderService = client.GetService<IOrderService>();
 Enable automatic server start when the application starts:
 
 ```csharp
-services.AddWitRpcServer("my-server", options =>
+services.AddWitRpcServer("my-server", ctx =>
 {
-    options.WithTcp(5000, maxNumberOfClients: 50);
-    options.WithJson();
+    ctx.Options.WithTcp(5000, maxNumberOfClients: 50);
+    ctx.Options.WithJson();
 }, autoStart: true);
 
 // Also works with typed registration
-services.AddWitRpcServer<IMyService, MyServiceImpl>("my-server", options =>
+services.AddWitRpcServer<IMyService, MyServiceImpl>("my-server", ctx =>
 {
-    options.WithNamedPipe("MyServicePipe", maxNumberOfClients: 10);
-    options.WithJson();
+    ctx.Options.WithNamedPipe("MyServicePipe", maxNumberOfClients: 10);
+    ctx.Options.WithJson();
 }, autoStart: true);
 
 // Also works with composite services
 services.AddWitRpcServerWithServices("api-server",
-    options => { /* ... */ },
+    ctx => { /* ... */ },
     composite => { /* ... */ },
     autoStart: true);
 ```
@@ -176,22 +176,22 @@ public class ServerManager
 Register multiple servers with different configurations:
 
 ```csharp
-services.AddWitRpcServer("tcp-server", options =>
+services.AddWitRpcServer("tcp-server", ctx =>
 {
-    options.WithTcp(5000, maxNumberOfClients: 100);
-    options.WithJson();
+    ctx.Options.WithTcp(5000, maxNumberOfClients: 100);
+    ctx.Options.WithJson();
 }, autoStart: true);
 
-services.AddWitRpcServer("websocket-server", options =>
+services.AddWitRpcServer("websocket-server", ctx =>
 {
-    options.WithWebSocket("http://localhost:8080", maxNumberOfClients: 1000);
-    options.WithMessagePack();
+    ctx.Options.WithWebSocket("http://localhost:8080", maxNumberOfClients: 1000);
+    ctx.Options.WithMessagePack();
 }, autoStart: true);
 
-services.AddWitRpcServer("pipe-server", options =>
+services.AddWitRpcServer("pipe-server", ctx =>
 {
-    options.WithNamedPipe("MyServicePipe", maxNumberOfClients: 10);
-    options.WithProtoBuf();
+    ctx.Options.WithNamedPipe("MyServicePipe", maxNumberOfClients: 10);
+    ctx.Options.WithProtoBuf();
 }, autoStart: true);
 ```
 
@@ -235,6 +235,27 @@ services.AddWitRpcServer("my-server", ctx =>
     ctx.WithService<IMyService>();
     ctx.WithLogger<ILogger<MyServer>>();
 }, autoStart: true);
+```
+
+#### Composite Services with Context Extensions
+
+Combine composite services with DI-resolved configuration:
+
+```csharp
+services.AddWitRpcServerWithServices("api-server",
+    ctx =>
+    {
+        ctx.Options.WithWebSocket("http://localhost:5000", maxNumberOfClients: 100);
+        ctx.WithAccessTokenValidator<IMyTokenValidator>();
+        ctx.WithEncryptor<IMyEncryptorFactory>();
+        ctx.WithLogger<ILogger<MyServer>>();
+    },
+    composite =>
+    {
+        composite.AddService<IUserService, UserServiceImpl>();
+        composite.AddService<IOrderService, OrderServiceImpl>();
+    },
+    autoStart: true);
 ```
 
 ### Further Documentation

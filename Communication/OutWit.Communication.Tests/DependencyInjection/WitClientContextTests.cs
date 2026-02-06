@@ -125,7 +125,7 @@ namespace OutWit.Communication.Tests.DependencyInjection
             services.AddLogging();
             var loggerResolved = false;
 
-            services.AddWitRpcClient("ctx-client", (WitClientBuilderContext ctx) =>
+            services.AddWitRpcClient("ctx-client", ctx =>
             {
                 ctx.Options.WithNamedPipe("ctx-test-pipe");
                 ctx.Options.WithJson();
@@ -148,7 +148,7 @@ namespace OutWit.Communication.Tests.DependencyInjection
         {
             var services = new ServiceCollection();
 
-            services.AddWitRpcClient<ITestService>("ctx-typed", (WitClientBuilderContext ctx) =>
+            services.AddWitRpcClient<ITestService>("ctx-typed", ctx =>
             {
                 ctx.Options.WithNamedPipe("ctx-typed-pipe");
                 ctx.Options.WithJson();
@@ -166,7 +166,7 @@ namespace OutWit.Communication.Tests.DependencyInjection
             var services = new ServiceCollection();
             services.AddLogging();
 
-            services.AddWitRpcClient("ctx-auto", (WitClientBuilderContext ctx) =>
+            services.AddWitRpcClient("ctx-auto", ctx =>
             {
                 ctx.Options.WithNamedPipe("ctx-auto-pipe");
                 ctx.Options.WithJson();

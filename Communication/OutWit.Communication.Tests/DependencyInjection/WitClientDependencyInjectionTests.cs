@@ -32,10 +32,10 @@ namespace OutWit.Communication.Tests.DependencyInjection
         {
             var services = new ServiceCollection();
             
-            services.AddWitRpcClient("test-client", options =>
+            services.AddWitRpcClient("test-client", ctx =>
             {
-                options.WithNamedPipe("test-pipe");
-                options.WithJson();
+                ctx.Options.WithNamedPipe("test-pipe");
+                ctx.Options.WithJson();
             });
             
             var provider = services.BuildServiceProvider();
@@ -49,12 +49,12 @@ namespace OutWit.Communication.Tests.DependencyInjection
         {
             var services = new ServiceCollection();
             
-            services.AddWitRpcClient("test-client", options =>
+            services.AddWitRpcClient("test-client", ctx =>
             {
-                options.WithNamedPipe("test-pipe-getclient");
-                options.WithJson();
-                options.WithoutEncryption();
-                options.WithoutAuthorization();
+                ctx.Options.WithNamedPipe("test-pipe-getclient");
+                ctx.Options.WithJson();
+                ctx.Options.WithoutEncryption();
+                ctx.Options.WithoutAuthorization();
             });
             
             var provider = services.BuildServiceProvider();
@@ -71,10 +71,10 @@ namespace OutWit.Communication.Tests.DependencyInjection
         {
             var services = new ServiceCollection();
             
-            services.AddWitRpcClient("test-client", options =>
+            services.AddWitRpcClient("test-client", ctx =>
             {
-                options.WithNamedPipe("test-pipe-same");
-                options.WithJson();
+                ctx.Options.WithNamedPipe("test-pipe-same");
+                ctx.Options.WithJson();
             });
             
             var provider = services.BuildServiceProvider();
@@ -104,16 +104,16 @@ namespace OutWit.Communication.Tests.DependencyInjection
         {
             var services = new ServiceCollection();
             
-            services.AddWitRpcClient("client-1", options =>
+            services.AddWitRpcClient("client-1", ctx =>
             {
-                options.WithNamedPipe("pipe-1");
-                options.WithJson();
+                ctx.Options.WithNamedPipe("pipe-1");
+                ctx.Options.WithJson();
             });
             
-            services.AddWitRpcClient("client-2", options =>
+            services.AddWitRpcClient("client-2", ctx =>
             {
-                options.WithNamedPipe("pipe-2");
-                options.WithJson();
+                ctx.Options.WithNamedPipe("pipe-2");
+                ctx.Options.WithJson();
             });
             
             var provider = services.BuildServiceProvider();
@@ -136,12 +136,12 @@ namespace OutWit.Communication.Tests.DependencyInjection
         {
             var services = new ServiceCollection();
             
-            services.AddWitRpcClient<ITestService>("test-service", options =>
+            services.AddWitRpcClient<ITestService>("test-service", ctx =>
             {
-                options.WithNamedPipe("test-pipe-typed");
-                options.WithJson();
-                options.WithoutEncryption();
-                options.WithoutAuthorization();
+                ctx.Options.WithNamedPipe("test-pipe-typed");
+                ctx.Options.WithJson();
+                ctx.Options.WithoutEncryption();
+                ctx.Options.WithoutAuthorization();
             });
             
             var provider = services.BuildServiceProvider();
@@ -161,11 +161,11 @@ namespace OutWit.Communication.Tests.DependencyInjection
             var services = new ServiceCollection();
             var configuredCorrectly = false;
             
-            services.AddWitRpcClient("test-client", options =>
+            services.AddWitRpcClient("test-client", ctx =>
             {
-                options.WithNamedPipe("configured-pipe");
-                options.WithJson();
-                options.WithAutoReconnect(reconnect =>
+                ctx.Options.WithNamedPipe("configured-pipe");
+                ctx.Options.WithJson();
+                ctx.Options.WithAutoReconnect(reconnect =>
                 {
                     reconnect.MaxAttempts = 5;
                     reconnect.InitialDelay = TimeSpan.FromSeconds(2);
@@ -191,10 +191,10 @@ namespace OutWit.Communication.Tests.DependencyInjection
         {
             var services = new ServiceCollection();
             
-            services.AddWitRpcClient("test-client", options =>
+            services.AddWitRpcClient("test-client", ctx =>
             {
-                options.WithNamedPipe("dispose-test");
-                options.WithJson();
+                ctx.Options.WithNamedPipe("dispose-test");
+                ctx.Options.WithJson();
             });
             
             var provider = services.BuildServiceProvider();

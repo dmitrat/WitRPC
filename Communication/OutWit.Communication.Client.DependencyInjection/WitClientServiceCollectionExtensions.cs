@@ -31,34 +31,7 @@ namespace OutWit.Communication.Client.DependencyInjection
         /// </summary>
         /// <param name="services">The service collection.</param>
         /// <param name="name">The name of the client configuration.</param>
-        /// <param name="configure">Action to configure the client options.</param>
-        /// <returns>The service collection for chaining.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/>, <paramref name="name"/>, or <paramref name="configure"/> is null.</exception>
-        public static IServiceCollection AddWitRpcClient(
-            this IServiceCollection services,
-            string name,
-            Action<WitClientBuilderOptions> configure)
-        {
-            if (services == null)
-                throw new ArgumentNullException(nameof(services));
-            if (name == null)
-                throw new ArgumentNullException(nameof(name));
-            if (configure == null)
-                throw new ArgumentNullException(nameof(configure));
-
-            services.AddWitRpcClientFactory();
-
-            services.AddSingleton<IConfigureWitClient>(new ConfigureWitClientSimple(name, configure));
-
-            return services;
-        }
-
-        /// <summary>
-        /// Adds a named WitRPC client configuration with access to service provider.
-        /// </summary>
-        /// <param name="services">The service collection.</param>
-        /// <param name="name">The name of the client configuration.</param>
-        /// <param name="configure">Action to configure the client with access to service provider.</param>
+        /// <param name="configure">Action to configure the client using builder context.</param>
         /// <returns>The service collection for chaining.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/>, <paramref name="name"/>, or <paramref name="configure"/> is null.</exception>
         public static IServiceCollection AddWitRpcClient(
@@ -75,7 +48,7 @@ namespace OutWit.Communication.Client.DependencyInjection
 
             services.AddWitRpcClientFactory();
 
-            services.AddSingleton<IConfigureWitClient>(new ConfigureWitClientWithServiceProvider(name, configure));
+            services.AddSingleton<IConfigureWitClient>(new ConfigureWitClient(name, configure));
 
             return services;
         }
@@ -85,34 +58,7 @@ namespace OutWit.Communication.Client.DependencyInjection
         /// </summary>
         /// <param name="services">The service collection.</param>
         /// <param name="name">The name of the client configuration.</param>
-        /// <param name="configure">Action to configure the client options.</param>
-        /// <param name="autoConnect">Whether to auto-connect on application startup.</param>
-        /// <param name="connectionTimeout">Connection timeout.</param>
-        /// <returns>The service collection for chaining.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/>, <paramref name="name"/>, or <paramref name="configure"/> is null.</exception>
-        public static IServiceCollection AddWitRpcClient(
-            this IServiceCollection services,
-            string name,
-            Action<WitClientBuilderOptions> configure,
-            bool autoConnect,
-            TimeSpan? connectionTimeout = null)
-        {
-            services.AddWitRpcClient(name, configure);
-
-            if (autoConnect)
-            {
-                RegisterHostedService(services, name, connectionTimeout);
-            }
-
-            return services;
-        }
-
-        /// <summary>
-        /// Adds a named WitRPC client with service provider access and auto-connect on startup.
-        /// </summary>
-        /// <param name="services">The service collection.</param>
-        /// <param name="name">The name of the client configuration.</param>
-        /// <param name="configure">Action to configure the client with access to service provider.</param>
+        /// <param name="configure">Action to configure the client using builder context.</param>
         /// <param name="autoConnect">Whether to auto-connect on application startup.</param>
         /// <param name="connectionTimeout">Connection timeout.</param>
         /// <returns>The service collection for chaining.</returns>
@@ -140,33 +86,7 @@ namespace OutWit.Communication.Client.DependencyInjection
         /// <typeparam name="TService">The service interface type.</typeparam>
         /// <param name="services">The service collection.</param>
         /// <param name="name">The name of the client configuration.</param>
-        /// <param name="configure">Action to configure the client options.</param>
-        /// <returns>The service collection for chaining.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/>, <paramref name="name"/>, or <paramref name="configure"/> is null.</exception>
-        public static IServiceCollection AddWitRpcClient<TService>(
-            this IServiceCollection services,
-            string name,
-            Action<WitClientBuilderOptions> configure)
-            where TService : class
-        {
-            services.AddWitRpcClient(name, configure);
-
-            services.AddSingleton<TService>(sp =>
-            {
-                var factory = sp.GetRequiredService<IWitClientFactory>();
-                return factory.GetService<TService>(name);
-            });
-
-            return services;
-        }
-
-        /// <summary>
-        /// Adds a typed WitRPC client service with access to service provider.
-        /// </summary>
-        /// <typeparam name="TService">The service interface type.</typeparam>
-        /// <param name="services">The service collection.</param>
-        /// <param name="name">The name of the client configuration.</param>
-        /// <param name="configure">Action to configure the client with access to service provider.</param>
+        /// <param name="configure">Action to configure the client using builder context.</param>
         /// <returns>The service collection for chaining.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/>, <paramref name="name"/>, or <paramref name="configure"/> is null.</exception>
         public static IServiceCollection AddWitRpcClient<TService>(
@@ -192,37 +112,7 @@ namespace OutWit.Communication.Client.DependencyInjection
         /// <typeparam name="TService">The service interface type.</typeparam>
         /// <param name="services">The service collection.</param>
         /// <param name="name">The name of the client configuration.</param>
-        /// <param name="configure">Action to configure the client options.</param>
-        /// <param name="autoConnect">Whether to auto-connect on application startup.</param>
-        /// <param name="connectionTimeout">Connection timeout.</param>
-        /// <returns>The service collection for chaining.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/>, <paramref name="name"/>, or <paramref name="configure"/> is null.</exception>
-        public static IServiceCollection AddWitRpcClient<TService>(
-            this IServiceCollection services,
-            string name,
-            Action<WitClientBuilderOptions> configure,
-            bool autoConnect,
-            TimeSpan? connectionTimeout = null)
-            where TService : class
-        {
-            services.AddWitRpcClient(name, configure, autoConnect, connectionTimeout);
-
-            services.AddSingleton<TService>(sp =>
-            {
-                var factory = sp.GetRequiredService<IWitClientFactory>();
-                return factory.GetService<TService>(name);
-            });
-
-            return services;
-        }
-
-        /// <summary>
-        /// Adds a typed WitRPC client service with service provider access and auto-connect.
-        /// </summary>
-        /// <typeparam name="TService">The service interface type.</typeparam>
-        /// <param name="services">The service collection.</param>
-        /// <param name="name">The name of the client configuration.</param>
-        /// <param name="configure">Action to configure the client with access to service provider.</param>
+        /// <param name="configure">Action to configure the client using builder context.</param>
         /// <param name="autoConnect">Whether to auto-connect on application startup.</param>
         /// <param name="connectionTimeout">Connection timeout.</param>
         /// <returns>The service collection for chaining.</returns>

@@ -26,12 +26,12 @@ Install-Package OutWit.Communication.Client.DependencyInjection
 Register a WitRPC client with a name:
 
 ```csharp
-services.AddWitRpcClient("my-service", options =>
+services.AddWitRpcClient("my-service", ctx =>
 {
-    options.WithWebSocket("ws://localhost:5000");
-    options.WithJson();
-    options.WithEncryption();
-    options.WithAccessToken("your-token");
+    ctx.Options.WithWebSocket("ws://localhost:5000");
+    ctx.Options.WithJson();
+    ctx.Options.WithEncryption();
+    ctx.Options.WithAccessToken("your-token");
 });
 ```
 
@@ -40,11 +40,11 @@ services.AddWitRpcClient("my-service", options =>
 Register a client and automatically create a service proxy:
 
 ```csharp
-services.AddWitRpcClient<IMyService>("my-service", options =>
+services.AddWitRpcClient<IMyService>("my-service", ctx =>
 {
-    options.WithNamedPipe("MyServicePipe");
-    options.WithJson();
-    options.WithEncryption();
+    ctx.Options.WithNamedPipe("MyServicePipe");
+    ctx.Options.WithJson();
+    ctx.Options.WithEncryption();
 });
 
 // Now you can inject IMyService directly
@@ -64,11 +64,11 @@ public class MyController
 Enable automatic connection when the application starts:
 
 ```csharp
-services.AddWitRpcClient("my-service", options =>
+services.AddWitRpcClient("my-service", ctx =>
 {
-    options.WithTcp("127.0.0.1", 5000);
-    options.WithJson();
-    options.WithAutoReconnect(); // Enable auto-reconnect
+    ctx.Options.WithTcp("127.0.0.1", 5000);
+    ctx.Options.WithJson();
+    ctx.Options.WithAutoReconnect(); // Enable auto-reconnect
 }, autoConnect: true, connectionTimeout: TimeSpan.FromSeconds(30));
 ```
 
@@ -76,11 +76,11 @@ The `autoConnect` parameter registers an `IHostedService` that connects the clie
 You can also combine typed registration with auto-connect:
 
 ```csharp
-services.AddWitRpcClient<IMyService>("my-service", options =>
+services.AddWitRpcClient<IMyService>("my-service", ctx =>
 {
-    options.WithWebSocket("ws://localhost:5000");
-    options.WithJson();
-    options.WithEncryption();
+    ctx.Options.WithWebSocket("ws://localhost:5000");
+    ctx.Options.WithJson();
+    ctx.Options.WithEncryption();
 }, autoConnect: true, connectionTimeout: TimeSpan.FromSeconds(10));
 ```
 
@@ -114,22 +114,22 @@ public class MyService
 Register multiple clients with different configurations:
 
 ```csharp
-services.AddWitRpcClient("service-a", options =>
+services.AddWitRpcClient("service-a", ctx =>
 {
-    options.WithWebSocket("ws://server-a:5000");
-    options.WithJson();
+    ctx.Options.WithWebSocket("ws://server-a:5000");
+    ctx.Options.WithJson();
 });
 
-services.AddWitRpcClient("service-b", options =>
+services.AddWitRpcClient("service-b", ctx =>
 {
-    options.WithTcp("server-b", 6000);
-    options.WithMessagePack();
+    ctx.Options.WithTcp("server-b", 6000);
+    ctx.Options.WithMessagePack();
 });
 
-services.AddWitRpcClient("service-c", options =>
+services.AddWitRpcClient("service-c", ctx =>
 {
-    options.WithNamedPipe("MyLocalPipe");
-    options.WithProtoBuf();
+    ctx.Options.WithNamedPipe("MyLocalPipe");
+    ctx.Options.WithProtoBuf();
 });
 ```
 

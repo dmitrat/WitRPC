@@ -148,7 +148,7 @@ namespace OutWit.Communication.Tests.DependencyInjection
             services.AddSingleton<IService>(new MockService());
             var loggerResolved = false;
 
-            services.AddWitRpcServer("ctx-server", (WitServerBuilderContext ctx) =>
+            services.AddWitRpcServer("ctx-server", ctx =>
             {
                 ctx.Options.WithNamedPipe("ctx-server-pipe", maxNumberOfClients: 1);
                 ctx.Options.WithJson();
@@ -174,7 +174,7 @@ namespace OutWit.Communication.Tests.DependencyInjection
             services.AddLogging();
             services.AddSingleton<IService>(new MockService());
 
-            services.AddWitRpcServer("ctx-auto-server", (WitServerBuilderContext ctx) =>
+            services.AddWitRpcServer("ctx-auto-server", ctx =>
             {
                 ctx.Options.WithNamedPipe("ctx-auto-srv-pipe", maxNumberOfClients: 1);
                 ctx.Options.WithJson();
