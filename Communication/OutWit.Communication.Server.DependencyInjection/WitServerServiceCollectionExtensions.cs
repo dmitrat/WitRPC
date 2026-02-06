@@ -1,8 +1,8 @@
 using System;
-using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using OutWit.Communication.Processors;
+using OutWit.Communication.Server.DependencyInjection.Interfaces;
 
 namespace OutWit.Communication.Server.DependencyInjection
 {
@@ -16,8 +16,12 @@ namespace OutWit.Communication.Server.DependencyInjection
         /// </summary>
         /// <param name="services">The service collection.</param>
         /// <returns>The service collection for chaining.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> is null.</exception>
         public static IServiceCollection AddWitRpcServerFactory(this IServiceCollection services)
         {
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+
             services.TryAddSingleton<WitServerFactory>();
             services.TryAddSingleton<IWitServerFactory>(sp => sp.GetRequiredService<WitServerFactory>());
             return services;
@@ -30,14 +34,21 @@ namespace OutWit.Communication.Server.DependencyInjection
         /// <param name="name">The name of the server configuration.</param>
         /// <param name="configure">Action to configure the server options.</param>
         /// <returns>The service collection for chaining.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/>, <paramref name="name"/>, or <paramref name="configure"/> is null.</exception>
         public static IServiceCollection AddWitRpcServer(
             this IServiceCollection services,
             string name,
             Action<WitServerBuilderOptions> configure)
         {
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+            if (configure == null)
+                throw new ArgumentNullException(nameof(configure));
+
             services.AddWitRpcServerFactory();
 
-            // Register configuration
             services.AddSingleton<IConfigureWitServer>(new ConfigureWitServerSimple(name, configure));
 
             return services;
@@ -50,14 +61,21 @@ namespace OutWit.Communication.Server.DependencyInjection
         /// <param name="name">The name of the server configuration.</param>
         /// <param name="configure">Action to configure the server options with access to service provider.</param>
         /// <returns>The service collection for chaining.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/>, <paramref name="name"/>, or <paramref name="configure"/> is null.</exception>
         public static IServiceCollection AddWitRpcServer(
             this IServiceCollection services,
             string name,
             Action<WitServerBuilderOptions, IServiceProvider> configure)
         {
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+            if (configure == null)
+                throw new ArgumentNullException(nameof(configure));
+
             services.AddWitRpcServerFactory();
 
-            // Register configuration
             services.AddSingleton<IConfigureWitServer>(new ConfigureWitServer(name, configure));
 
             return services;
@@ -71,6 +89,7 @@ namespace OutWit.Communication.Server.DependencyInjection
         /// <param name="configure">Action to configure the server options.</param>
         /// <param name="autoStart">Whether to auto-start on application startup.</param>
         /// <returns>The service collection for chaining.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/>, <paramref name="name"/>, or <paramref name="configure"/> is null.</exception>
         public static IServiceCollection AddWitRpcServer(
             this IServiceCollection services,
             string name,
@@ -81,13 +100,7 @@ namespace OutWit.Communication.Server.DependencyInjection
 
             if (autoStart)
             {
-                services.AddSingleton(new WitServerHostedServiceOptions
-                {
-                    ServerName = name,
-                    AutoStart = true
-                });
-
-                services.AddHostedService<WitServerHostedService>();
+                RegisterHostedService(services, name);
             }
 
             return services;
@@ -101,6 +114,7 @@ namespace OutWit.Communication.Server.DependencyInjection
         /// <param name="configure">Action to configure the server options with access to service provider.</param>
         /// <param name="autoStart">Whether to auto-start on application startup.</param>
         /// <returns>The service collection for chaining.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/>, <paramref name="name"/>, or <paramref name="configure"/> is null.</exception>
         public static IServiceCollection AddWitRpcServer(
             this IServiceCollection services,
             string name,
@@ -111,13 +125,7 @@ namespace OutWit.Communication.Server.DependencyInjection
 
             if (autoStart)
             {
-                services.AddSingleton(new WitServerHostedServiceOptions
-                {
-                    ServerName = name,
-                    AutoStart = true
-                });
-
-                services.AddHostedService<WitServerHostedService>();
+                RegisterHostedService(services, name);
             }
 
             return services;
@@ -132,6 +140,7 @@ namespace OutWit.Communication.Server.DependencyInjection
         /// <param name="name">The name of the server configuration.</param>
         /// <param name="configure">Action to configure the server options.</param>
         /// <returns>The service collection for chaining.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/>, <paramref name="name"/>, or <paramref name="configure"/> is null.</exception>
         public static IServiceCollection AddWitRpcServer<TService, TImplementation>(
             this IServiceCollection services,
             string name,
@@ -139,11 +148,9 @@ namespace OutWit.Communication.Server.DependencyInjection
             where TService : class
             where TImplementation : class, TService
         {
-            // Register the service implementation
             services.TryAddSingleton<TImplementation>();
             services.TryAddSingleton<TService>(sp => sp.GetRequiredService<TImplementation>());
 
-            // Register server with service from DI
             services.AddWitRpcServer(name, (options, sp) =>
             {
                 configure(options);
@@ -164,6 +171,7 @@ namespace OutWit.Communication.Server.DependencyInjection
         /// <param name="configure">Action to configure the server options.</param>
         /// <param name="autoStart">Whether to auto-start on application startup.</param>
         /// <returns>The service collection for chaining.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/>, <paramref name="name"/>, or <paramref name="configure"/> is null.</exception>
         public static IServiceCollection AddWitRpcServer<TService, TImplementation>(
             this IServiceCollection services,
             string name,
@@ -176,13 +184,7 @@ namespace OutWit.Communication.Server.DependencyInjection
 
             if (autoStart)
             {
-                services.AddSingleton(new WitServerHostedServiceOptions
-                {
-                    ServerName = name,
-                    AutoStart = true
-                });
-
-                services.AddHostedService<WitServerHostedService>();
+                RegisterHostedService(services, name);
             }
 
             return services;
@@ -196,19 +198,27 @@ namespace OutWit.Communication.Server.DependencyInjection
         /// <param name="configure">Action to configure the server options.</param>
         /// <param name="configureServices">Action to configure composite services with DI support.</param>
         /// <returns>The service collection for chaining.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when any parameter is null.</exception>
         public static IServiceCollection AddWitRpcServerWithServices(
             this IServiceCollection services,
             string name,
             Action<WitServerBuilderOptions> configure,
             Action<CompositeServiceRegistration> configureServices)
         {
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+            if (configure == null)
+                throw new ArgumentNullException(nameof(configure));
+            if (configureServices == null)
+                throw new ArgumentNullException(nameof(configureServices));
+
             services.AddWitRpcServerFactory();
 
-            // Collect service registrations
             var registration = new CompositeServiceRegistration(services);
             configureServices(registration);
 
-            // Register server with composite services from DI
             services.AddSingleton<IConfigureWitServer>(sp =>
             {
                 return new ConfigureWitServer(name, (options, serviceProvider) =>
@@ -241,6 +251,7 @@ namespace OutWit.Communication.Server.DependencyInjection
         /// <param name="configureServices">Action to configure composite services with DI support.</param>
         /// <param name="autoStart">Whether to auto-start on application startup.</param>
         /// <returns>The service collection for chaining.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when any parameter is null.</exception>
         public static IServiceCollection AddWitRpcServerWithServices(
             this IServiceCollection services,
             string name,
@@ -252,75 +263,25 @@ namespace OutWit.Communication.Server.DependencyInjection
 
             if (autoStart)
             {
-                services.AddSingleton(new WitServerHostedServiceOptions
-                {
-                    ServerName = name,
-                    AutoStart = true
-                });
-
-                services.AddHostedService<WitServerHostedService>();
+                RegisterHostedService(services, name);
             }
 
             return services;
         }
-    }
 
-    /// <summary>
-    /// Helper class for registering composite services with DI.
-    /// </summary>
-    public class CompositeServiceRegistration
-    {
-        private readonly IServiceCollection _services;
-        private readonly List<Type> _serviceTypes = new();
+        #region Private Methods
 
-        internal CompositeServiceRegistration(IServiceCollection services)
+        private static void RegisterHostedService(IServiceCollection services, string name)
         {
-            _services = services;
+            services.AddSingleton(new WitServerHostedServiceOptions
+            {
+                ServerName = name,
+                AutoStart = true
+            });
+
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<Microsoft.Extensions.Hosting.IHostedService, WitServerHostedService>());
         }
 
-        internal IReadOnlyList<Type> ServiceTypes => _serviceTypes;
-
-        /// <summary>
-        /// Adds a service interface to the composite. The implementation must already be registered in DI.
-        /// </summary>
-        /// <typeparam name="TService">The service interface type.</typeparam>
-        /// <returns>This registration for chaining.</returns>
-        public CompositeServiceRegistration AddService<TService>()
-            where TService : class
-        {
-            _serviceTypes.Add(typeof(TService));
-            return this;
-        }
-
-        /// <summary>
-        /// Adds a service interface with its implementation to the composite.
-        /// Registers the implementation in DI if not already registered.
-        /// </summary>
-        /// <typeparam name="TService">The service interface type.</typeparam>
-        /// <typeparam name="TImplementation">The service implementation type.</typeparam>
-        /// <returns>This registration for chaining.</returns>
-        public CompositeServiceRegistration AddService<TService, TImplementation>()
-            where TService : class
-            where TImplementation : class, TService
-        {
-            _services.TryAddSingleton<TImplementation>();
-            _services.TryAddSingleton<TService>(sp => sp.GetRequiredService<TImplementation>());
-            _serviceTypes.Add(typeof(TService));
-            return this;
-        }
-
-        /// <summary>
-        /// Adds a service interface with a factory function.
-        /// </summary>
-        /// <typeparam name="TService">The service interface type.</typeparam>
-        /// <param name="implementationFactory">Factory function to create the service.</param>
-        /// <returns>This registration for chaining.</returns>
-        public CompositeServiceRegistration AddService<TService>(Func<IServiceProvider, TService> implementationFactory)
-            where TService : class
-        {
-            _services.TryAddSingleton(implementationFactory);
-            _serviceTypes.Add(typeof(TService));
-            return this;
-        }
+        #endregion
     }
 }

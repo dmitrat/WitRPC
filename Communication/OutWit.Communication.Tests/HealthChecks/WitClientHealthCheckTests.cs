@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using OutWit.Communication.Client;
 using OutWit.Communication.Client.DependencyInjection;
+using OutWit.Communication.Client.DependencyInjection.Interfaces;
 using OutWit.Communication.Client.HealthChecks;
 using OutWit.Communication.Client.Pipes.Utils;
 using OutWit.Communication.Client.Reconnection;

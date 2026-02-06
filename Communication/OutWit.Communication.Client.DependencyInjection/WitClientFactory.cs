@@ -1,71 +1,75 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using OutWit.Communication.Client;
+using OutWit.Communication.Client.DependencyInjection.Interfaces;
 
 namespace OutWit.Communication.Client.DependencyInjection
 {
     /// <summary>
-    /// Factory for creating and managing WitRPC client instances.
+    /// Default implementation of <see cref="IWitClientFactory"/>.
     /// </summary>
-    public interface IWitClientFactory
+    public sealed class WitClientFactory : IWitClientFactory, IDisposable
     {
-        /// <summary>
-        /// Gets a configured WitClient by name.
-        /// </summary>
-        /// <param name="name">The name of the client configuration.</param>
-        /// <returns>The configured WitClient instance.</returns>
-        WitClient GetClient(string name);
+        #region Fields
+
+        private readonly ConcurrentDictionary<string, WitClient> m_clients = new();
+        private readonly ConcurrentDictionary<string, IConfigureWitClient> m_configurations = new();
+        private readonly object m_lock = new();
+
+        private bool m_disposed;
+
+        #endregion
+
+        #region Constructors
 
         /// <summary>
-        /// Gets a service proxy for the specified interface from a named client.
+        /// Initializes a new instance of <see cref="WitClientFactory"/>.
         /// </summary>
-        /// <typeparam name="TService">The service interface type.</typeparam>
-        /// <param name="name">The name of the client configuration.</param>
-        /// <param name="strongAssemblyMatch">Whether to use strong assembly matching.</param>
-        /// <returns>A proxy implementing the service interface.</returns>
-        TService GetService<TService>(string name, bool strongAssemblyMatch = true) where TService : class;
-    }
-
-    /// <summary>
-    /// Default implementation of IWitClientFactory.
-    /// </summary>
-    public class WitClientFactory : IWitClientFactory, IDisposable
-    {
-        private readonly ConcurrentDictionary<string, WitClient> _clients = new();
-        private readonly ConcurrentDictionary<string, IConfigureWitClient> _configurations = new();
-        private readonly object _lock = new();
-
+        /// <param name="configurations">The registered client configurations.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="configurations"/> is null.</exception>
         public WitClientFactory(IEnumerable<IConfigureWitClient> configurations)
         {
+            if (configurations == null)
+                throw new ArgumentNullException(nameof(configurations));
+
             foreach (var config in configurations)
             {
-                _configurations[config.Name] = config;
+                m_configurations[config.Name] = config;
             }
         }
+
+        #endregion
+
+        #region IWitClientFactory
 
         /// <inheritdoc />
         public WitClient GetClient(string name)
         {
-            if (_clients.TryGetValue(name, out var existingClient))
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+
+            if (m_disposed)
+                throw new ObjectDisposedException(nameof(WitClientFactory));
+
+            if (m_clients.TryGetValue(name, out var existingClient))
                 return existingClient;
 
-            lock (_lock)
+            lock (m_lock)
             {
-                if (_clients.TryGetValue(name, out existingClient))
+                if (m_clients.TryGetValue(name, out existingClient))
                     return existingClient;
 
-                if (!_configurations.TryGetValue(name, out var configure))
+                if (!m_configurations.TryGetValue(name, out var configure))
                     throw new InvalidOperationException($"No WitRPC client configuration found for name '{name}'. Make sure to register it using AddWitRpcClient.");
 
                 var options = new WitClientBuilderOptions();
                 configure.Configure(options);
                 var client = WitClientBuilder.Build(options);
                 
-                _clients[name] = client;
+                m_clients[name] = client;
                 return client;
             }
         }
@@ -77,17 +81,32 @@ namespace OutWit.Communication.Client.DependencyInjection
             return client.GetService<TService>(strongAssemblyMatch);
         }
 
+        #endregion
+
+        #region Functions
+
         /// <summary>
         /// Gets all registered client names.
         /// </summary>
-        public IEnumerable<string> GetClientNames() => _configurations.Keys;
+        /// <returns>A collection of registered client names.</returns>
+        public IEnumerable<string> GetClientNames() => m_configurations.Keys;
+
+        /// <summary>
+        /// Checks whether a client with the given name has been created.
+        /// </summary>
+        /// <param name="name">The name of the client configuration.</param>
+        /// <returns><c>true</c> if the client has been created; otherwise, <c>false</c>.</returns>
+        public bool HasClient(string name) => m_clients.ContainsKey(name);
 
         /// <summary>
         /// Connects all registered clients.
         /// </summary>
+        /// <param name="timeout">The connection timeout for each client.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
         public async Task ConnectAllAsync(TimeSpan timeout, CancellationToken cancellationToken)
         {
-            foreach (var name in _configurations.Keys)
+            foreach (var name in m_configurations.Keys)
             {
                 var client = GetClient(name);
                 await client.ConnectAsync(timeout, cancellationToken);
@@ -95,24 +114,36 @@ namespace OutWit.Communication.Client.DependencyInjection
         }
 
         /// <summary>
-        /// Disconnects all clients.
+        /// Disconnects all created clients.
         /// </summary>
+        /// <returns>A task representing the asynchronous operation.</returns>
         public async Task DisconnectAllAsync()
         {
-            foreach (var client in _clients.Values)
+            foreach (var client in m_clients.Values)
             {
                 await client.Disconnect();
             }
         }
 
+        #endregion
+
+        #region IDisposable
+
         /// <inheritdoc />
         public void Dispose()
         {
-            foreach (var client in _clients.Values)
+            if (m_disposed)
+                return;
+
+            m_disposed = true;
+
+            foreach (var client in m_clients.Values)
             {
                 client.Dispose();
             }
-            _clients.Clear();
+            m_clients.Clear();
         }
+
+        #endregion
     }
 }

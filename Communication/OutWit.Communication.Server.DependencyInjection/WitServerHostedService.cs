@@ -1,90 +1,104 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using OutWit.Communication.Server;
 
 namespace OutWit.Communication.Server.DependencyInjection
 {
     /// <summary>
-    /// Options for WitRPC server hosted service.
-    /// </summary>
-    public class WitServerHostedServiceOptions
-    {
-        /// <summary>
-        /// Gets or sets the name of the server configuration.
-        /// </summary>
-        public string ServerName { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Gets or sets whether to auto-start on startup.
-        /// </summary>
-        public bool AutoStart { get; set; } = true;
-    }
-
-    /// <summary>
     /// Hosted service that manages WitRPC server lifecycle.
+    /// Supports multiple server configurations when registered via <see cref="IEnumerable{WitServerHostedServiceOptions}"/>.
     /// </summary>
-    public class WitServerHostedService : IHostedService
+    public sealed class WitServerHostedService : IHostedService
     {
-        private readonly WitServerFactory _factory;
-        private readonly WitServerHostedServiceOptions _options;
-        private readonly ILogger<WitServerHostedService>? _logger;
+        #region Fields
 
+        private readonly WitServerFactory m_factory;
+        private readonly IEnumerable<WitServerHostedServiceOptions> m_options;
+        private readonly ILogger<WitServerHostedService>? m_logger;
+
+        #endregion
+
+        #region Constructors
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="WitServerHostedService"/>.
+        /// </summary>
+        /// <param name="factory">The server factory.</param>
+        /// <param name="options">The hosted service options for each server to manage.</param>
+        /// <param name="logger">An optional logger.</param>
         public WitServerHostedService(
             WitServerFactory factory,
-            WitServerHostedServiceOptions options,
+            IEnumerable<WitServerHostedServiceOptions> options,
             ILogger<WitServerHostedService>? logger = null)
         {
-            _factory = factory;
-            _options = options;
-            _logger = logger;
+            m_factory = factory ?? throw new ArgumentNullException(nameof(factory));
+            m_options = options ?? throw new ArgumentNullException(nameof(options));
+            m_logger = logger;
         }
 
+        #endregion
+
+        #region IHostedService
+
+        /// <inheritdoc />
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            if (!_options.AutoStart)
+            foreach (var options in m_options)
             {
-                _logger?.LogDebug("Auto-start disabled for WitRPC server '{ServerName}'", _options.ServerName);
-                return Task.CompletedTask;
-            }
+                if (!options.AutoStart)
+                {
+                    m_logger?.LogDebug("Auto-start disabled for WitRPC server '{ServerName}'", options.ServerName);
+                    continue;
+                }
 
-            try
-            {
-                _logger?.LogInformation("Starting WitRPC server '{ServerName}'...", _options.ServerName);
-                
-                var server = _factory.GetServer(_options.ServerName);
-                server.StartWaitingForConnection();
-                
-                _logger?.LogInformation("WitRPC server '{ServerName}' started successfully", _options.ServerName);
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, "Error starting WitRPC server '{ServerName}'", _options.ServerName);
-                throw;
+                try
+                {
+                    m_logger?.LogInformation("Starting WitRPC server '{ServerName}'...", options.ServerName);
+
+                    var server = m_factory.GetServer(options.ServerName);
+                    server.StartWaitingForConnection();
+
+                    m_logger?.LogInformation("WitRPC server '{ServerName}' started successfully", options.ServerName);
+                }
+                catch (Exception ex)
+                {
+                    m_logger?.LogError(ex, "Error starting WitRPC server '{ServerName}'", options.ServerName);
+                    throw;
+                }
             }
 
             return Task.CompletedTask;
         }
 
+        /// <inheritdoc />
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            try
+            foreach (var options in m_options)
             {
-                _logger?.LogInformation("Stopping WitRPC server '{ServerName}'...", _options.ServerName);
-                
-                var server = _factory.GetServer(_options.ServerName);
-                server.StopWaitingForConnection();
-                
-                _logger?.LogInformation("WitRPC server '{ServerName}' stopped", _options.ServerName);
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, "Error stopping WitRPC server '{ServerName}'", _options.ServerName);
+                if (!m_factory.HasServer(options.ServerName))
+                    continue;
+
+                try
+                {
+                    m_logger?.LogInformation("Stopping WitRPC server '{ServerName}'...", options.ServerName);
+
+                    var server = m_factory.GetServer(options.ServerName);
+                    server.StopWaitingForConnection();
+
+                    m_logger?.LogInformation("WitRPC server '{ServerName}' stopped", options.ServerName);
+                }
+                catch (Exception ex)
+                {
+                    m_logger?.LogError(ex, "Error stopping WitRPC server '{ServerName}'", options.ServerName);
+                }
             }
 
             return Task.CompletedTask;
         }
+
+        #endregion
     }
 }

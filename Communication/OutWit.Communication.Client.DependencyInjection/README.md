@@ -71,6 +71,18 @@ services.AddWitRpcClient("my-service", options =>
 }, autoConnect: true, connectionTimeout: TimeSpan.FromSeconds(30));
 ```
 
+The `autoConnect` parameter registers an `IHostedService` that connects the client during application startup.
+You can also combine typed registration with auto-connect:
+
+```csharp
+services.AddWitRpcClient<IMyService>("my-service", options =>
+{
+    options.WithWebSocket("ws://localhost:5000");
+    options.WithJson();
+    options.WithEncryption();
+}, autoConnect: true, connectionTimeout: TimeSpan.FromSeconds(10));
+```
+
 #### Using the Factory
 
 For more control, use `IWitClientFactory`:
@@ -111,6 +123,12 @@ services.AddWitRpcClient("service-b", options =>
 {
     options.WithTcp("server-b", 6000);
     options.WithMessagePack();
+});
+
+services.AddWitRpcClient("service-c", options =>
+{
+    options.WithNamedPipe("MyLocalPipe");
+    options.WithProtoBuf();
 });
 ```
 

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net10.0;net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
 
-    <Version>2.3.1</Version>
+    <Version>2.3.2</Version>
 
     <Description>Microsoft.Extensions.DependencyInjection integration for WitRPC client, providing easy registration and lifecycle management of WitRPC client services.</Description>
     <PackageTags>OutWit;Communication;WitRPC;DependencyInjection;DI;Client</PackageTags>
@@ -11,10 +11,6 @@
     <RepositoryUrl>https://github.com/dmitrat/WitRPC/tree/main/Communication/OutWit.Communication.Client.DependencyInjection</RepositoryUrl>
 
   </PropertyGroup>
-
-  <ItemGroup>
-    
-  </ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.2" />

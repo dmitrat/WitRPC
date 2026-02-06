@@ -4,6 +4,7 @@ using OutWit.Communication.Client;
 using OutWit.Communication.Client.DependencyInjection;
 using OutWit.Communication.Client.Reconnection;
 using OutWit.Communication.Client.Pipes.Utils;
+using OutWit.Communication.Client.DependencyInjection.Interfaces;
 
 namespace OutWit.Communication.Tests.DependencyInjection
 {

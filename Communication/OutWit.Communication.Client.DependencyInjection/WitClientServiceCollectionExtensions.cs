@@ -1,6 +1,7 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using OutWit.Communication.Client.DependencyInjection.Interfaces;
 
 namespace OutWit.Communication.Client.DependencyInjection
 {
@@ -14,8 +15,12 @@ namespace OutWit.Communication.Client.DependencyInjection
         /// </summary>
         /// <param name="services">The service collection.</param>
         /// <returns>The service collection for chaining.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> is null.</exception>
         public static IServiceCollection AddWitRpcClientFactory(this IServiceCollection services)
         {
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+
             services.TryAddSingleton<WitClientFactory>();
             services.TryAddSingleton<IWitClientFactory>(sp => sp.GetRequiredService<WitClientFactory>());
             return services;
@@ -28,14 +33,21 @@ namespace OutWit.Communication.Client.DependencyInjection
         /// <param name="name">The name of the client configuration.</param>
         /// <param name="configure">Action to configure the client options.</param>
         /// <returns>The service collection for chaining.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/>, <paramref name="name"/>, or <paramref name="configure"/> is null.</exception>
         public static IServiceCollection AddWitRpcClient(
             this IServiceCollection services,
             string name,
             Action<WitClientBuilderOptions> configure)
         {
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+            if (configure == null)
+                throw new ArgumentNullException(nameof(configure));
+
             services.AddWitRpcClientFactory();
 
-            // Register configuration
             services.AddSingleton<IConfigureWitClient>(new ConfigureWitClient(name, configure));
 
             return services;
@@ -50,6 +62,7 @@ namespace OutWit.Communication.Client.DependencyInjection
         /// <param name="autoConnect">Whether to auto-connect on application startup.</param>
         /// <param name="connectionTimeout">Connection timeout.</param>
         /// <returns>The service collection for chaining.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/>, <paramref name="name"/>, or <paramref name="configure"/> is null.</exception>
         public static IServiceCollection AddWitRpcClient(
             this IServiceCollection services,
             string name,
@@ -68,7 +81,7 @@ namespace OutWit.Communication.Client.DependencyInjection
                     ConnectionTimeout = connectionTimeout ?? TimeSpan.FromSeconds(30)
                 });
 
-                services.AddHostedService<WitClientHostedService>();
+                services.TryAddEnumerable(ServiceDescriptor.Singleton<Microsoft.Extensions.Hosting.IHostedService, WitClientHostedService>());
             }
 
             return services;
@@ -82,6 +95,7 @@ namespace OutWit.Communication.Client.DependencyInjection
         /// <param name="name">The name of the client configuration.</param>
         /// <param name="configure">Action to configure the client options.</param>
         /// <returns>The service collection for chaining.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/>, <paramref name="name"/>, or <paramref name="configure"/> is null.</exception>
         public static IServiceCollection AddWitRpcClient<TService>(
             this IServiceCollection services,
             string name,
@@ -90,7 +104,6 @@ namespace OutWit.Communication.Client.DependencyInjection
         {
             services.AddWitRpcClient(name, configure);
 
-            // Register the service interface
             services.AddSingleton<TService>(sp =>
             {
                 var factory = sp.GetRequiredService<IWitClientFactory>();
@@ -110,6 +123,7 @@ namespace OutWit.Communication.Client.DependencyInjection
         /// <param name="autoConnect">Whether to auto-connect on application startup.</param>
         /// <param name="connectionTimeout">Connection timeout.</param>
         /// <returns>The service collection for chaining.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/>, <paramref name="name"/>, or <paramref name="configure"/> is null.</exception>
         public static IServiceCollection AddWitRpcClient<TService>(
             this IServiceCollection services,
             string name,
@@ -120,7 +134,6 @@ namespace OutWit.Communication.Client.DependencyInjection
         {
             services.AddWitRpcClient(name, configure, autoConnect, connectionTimeout);
 
-            // Register the service interface
             services.AddSingleton<TService>(sp =>
             {
                 var factory = sp.GetRequiredService<IWitClientFactory>();
@@ -128,36 +141,6 @@ namespace OutWit.Communication.Client.DependencyInjection
             });
 
             return services;
-        }
-    }
-
-    /// <summary>
-    /// Interface for WitClient configuration.
-    /// </summary>
-    public interface IConfigureWitClient
-    {
-        string Name { get; }
-        void Configure(WitClientBuilderOptions options);
-    }
-
-    /// <summary>
-    /// Implementation of WitClient configuration.
-    /// </summary>
-    internal class ConfigureWitClient : IConfigureWitClient
-    {
-        private readonly Action<WitClientBuilderOptions> _configure;
-
-        public ConfigureWitClient(string name, Action<WitClientBuilderOptions> configure)
-        {
-            Name = name;
-            _configure = configure;
-        }
-
-        public string Name { get; }
-
-        public void Configure(WitClientBuilderOptions options)
-        {
-            _configure(options);
         }
     }
 }

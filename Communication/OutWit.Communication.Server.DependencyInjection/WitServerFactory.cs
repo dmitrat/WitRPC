@@ -2,75 +2,103 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using OutWit.Communication.Server;
+using OutWit.Communication.Server.DependencyInjection.Interfaces;
 
 namespace OutWit.Communication.Server.DependencyInjection
 {
     /// <summary>
-    /// Factory for creating and managing WitRPC server instances.
+    /// Default implementation of <see cref="IWitServerFactory"/>.
     /// </summary>
-    public interface IWitServerFactory
+    public sealed class WitServerFactory : IWitServerFactory, IDisposable
     {
+        #region Fields
+
+        private readonly ConcurrentDictionary<string, WitServer> m_servers = new();
+        private readonly ConcurrentDictionary<string, IConfigureWitServer> m_configurations = new();
+        private readonly IServiceProvider m_serviceProvider;
+        private readonly object m_lock = new();
+
+        private bool m_disposed;
+
+        #endregion
+
+        #region Constructors
+
         /// <summary>
-        /// Gets a configured WitServer by name.
+        /// Initializes a new instance of <see cref="WitServerFactory"/>.
         /// </summary>
-        /// <param name="name">The name of the server configuration.</param>
-        /// <returns>The configured WitServer instance.</returns>
-        WitServer GetServer(string name);
-    }
-
-    /// <summary>
-    /// Default implementation of IWitServerFactory.
-    /// </summary>
-    public class WitServerFactory : IWitServerFactory, IDisposable
-    {
-        private readonly ConcurrentDictionary<string, WitServer> _servers = new();
-        private readonly ConcurrentDictionary<string, IConfigureWitServer> _configurations = new();
-        private readonly IServiceProvider _serviceProvider;
-        private readonly object _lock = new();
-
+        /// <param name="configurations">The registered server configurations.</param>
+        /// <param name="serviceProvider">The service provider for resolving dependencies.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="configurations"/> or <paramref name="serviceProvider"/> is null.</exception>
         public WitServerFactory(IEnumerable<IConfigureWitServer> configurations, IServiceProvider serviceProvider)
         {
-            _serviceProvider = serviceProvider;
+            if (configurations == null)
+                throw new ArgumentNullException(nameof(configurations));
+
+            m_serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+
             foreach (var config in configurations)
             {
-                _configurations[config.Name] = config;
+                m_configurations[config.Name] = config;
             }
         }
+
+        #endregion
+
+        #region IWitServerFactory
 
         /// <inheritdoc />
         public WitServer GetServer(string name)
         {
-            if (_servers.TryGetValue(name, out var existingServer))
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+
+            if (m_disposed)
+                throw new ObjectDisposedException(nameof(WitServerFactory));
+
+            if (m_servers.TryGetValue(name, out var existingServer))
                 return existingServer;
 
-            lock (_lock)
+            lock (m_lock)
             {
-                if (_servers.TryGetValue(name, out existingServer))
+                if (m_servers.TryGetValue(name, out existingServer))
                     return existingServer;
 
-                if (!_configurations.TryGetValue(name, out var configure))
+                if (!m_configurations.TryGetValue(name, out var configure))
                     throw new InvalidOperationException($"No WitRPC server configuration found for name '{name}'. Make sure to register it using AddWitRpcServer.");
 
                 var options = new WitServerBuilderOptions();
-                configure.Configure(options, _serviceProvider);
+                configure.Configure(options, m_serviceProvider);
                 var server = WitServerBuilder.Build(options);
                 
-                _servers[name] = server;
+                m_servers[name] = server;
                 return server;
             }
         }
 
+        #endregion
+
+        #region Functions
+
         /// <summary>
         /// Gets all registered server names.
         /// </summary>
-        public IEnumerable<string> GetServerNames() => _configurations.Keys;
+        /// <returns>A collection of registered server names.</returns>
+        public IEnumerable<string> GetServerNames() => m_configurations.Keys;
+
+        /// <summary>
+        /// Checks whether a server with the given name has been created.
+        /// </summary>
+        /// <param name="name">The name of the server configuration.</param>
+        /// <returns><c>true</c> if the server has been created; otherwise, <c>false</c>.</returns>
+        public bool HasServer(string name) => m_servers.ContainsKey(name);
 
         /// <summary>
         /// Starts all registered servers.
         /// </summary>
         public void StartAll()
         {
-            foreach (var name in _configurations.Keys)
+            foreach (var name in m_configurations.Keys)
             {
                 var server = GetServer(name);
                 server.StartWaitingForConnection();
@@ -78,76 +106,36 @@ namespace OutWit.Communication.Server.DependencyInjection
         }
 
         /// <summary>
-        /// Stops all servers.
+        /// Stops all created servers.
         /// </summary>
         public void StopAll()
         {
-            foreach (var server in _servers.Values)
+            foreach (var server in m_servers.Values)
             {
                 server.StopWaitingForConnection();
             }
         }
+
+        #endregion
+
+        #region IDisposable
 
         /// <inheritdoc />
         public void Dispose()
         {
-            foreach (var server in _servers.Values)
+            if (m_disposed)
+                return;
+
+            m_disposed = true;
+
+            foreach (var server in m_servers.Values)
             {
                 server.StopWaitingForConnection();
                 server.Dispose();
             }
-            _servers.Clear();
-        }
-    }
-
-    /// <summary>
-    /// Interface for WitServer configuration.
-    /// </summary>
-    public interface IConfigureWitServer
-    {
-        string Name { get; }
-        void Configure(WitServerBuilderOptions options, IServiceProvider serviceProvider);
-    }
-
-    /// <summary>
-    /// Implementation of WitServer configuration.
-    /// </summary>
-    internal class ConfigureWitServer : IConfigureWitServer
-    {
-        private readonly Action<WitServerBuilderOptions, IServiceProvider> _configure;
-
-        public ConfigureWitServer(string name, Action<WitServerBuilderOptions, IServiceProvider> configure)
-        {
-            Name = name;
-            _configure = configure;
+            m_servers.Clear();
         }
 
-        public string Name { get; }
-
-        public void Configure(WitServerBuilderOptions options, IServiceProvider serviceProvider)
-        {
-            _configure(options, serviceProvider);
-        }
-    }
-
-    /// <summary>
-    /// Implementation of WitServer configuration without service provider.
-    /// </summary>
-    internal class ConfigureWitServerSimple : IConfigureWitServer
-    {
-        private readonly Action<WitServerBuilderOptions> _configure;
-
-        public ConfigureWitServerSimple(string name, Action<WitServerBuilderOptions> configure)
-        {
-            Name = name;
-            _configure = configure;
-        }
-
-        public string Name { get; }
-
-        public void Configure(WitServerBuilderOptions options, IServiceProvider serviceProvider)
-        {
-            _configure(options);
-        }
+        #endregion
     }
 }

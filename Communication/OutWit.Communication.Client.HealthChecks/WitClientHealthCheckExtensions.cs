@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using OutWit.Communication.Client.DependencyInjection;
+using OutWit.Communication.Client.DependencyInjection.Interfaces;
 
 namespace OutWit.Communication.Client.HealthChecks
 {
