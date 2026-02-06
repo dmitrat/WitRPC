@@ -29,8 +29,8 @@ namespace OutWit.Communication.Tests.HealthChecks
             
             services.AddWitRpcClient("test-client", ctx =>
             {
-                ctx.Options.WithNamedPipe("health-test-pipe");
-                ctx.Options.WithJson();
+                ctx.WithNamedPipe("health-test-pipe");
+                ctx.WithJson();
             });
             
             services.AddHealthChecks()
@@ -52,8 +52,8 @@ namespace OutWit.Communication.Tests.HealthChecks
             
             services.AddWitRpcClient("test-client", ctx =>
             {
-                ctx.Options.WithNamedPipe("health-test-pipe-name");
-                ctx.Options.WithJson();
+                ctx.WithNamedPipe("health-test-pipe-name");
+                ctx.WithJson();
             });
             
             services.AddHealthChecks()
@@ -76,10 +76,10 @@ namespace OutWit.Communication.Tests.HealthChecks
             
             services.AddWitRpcClient("test-client", ctx =>
             {
-                ctx.Options.WithNamedPipe("health-disconnected");
-                ctx.Options.WithJson();
-                ctx.Options.WithoutEncryption();
-                ctx.Options.WithoutAuthorization();
+                ctx.WithNamedPipe("health-disconnected");
+                ctx.WithJson();
+                ctx.WithoutEncryption();
+                ctx.WithoutAuthorization();
             });
             
             var provider = services.BuildServiceProvider();
@@ -115,10 +115,10 @@ namespace OutWit.Communication.Tests.HealthChecks
                 
                 services.AddWitRpcClient("test-client", ctx =>
                 {
-                    ctx.Options.WithNamedPipe(testName);
-                    ctx.Options.WithJson();
-                    ctx.Options.WithEncryption();
-                    ctx.Options.WithAccessToken("token");
+                    ctx.WithNamedPipe(testName);
+                    ctx.WithJson();
+                    ctx.WithEncryption();
+                    ctx.WithAccessToken("token");
                 });
                 
                 var provider = services.BuildServiceProvider();
@@ -153,8 +153,8 @@ namespace OutWit.Communication.Tests.HealthChecks
             
             services.AddWitRpcClient("test-client", ctx =>
             {
-                ctx.Options.WithNamedPipe("health-data-test");
-                ctx.Options.WithJson();
+                ctx.WithNamedPipe("health-data-test");
+                ctx.WithJson();
             });
             
             var provider = services.BuildServiceProvider();

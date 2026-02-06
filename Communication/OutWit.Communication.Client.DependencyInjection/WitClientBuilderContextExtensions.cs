@@ -25,7 +25,7 @@ namespace OutWit.Communication.Client.DependencyInjection
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
 
-            context.Options.Logger = context.ServiceProvider.GetRequiredService<TLogger>();
+            context.Logger = context.ServiceProvider.GetRequiredService<TLogger>();
             return context;
         }
 
@@ -44,7 +44,7 @@ namespace OutWit.Communication.Client.DependencyInjection
                 throw new ArgumentNullException(nameof(categoryName));
 
             var loggerFactory = context.ServiceProvider.GetRequiredService<ILoggerFactory>();
-            context.Options.Logger = loggerFactory.CreateLogger(categoryName);
+            context.Logger = loggerFactory.CreateLogger(categoryName);
             return context;
         }
 
@@ -64,7 +64,7 @@ namespace OutWit.Communication.Client.DependencyInjection
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
 
-            context.Options.TokenProvider = context.ServiceProvider.GetRequiredService<TProvider>();
+            context.TokenProvider = context.ServiceProvider.GetRequiredService<TProvider>();
             return context;
         }
 
@@ -84,7 +84,7 @@ namespace OutWit.Communication.Client.DependencyInjection
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
 
-            context.Options.Encryptor = context.ServiceProvider.GetRequiredService<TEncryptor>();
+            context.Encryptor = context.ServiceProvider.GetRequiredService<TEncryptor>();
             return context;
         }
 

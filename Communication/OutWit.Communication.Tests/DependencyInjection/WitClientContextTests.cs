@@ -17,15 +17,13 @@ namespace OutWit.Communication.Tests.DependencyInjection
         #region Context Construction Tests
 
         [Test]
-        public void ContextExposesOptionsAndServiceProviderTest()
+        public void ContextExposesServiceProviderTest()
         {
             var services = new ServiceCollection();
             var provider = services.BuildServiceProvider();
-            var options = new WitClientBuilderOptions();
 
-            var context = new WitClientBuilderContext(options, provider);
+            var context = new WitClientBuilderContext(provider);
 
-            Assert.That(context.Options, Is.SameAs(options));
             Assert.That(context.ServiceProvider, Is.SameAs(provider));
         }
 
@@ -39,14 +37,13 @@ namespace OutWit.Communication.Tests.DependencyInjection
             var services = new ServiceCollection();
             services.AddLogging();
             var provider = services.BuildServiceProvider();
-            var options = new WitClientBuilderOptions();
-            var context = new WitClientBuilderContext(options, provider);
+            var context = new WitClientBuilderContext(provider);
 
             var result = context.WithLogger<ILogger<WitClientContextTests>>();
 
             Assert.That(result, Is.SameAs(context));
-            Assert.That(options.Logger, Is.Not.Null);
-            Assert.That(options.Logger, Is.InstanceOf<ILogger<WitClientContextTests>>());
+            Assert.That(context.Logger, Is.Not.Null);
+            Assert.That(context.Logger, Is.InstanceOf<ILogger<WitClientContextTests>>());
         }
 
         [Test]
@@ -55,13 +52,12 @@ namespace OutWit.Communication.Tests.DependencyInjection
             var services = new ServiceCollection();
             services.AddLogging();
             var provider = services.BuildServiceProvider();
-            var options = new WitClientBuilderOptions();
-            var context = new WitClientBuilderContext(options, provider);
+            var context = new WitClientBuilderContext(provider);
 
             var result = context.WithLogger("TestCategory");
 
             Assert.That(result, Is.SameAs(context));
-            Assert.That(options.Logger, Is.Not.Null);
+            Assert.That(context.Logger, Is.Not.Null);
         }
 
         [Test]
@@ -70,8 +66,7 @@ namespace OutWit.Communication.Tests.DependencyInjection
             var services = new ServiceCollection();
             services.AddLogging();
             var provider = services.BuildServiceProvider();
-            var options = new WitClientBuilderOptions();
-            var context = new WitClientBuilderContext(options, provider);
+            var context = new WitClientBuilderContext(provider);
 
             Assert.Throws<ArgumentNullException>(() => context.WithLogger(null!));
         }
@@ -86,13 +81,12 @@ namespace OutWit.Communication.Tests.DependencyInjection
             var services = new ServiceCollection();
             services.AddSingleton<IAccessTokenProvider>(new MockAccessTokenProvider("test-token"));
             var provider = services.BuildServiceProvider();
-            var options = new WitClientBuilderOptions();
-            var context = new WitClientBuilderContext(options, provider);
+            var context = new WitClientBuilderContext(provider);
 
             var result = context.WithAccessTokenProvider<IAccessTokenProvider>();
 
             Assert.That(result, Is.SameAs(context));
-            Assert.That(options.TokenProvider, Is.InstanceOf<MockAccessTokenProvider>());
+            Assert.That(context.TokenProvider, Is.InstanceOf<MockAccessTokenProvider>());
         }
 
         #endregion
@@ -105,13 +99,12 @@ namespace OutWit.Communication.Tests.DependencyInjection
             var services = new ServiceCollection();
             services.AddSingleton<IEncryptorClient>(new EncryptorClientPlain());
             var provider = services.BuildServiceProvider();
-            var options = new WitClientBuilderOptions();
-            var context = new WitClientBuilderContext(options, provider);
+            var context = new WitClientBuilderContext(provider);
 
             var result = context.WithEncryptor<IEncryptorClient>();
 
             Assert.That(result, Is.SameAs(context));
-            Assert.That(options.Encryptor, Is.InstanceOf<EncryptorClientPlain>());
+            Assert.That(context.Encryptor, Is.InstanceOf<EncryptorClientPlain>());
         }
 
         #endregion
@@ -127,10 +120,10 @@ namespace OutWit.Communication.Tests.DependencyInjection
 
             services.AddWitRpcClient("ctx-client", ctx =>
             {
-                ctx.Options.WithNamedPipe("ctx-test-pipe");
-                ctx.Options.WithJson();
-                ctx.Options.WithoutEncryption();
-                ctx.Options.WithoutAuthorization();
+                ctx.WithNamedPipe("ctx-test-pipe");
+                ctx.WithJson();
+                ctx.WithoutEncryption();
+                ctx.WithoutAuthorization();
                 ctx.WithLogger<ILogger<WitClientContextTests>>();
                 loggerResolved = true;
             });
@@ -150,10 +143,10 @@ namespace OutWit.Communication.Tests.DependencyInjection
 
             services.AddWitRpcClient<ITestService>("ctx-typed", ctx =>
             {
-                ctx.Options.WithNamedPipe("ctx-typed-pipe");
-                ctx.Options.WithJson();
-                ctx.Options.WithoutEncryption();
-                ctx.Options.WithoutAuthorization();
+                ctx.WithNamedPipe("ctx-typed-pipe");
+                ctx.WithJson();
+                ctx.WithoutEncryption();
+                ctx.WithoutAuthorization();
             });
 
             var serviceDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(ITestService));
@@ -168,8 +161,8 @@ namespace OutWit.Communication.Tests.DependencyInjection
 
             services.AddWitRpcClient("ctx-auto", ctx =>
             {
-                ctx.Options.WithNamedPipe("ctx-auto-pipe");
-                ctx.Options.WithJson();
+                ctx.WithNamedPipe("ctx-auto-pipe");
+                ctx.WithJson();
             }, autoConnect: true, connectionTimeout: TimeSpan.FromSeconds(5));
 
             var hostedServiceDescriptor = services.FirstOrDefault(d =>
@@ -189,8 +182,7 @@ namespace OutWit.Communication.Tests.DependencyInjection
             services.AddSingleton<IAccessTokenProvider>(new MockAccessTokenProvider("chain-token"));
             services.AddSingleton<IEncryptorClient>(new EncryptorClientPlain());
             var provider = services.BuildServiceProvider();
-            var options = new WitClientBuilderOptions();
-            var context = new WitClientBuilderContext(options, provider);
+            var context = new WitClientBuilderContext(provider);
 
             var result = context
                 .WithLogger<ILogger<WitClientContextTests>>()
@@ -198,9 +190,9 @@ namespace OutWit.Communication.Tests.DependencyInjection
                 .WithEncryptor<IEncryptorClient>();
 
             Assert.That(result, Is.SameAs(context));
-            Assert.That(options.Logger, Is.Not.Null);
-            Assert.That(options.TokenProvider, Is.InstanceOf<MockAccessTokenProvider>());
-            Assert.That(options.Encryptor, Is.InstanceOf<EncryptorClientPlain>());
+            Assert.That(context.Logger, Is.Not.Null);
+            Assert.That(context.TokenProvider, Is.InstanceOf<MockAccessTokenProvider>());
+            Assert.That(context.Encryptor, Is.InstanceOf<EncryptorClientPlain>());
         }
 
         #endregion

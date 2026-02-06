@@ -34,8 +34,8 @@ namespace OutWit.Communication.Tests.DependencyInjection
             
             services.AddWitRpcClient("test-client", ctx =>
             {
-                ctx.Options.WithNamedPipe("test-pipe");
-                ctx.Options.WithJson();
+                ctx.WithNamedPipe("test-pipe");
+                ctx.WithJson();
             });
             
             var provider = services.BuildServiceProvider();
@@ -51,10 +51,10 @@ namespace OutWit.Communication.Tests.DependencyInjection
             
             services.AddWitRpcClient("test-client", ctx =>
             {
-                ctx.Options.WithNamedPipe("test-pipe-getclient");
-                ctx.Options.WithJson();
-                ctx.Options.WithoutEncryption();
-                ctx.Options.WithoutAuthorization();
+                ctx.WithNamedPipe("test-pipe-getclient");
+                ctx.WithJson();
+                ctx.WithoutEncryption();
+                ctx.WithoutAuthorization();
             });
             
             var provider = services.BuildServiceProvider();
@@ -73,8 +73,8 @@ namespace OutWit.Communication.Tests.DependencyInjection
             
             services.AddWitRpcClient("test-client", ctx =>
             {
-                ctx.Options.WithNamedPipe("test-pipe-same");
-                ctx.Options.WithJson();
+                ctx.WithNamedPipe("test-pipe-same");
+                ctx.WithJson();
             });
             
             var provider = services.BuildServiceProvider();
@@ -106,14 +106,14 @@ namespace OutWit.Communication.Tests.DependencyInjection
             
             services.AddWitRpcClient("client-1", ctx =>
             {
-                ctx.Options.WithNamedPipe("pipe-1");
-                ctx.Options.WithJson();
+                ctx.WithNamedPipe("pipe-1");
+                ctx.WithJson();
             });
             
             services.AddWitRpcClient("client-2", ctx =>
             {
-                ctx.Options.WithNamedPipe("pipe-2");
-                ctx.Options.WithJson();
+                ctx.WithNamedPipe("pipe-2");
+                ctx.WithJson();
             });
             
             var provider = services.BuildServiceProvider();
@@ -138,10 +138,10 @@ namespace OutWit.Communication.Tests.DependencyInjection
             
             services.AddWitRpcClient<ITestService>("test-service", ctx =>
             {
-                ctx.Options.WithNamedPipe("test-pipe-typed");
-                ctx.Options.WithJson();
-                ctx.Options.WithoutEncryption();
-                ctx.Options.WithoutAuthorization();
+                ctx.WithNamedPipe("test-pipe-typed");
+                ctx.WithJson();
+                ctx.WithoutEncryption();
+                ctx.WithoutAuthorization();
             });
             
             var provider = services.BuildServiceProvider();
@@ -163,9 +163,9 @@ namespace OutWit.Communication.Tests.DependencyInjection
             
             services.AddWitRpcClient("test-client", ctx =>
             {
-                ctx.Options.WithNamedPipe("configured-pipe");
-                ctx.Options.WithJson();
-                ctx.Options.WithAutoReconnect(reconnect =>
+                ctx.WithNamedPipe("configured-pipe");
+                ctx.WithJson();
+                ctx.WithAutoReconnect(reconnect =>
                 {
                     reconnect.MaxAttempts = 5;
                     reconnect.InitialDelay = TimeSpan.FromSeconds(2);
@@ -193,8 +193,8 @@ namespace OutWit.Communication.Tests.DependencyInjection
             
             services.AddWitRpcClient("test-client", ctx =>
             {
-                ctx.Options.WithNamedPipe("dispose-test");
-                ctx.Options.WithJson();
+                ctx.WithNamedPipe("dispose-test");
+                ctx.WithJson();
             });
             
             var provider = services.BuildServiceProvider();

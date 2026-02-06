@@ -28,10 +28,10 @@ Register a WitRPC client with a name:
 ```csharp
 services.AddWitRpcClient("my-service", ctx =>
 {
-    ctx.Options.WithWebSocket("ws://localhost:5000");
-    ctx.Options.WithJson();
-    ctx.Options.WithEncryption();
-    ctx.Options.WithAccessToken("your-token");
+    ctx.WithWebSocket("ws://localhost:5000");
+    ctx.WithJson();
+    ctx.WithEncryption();
+    ctx.WithAccessToken("your-token");
 });
 ```
 
@@ -42,9 +42,9 @@ Register a client and automatically create a service proxy:
 ```csharp
 services.AddWitRpcClient<IMyService>("my-service", ctx =>
 {
-    ctx.Options.WithNamedPipe("MyServicePipe");
-    ctx.Options.WithJson();
-    ctx.Options.WithEncryption();
+    ctx.WithNamedPipe("MyServicePipe");
+    ctx.WithJson();
+    ctx.WithEncryption();
 });
 
 // Now you can inject IMyService directly
@@ -66,9 +66,9 @@ Enable automatic connection when the application starts:
 ```csharp
 services.AddWitRpcClient("my-service", ctx =>
 {
-    ctx.Options.WithTcp("127.0.0.1", 5000);
-    ctx.Options.WithJson();
-    ctx.Options.WithAutoReconnect(); // Enable auto-reconnect
+    ctx.WithTcp("127.0.0.1", 5000);
+    ctx.WithJson();
+    ctx.WithAutoReconnect(); // Enable auto-reconnect
 }, autoConnect: true, connectionTimeout: TimeSpan.FromSeconds(30));
 ```
 
@@ -78,9 +78,9 @@ You can also combine typed registration with auto-connect:
 ```csharp
 services.AddWitRpcClient<IMyService>("my-service", ctx =>
 {
-    ctx.Options.WithWebSocket("ws://localhost:5000");
-    ctx.Options.WithJson();
-    ctx.Options.WithEncryption();
+    ctx.WithWebSocket("ws://localhost:5000");
+    ctx.WithJson();
+    ctx.WithEncryption();
 }, autoConnect: true, connectionTimeout: TimeSpan.FromSeconds(10));
 ```
 
@@ -116,20 +116,20 @@ Register multiple clients with different configurations:
 ```csharp
 services.AddWitRpcClient("service-a", ctx =>
 {
-    ctx.Options.WithWebSocket("ws://server-a:5000");
-    ctx.Options.WithJson();
+    ctx.WithWebSocket("ws://server-a:5000");
+    ctx.WithJson();
 });
 
 services.AddWitRpcClient("service-b", ctx =>
 {
-    ctx.Options.WithTcp("server-b", 6000);
-    ctx.Options.WithMessagePack();
+    ctx.WithTcp("server-b", 6000);
+    ctx.WithMessagePack();
 });
 
 services.AddWitRpcClient("service-c", ctx =>
 {
-    ctx.Options.WithNamedPipe("MyLocalPipe");
-    ctx.Options.WithProtoBuf();
+    ctx.WithNamedPipe("MyLocalPipe");
+    ctx.WithProtoBuf();
 });
 ```
 
@@ -142,15 +142,15 @@ services.AddWitRpcClient("my-service", ctx =>
 {
     var config = ctx.ServiceProvider.GetRequiredService<IConfiguration>();
     
-    ctx.Options.WithWebSocket(config["WitRpc:Url"]!);
-    ctx.Options.WithJson();
-    ctx.Options.WithEncryption();
+    ctx.WithWebSocket(config["WitRpc:Url"]!);
+    ctx.WithJson();
+    ctx.WithEncryption();
     ctx.WithLogger<ILogger<MyApp>>();
     ctx.WithAccessTokenProvider<IMyTokenProvider>();
 });
 ```
 
-The `WitClientBuilderContext` wraps both `WitClientBuilderOptions` (via `ctx.Options`) and `IServiceProvider` (via `ctx.ServiceProvider`), so extension methods can resolve services without explicitly passing the service provider:
+The `WitClientBuilderContext` inherits from `WitClientBuilderOptions` and adds `IServiceProvider` (via `ctx.ServiceProvider`), so all standard builder extension methods (e.g. `WithJson`, `WithNamedPipe`, `WithTcp`) work directly on the context. Additional extension methods can resolve services without explicitly passing the service provider:
 
 | Method | Resolves |
 |--------|----------|
@@ -164,8 +164,8 @@ This also works with typed registration and auto-connect:
 ```csharp
 services.AddWitRpcClient<IMyService>("my-service", ctx =>
 {
-    ctx.Options.WithTcp("127.0.0.1", 5000);
-    ctx.Options.WithJson();
+    ctx.WithTcp("127.0.0.1", 5000);
+    ctx.WithJson();
     ctx.WithLogger<ILogger<MyApp>>();
 }, autoConnect: true, connectionTimeout: TimeSpan.FromSeconds(30));
 ```

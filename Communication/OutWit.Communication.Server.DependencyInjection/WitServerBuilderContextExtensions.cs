@@ -25,7 +25,7 @@ namespace OutWit.Communication.Server.DependencyInjection
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
 
-            context.Options.Logger = context.ServiceProvider.GetRequiredService<TLogger>();
+            context.Logger = context.ServiceProvider.GetRequiredService<TLogger>();
             return context;
         }
 
@@ -44,7 +44,7 @@ namespace OutWit.Communication.Server.DependencyInjection
                 throw new ArgumentNullException(nameof(categoryName));
 
             var loggerFactory = context.ServiceProvider.GetRequiredService<ILoggerFactory>();
-            context.Options.Logger = loggerFactory.CreateLogger(categoryName);
+            context.Logger = loggerFactory.CreateLogger(categoryName);
             return context;
         }
 
@@ -64,7 +64,7 @@ namespace OutWit.Communication.Server.DependencyInjection
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
 
-            context.Options.TokenValidator = context.ServiceProvider.GetRequiredService<TValidator>();
+            context.TokenValidator = context.ServiceProvider.GetRequiredService<TValidator>();
             return context;
         }
 
@@ -84,7 +84,7 @@ namespace OutWit.Communication.Server.DependencyInjection
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
 
-            context.Options.EncryptorFactory = context.ServiceProvider.GetRequiredService<TEncryptorFactory>();
+            context.EncryptorFactory = context.ServiceProvider.GetRequiredService<TEncryptorFactory>();
             return context;
         }
 
@@ -106,7 +106,7 @@ namespace OutWit.Communication.Server.DependencyInjection
                 throw new ArgumentNullException(nameof(context));
 
             var service = context.ServiceProvider.GetRequiredService<TService>();
-            context.Options.WithService(service, isStrongAssemblyMatch);
+            context.WithService(service, isStrongAssemblyMatch);
             return context;
         }
 

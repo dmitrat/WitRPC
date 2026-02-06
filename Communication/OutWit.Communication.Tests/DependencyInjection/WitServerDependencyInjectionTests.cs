@@ -40,9 +40,9 @@ namespace OutWit.Communication.Tests.DependencyInjection
 
             services.AddWitRpcServer("test-server", ctx =>
             {
-                ctx.Options.WithNamedPipe("test-server-pipe", maxNumberOfClients: 1);
-                ctx.Options.WithJson();
-                ctx.Options.WithService(new MockService());
+                ctx.WithNamedPipe("test-server-pipe", maxNumberOfClients: 1);
+                ctx.WithJson();
+                ctx.WithService(new MockService());
             });
 
             var provider = services.BuildServiceProvider();
@@ -58,11 +58,11 @@ namespace OutWit.Communication.Tests.DependencyInjection
 
             services.AddWitRpcServer("test-server", ctx =>
             {
-                ctx.Options.WithNamedPipe("test-server-pipe-get", maxNumberOfClients: 1);
-                ctx.Options.WithJson();
-                ctx.Options.WithoutEncryption();
-                ctx.Options.WithoutAuthorization();
-                ctx.Options.WithService(new MockService());
+                ctx.WithNamedPipe("test-server-pipe-get", maxNumberOfClients: 1);
+                ctx.WithJson();
+                ctx.WithoutEncryption();
+                ctx.WithoutAuthorization();
+                ctx.WithService(new MockService());
             });
 
             var provider = services.BuildServiceProvider();
@@ -80,9 +80,9 @@ namespace OutWit.Communication.Tests.DependencyInjection
 
             services.AddWitRpcServer("test-server", ctx =>
             {
-                ctx.Options.WithNamedPipe("test-server-pipe-same", maxNumberOfClients: 1);
-                ctx.Options.WithJson();
-                ctx.Options.WithService(new MockService());
+                ctx.WithNamedPipe("test-server-pipe-same", maxNumberOfClients: 1);
+                ctx.WithJson();
+                ctx.WithService(new MockService());
             });
 
             var provider = services.BuildServiceProvider();
@@ -114,16 +114,16 @@ namespace OutWit.Communication.Tests.DependencyInjection
 
             services.AddWitRpcServer("server-1", ctx =>
             {
-                ctx.Options.WithNamedPipe("pipe-srv-1", maxNumberOfClients: 1);
-                ctx.Options.WithJson();
-                ctx.Options.WithService(new MockService());
+                ctx.WithNamedPipe("pipe-srv-1", maxNumberOfClients: 1);
+                ctx.WithJson();
+                ctx.WithService(new MockService());
             });
 
             services.AddWitRpcServer("server-2", ctx =>
             {
-                ctx.Options.WithNamedPipe("pipe-srv-2", maxNumberOfClients: 1);
-                ctx.Options.WithJson();
-                ctx.Options.WithService(new MockService());
+                ctx.WithNamedPipe("pipe-srv-2", maxNumberOfClients: 1);
+                ctx.WithJson();
+                ctx.WithService(new MockService());
             });
 
             var provider = services.BuildServiceProvider();
@@ -148,10 +148,10 @@ namespace OutWit.Communication.Tests.DependencyInjection
 
             services.AddWitRpcServer<IService, MockService>("typed-server", ctx =>
             {
-                ctx.Options.WithNamedPipe("typed-server-pipe", maxNumberOfClients: 1);
-                ctx.Options.WithJson();
-                ctx.Options.WithoutEncryption();
-                ctx.Options.WithoutAuthorization();
+                ctx.WithNamedPipe("typed-server-pipe", maxNumberOfClients: 1);
+                ctx.WithJson();
+                ctx.WithoutEncryption();
+                ctx.WithoutAuthorization();
             });
 
             var provider = services.BuildServiceProvider();
@@ -174,10 +174,10 @@ namespace OutWit.Communication.Tests.DependencyInjection
             services.AddWitRpcServerWithServices("composite-server",
                 ctx =>
                 {
-                    ctx.Options.WithNamedPipe("composite-srv-pipe", maxNumberOfClients: 1);
-                    ctx.Options.WithJson();
-                    ctx.Options.WithoutEncryption();
-                    ctx.Options.WithoutAuthorization();
+                    ctx.WithNamedPipe("composite-srv-pipe", maxNumberOfClients: 1);
+                    ctx.WithJson();
+                    ctx.WithoutEncryption();
+                    ctx.WithoutAuthorization();
                 },
                 composite =>
                 {
@@ -202,10 +202,10 @@ namespace OutWit.Communication.Tests.DependencyInjection
             services.AddWitRpcServerWithServices("ctx-composite-server",
                 ctx =>
                 {
-                    ctx.Options.WithNamedPipe("ctx-composite-pipe", maxNumberOfClients: 1);
-                    ctx.Options.WithJson();
-                    ctx.Options.WithoutEncryption();
-                    ctx.Options.WithoutAuthorization();
+                    ctx.WithNamedPipe("ctx-composite-pipe", maxNumberOfClients: 1);
+                    ctx.WithJson();
+                    ctx.WithoutEncryption();
+                    ctx.WithoutAuthorization();
                     ctx.WithLogger<ILogger<WitServerDependencyInjectionTests>>();
                     loggerResolved = true;
                 },
@@ -231,8 +231,8 @@ namespace OutWit.Communication.Tests.DependencyInjection
             services.AddWitRpcServerWithServices("auto-composite-server",
                 ctx =>
                 {
-                    ctx.Options.WithNamedPipe("auto-composite-pipe", maxNumberOfClients: 1);
-                    ctx.Options.WithJson();
+                    ctx.WithNamedPipe("auto-composite-pipe", maxNumberOfClients: 1);
+                    ctx.WithJson();
                 },
                 composite =>
                 {
@@ -256,9 +256,9 @@ namespace OutWit.Communication.Tests.DependencyInjection
 
             services.AddWitRpcServer("test-server", ctx =>
             {
-                ctx.Options.WithNamedPipe("dispose-srv-test", maxNumberOfClients: 1);
-                ctx.Options.WithJson();
-                ctx.Options.WithService(new MockService());
+                ctx.WithNamedPipe("dispose-srv-test", maxNumberOfClients: 1);
+                ctx.WithJson();
+                ctx.WithService(new MockService());
             });
 
             var provider = services.BuildServiceProvider();

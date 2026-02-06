@@ -28,10 +28,10 @@ Register a WitRPC server with a name:
 ```csharp
 services.AddWitRpcServer("my-server", ctx =>
 {
-    ctx.Options.WithWebSocket("http://localhost:5000", maxNumberOfClients: 100);
-    ctx.Options.WithJson();
-    ctx.Options.WithEncryption();
-    ctx.Options.WithAccessToken("server-token");
+    ctx.WithWebSocket("http://localhost:5000", maxNumberOfClients: 100);
+    ctx.WithJson();
+    ctx.WithEncryption();
+    ctx.WithAccessToken("server-token");
 });
 ```
 
@@ -46,9 +46,9 @@ services.AddSingleton<IMyService, MyServiceImpl>();
 // Register the WitRPC server
 services.AddWitRpcServer<IMyService, MyServiceImpl>("my-server", ctx =>
 {
-    ctx.Options.WithNamedPipe("MyServicePipe", maxNumberOfClients: 10);
-    ctx.Options.WithJson();
-    ctx.Options.WithEncryption();
+    ctx.WithNamedPipe("MyServicePipe", maxNumberOfClients: 10);
+    ctx.WithJson();
+    ctx.WithEncryption();
 });
 ```
 
@@ -65,9 +65,9 @@ services.AddSingleton<INotificationService, NotificationServiceImpl>();
 services.AddWitRpcServerWithServices("api-server",
     ctx =>
     {
-        ctx.Options.WithTcp(5000, maxNumberOfClients: 100);
-        ctx.Options.WithJson();
-        ctx.Options.WithEncryption();
+        ctx.WithTcp(5000, maxNumberOfClients: 100);
+        ctx.WithJson();
+        ctx.WithEncryption();
     },
     composite =>
     {
@@ -82,8 +82,8 @@ services.AddWitRpcServerWithServices("api-server",
 services.AddWitRpcServerWithServices("api-server",
     ctx =>
     {
-        ctx.Options.WithTcp(5000, maxNumberOfClients: 100);
-        ctx.Options.WithJson();
+        ctx.WithTcp(5000, maxNumberOfClients: 100);
+        ctx.WithJson();
     },
     composite =>
     {
@@ -99,8 +99,8 @@ services.AddWitRpcServerWithServices("api-server",
 services.AddWitRpcServerWithServices("api-server",
     ctx =>
     {
-        ctx.Options.WithTcp(5000, maxNumberOfClients: 100);
-        ctx.Options.WithJson();
+        ctx.WithTcp(5000, maxNumberOfClients: 100);
+        ctx.WithJson();
     },
     composite =>
     {
@@ -125,15 +125,15 @@ Enable automatic server start when the application starts:
 ```csharp
 services.AddWitRpcServer("my-server", ctx =>
 {
-    ctx.Options.WithTcp(5000, maxNumberOfClients: 50);
-    ctx.Options.WithJson();
+    ctx.WithTcp(5000, maxNumberOfClients: 50);
+    ctx.WithJson();
 }, autoStart: true);
 
 // Also works with typed registration
 services.AddWitRpcServer<IMyService, MyServiceImpl>("my-server", ctx =>
 {
-    ctx.Options.WithNamedPipe("MyServicePipe", maxNumberOfClients: 10);
-    ctx.Options.WithJson();
+    ctx.WithNamedPipe("MyServicePipe", maxNumberOfClients: 10);
+    ctx.WithJson();
 }, autoStart: true);
 
 // Also works with composite services
@@ -178,20 +178,20 @@ Register multiple servers with different configurations:
 ```csharp
 services.AddWitRpcServer("tcp-server", ctx =>
 {
-    ctx.Options.WithTcp(5000, maxNumberOfClients: 100);
-    ctx.Options.WithJson();
+    ctx.WithTcp(5000, maxNumberOfClients: 100);
+    ctx.WithJson();
 }, autoStart: true);
 
 services.AddWitRpcServer("websocket-server", ctx =>
 {
-    ctx.Options.WithWebSocket("http://localhost:8080", maxNumberOfClients: 1000);
-    ctx.Options.WithMessagePack();
+    ctx.WithWebSocket("http://localhost:8080", maxNumberOfClients: 1000);
+    ctx.WithMessagePack();
 }, autoStart: true);
 
 services.AddWitRpcServer("pipe-server", ctx =>
 {
-    ctx.Options.WithNamedPipe("MyServicePipe", maxNumberOfClients: 10);
-    ctx.Options.WithProtoBuf();
+    ctx.WithNamedPipe("MyServicePipe", maxNumberOfClients: 10);
+    ctx.WithProtoBuf();
 }, autoStart: true);
 ```
 
@@ -205,15 +205,15 @@ services.AddWitRpcServer("my-server", ctx =>
     var config = ctx.ServiceProvider.GetRequiredService<IConfiguration>();
     var port = config.GetValue<int>("WitRpc:Port");
     
-    ctx.Options.WithTcp(port, maxNumberOfClients: 100);
-    ctx.Options.WithJson();
-    ctx.Options.WithEncryption();
+    ctx.WithTcp(port, maxNumberOfClients: 100);
+    ctx.WithJson();
+    ctx.WithEncryption();
     ctx.WithLogger<ILogger<MyServer>>();
     ctx.WithAccessTokenValidator<IMyTokenValidator>();
 });
 ```
 
-The `WitServerBuilderContext` wraps both `WitServerBuilderOptions` (via `ctx.Options`) and `IServiceProvider` (via `ctx.ServiceProvider`), so extension methods can resolve services without explicitly passing the service provider:
+The `WitServerBuilderContext` inherits from `WitServerBuilderOptions` and adds `IServiceProvider` (via `ctx.ServiceProvider`), so all standard builder extension methods (e.g. `WithJson`, `WithNamedPipe`, `WithTcp`) work directly on the context. Additional extension methods can resolve services without explicitly passing the service provider:
 
 | Method | Resolves |
 |--------|----------|
@@ -230,8 +230,8 @@ services.AddSingleton<IMyService, MyServiceImpl>();
 
 services.AddWitRpcServer("my-server", ctx =>
 {
-    ctx.Options.WithTcp(5000, maxNumberOfClients: 100);
-    ctx.Options.WithJson();
+    ctx.WithTcp(5000, maxNumberOfClients: 100);
+    ctx.WithJson();
     ctx.WithService<IMyService>();
     ctx.WithLogger<ILogger<MyServer>>();
 }, autoStart: true);
@@ -245,7 +245,7 @@ Combine composite services with DI-resolved configuration:
 services.AddWitRpcServerWithServices("api-server",
     ctx =>
     {
-        ctx.Options.WithWebSocket("http://localhost:5000", maxNumberOfClients: 100);
+        ctx.WithWebSocket("http://localhost:5000", maxNumberOfClients: 100);
         ctx.WithAccessTokenValidator<IMyTokenValidator>();
         ctx.WithEncryptor<IMyEncryptorFactory>();
         ctx.WithLogger<ILogger<MyServer>>();

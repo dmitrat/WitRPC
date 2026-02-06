@@ -69,10 +69,9 @@ namespace OutWit.Communication.Client.DependencyInjection
                 if (!m_configurations.TryGetValue(name, out var configure))
                     throw new InvalidOperationException($"No WitRPC client configuration found for name '{name}'. Make sure to register it using AddWitRpcClient.");
 
-                var options = new WitClientBuilderOptions();
-                var context = new WitClientBuilderContext(options, m_serviceProvider);
+                var context = new WitClientBuilderContext(m_serviceProvider);
                 configure.Configure(context);
-                var client = WitClientBuilder.Build(options);
+                var client = WitClientBuilder.Build(context);
                 
                 m_clients[name] = client;
                 return client;

@@ -103,7 +103,7 @@ namespace OutWit.Communication.Server.DependencyInjection
             {
                 configure(ctx);
                 var service = ctx.ServiceProvider.GetRequiredService<TService>();
-                ctx.Options.WithService(service);
+                ctx.WithService(service);
             });
 
             return services;
@@ -183,7 +183,7 @@ namespace OutWit.Communication.Server.DependencyInjection
                         registerMethod.Invoke(processor, new[] { service });
                     }
 
-                    ctx.Options.WithRequestProcessor(processor);
+                    ctx.WithRequestProcessor(processor);
                 });
             });
 
