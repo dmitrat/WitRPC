@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using OutWit.Communication.Processors;
@@ -178,7 +179,10 @@ namespace OutWit.Communication.Server.DependencyInjection
                     {
                         var service = ctx.ServiceProvider.GetRequiredService(serviceType);
                         var registerMethod = typeof(CompositeRequestProcessor)
-                            .GetMethod(nameof(CompositeRequestProcessor.Register))!
+                            .GetMethods()
+                            .Single(m => m.Name == nameof(CompositeRequestProcessor.Register)
+                                         && m.IsGenericMethodDefinition
+                                         && m.GetGenericArguments().Length == 1)
                             .MakeGenericMethod(serviceType);
                         registerMethod.Invoke(processor, new[] { service });
                     }
