@@ -4,7 +4,7 @@
 		<TargetFrameworks>net10.0;net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 
-		<Version>1.0.1</Version>
+		<Version>1.0.2</Version>
 		<Description>Blazor WebAssembly channel factory for WitRPC communication over WebSocket with RSA/AES encryption via the Web Crypto API.</Description>
 		<PackageTags>OutWit;Communication;WitRPC;Client;Blazor;WebSocket;Encryption;WASM</PackageTags>
 		<RepositoryUrl>https://github.com/dmitrat/WitRPC/tree/main/Communication/OutWit.Communication.Client.Blazor</RepositoryUrl>

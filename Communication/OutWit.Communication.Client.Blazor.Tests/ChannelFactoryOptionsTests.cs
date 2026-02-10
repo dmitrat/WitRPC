@@ -10,6 +10,7 @@ namespace OutWit.Communication.Client.Blazor.Tests
         {
             var options = new ChannelFactoryOptions();
 
+            Assert.That(options.BaseUrl, Is.Null);
             Assert.That(options.ApiPath, Is.EqualTo("api"));
             Assert.That(options.TimeoutSeconds, Is.EqualTo(10));
             Assert.That(options.UseEncryption, Is.True);
@@ -73,6 +74,28 @@ namespace OutWit.Communication.Client.Blazor.Tests
             Assert.That(options.ConfigureClient, Is.Not.Null);
             options.ConfigureClient!(null!);
             Assert.That(called, Is.True);
+        }
+
+        [Test]
+        public void BaseUrlCanBeSetToAbsoluteUriTest()
+        {
+            var options = new ChannelFactoryOptions
+            {
+                BaseUrl = "https://api.example.com"
+            };
+
+            Assert.That(options.BaseUrl, Is.EqualTo("https://api.example.com"));
+        }
+
+        [Test]
+        public void BaseUrlNullFallsBackToDefaultTest()
+        {
+            var options = new ChannelFactoryOptions
+            {
+                BaseUrl = null
+            };
+
+            Assert.That(options.BaseUrl, Is.Null);
         }
 
         #endregion

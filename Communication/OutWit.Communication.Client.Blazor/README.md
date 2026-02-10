@@ -49,6 +49,19 @@ builder.Services.AddWitRpcChannel(options =>
 });
 ```
 
+#### Connecting to an External Server
+
+By default, the WebSocket URL is derived from `NavigationManager.BaseUri` (same origin as the Blazor app).
+To connect to a different server, set `BaseUrl`:
+
+```csharp
+builder.Services.AddWitRpcChannel(options =>
+{
+    options.BaseUrl = "https://api.example.com";  // external WitRPC server
+    options.ApiPath = "rpc";                       // -> wss://api.example.com/rpc
+});
+```
+
 #### Disabling Encryption
 
 Encryption is enabled by default. To disable it (e.g. for development or when TLS is sufficient):
@@ -198,7 +211,7 @@ This tears down the existing `WitClient`, creates a new one with fresh encryptio
               +------------------------+
               |  WitClientBuilder      |
               |    .Build(options)     |
-              |  -- WebSocket(url)     |     ws:// or wss:// from NavigationManager
+              |  -- WebSocket(url)     |     ws:// or wss:// from BaseUrl ?? NavigationManager
               |  -- MemoryPack         |     binary serialization
               |  -- Encryptor?         |     EncryptorClientWeb (if enabled)
               |  -- TokenProvider      |     ChannelTokenProvider
@@ -215,11 +228,12 @@ This tears down the existing `WitClient`, creates a new one with fresh encryptio
               +--------------------+
 ```
 
-The WebSocket URL is derived automatically from `NavigationManager.BaseUri`:
+The WebSocket URL is derived from `Options.BaseUrl` (if set) or `NavigationManager.BaseUri` (same origin):
 
 ```
-https://example.com/  ->  wss://example.com/api
-http://localhost:5000/ ->  ws://localhost:5000/api
+https://example.com/           ->  wss://example.com/api       (BaseUrl = null, same origin)
+http://localhost:5000/         ->  ws://localhost:5000/api      (BaseUrl = null, same origin)
+https://api.example.com        ->  wss://api.example.com/api   (BaseUrl = "https://api.example.com")
 ```
 
 ## Authentication Integration

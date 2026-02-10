@@ -8,6 +8,14 @@ namespace OutWit.Communication.Client.Blazor
     public sealed class ChannelFactoryOptions
     {
         /// <summary>
+        /// Optional absolute base URL for the WitRPC server.
+        /// When <c>null</c>, the URL is derived from <c>NavigationManager.BaseUri</c> (same origin).
+        /// Use this to connect to an external server (e.g. <c>"https://api.example.com"</c>).
+        /// Default: <c>null</c>.
+        /// </summary>
+        public string? BaseUrl { get; set; }
+
+        /// <summary>
         /// WebSocket API path (relative to base URL).
         /// Leading <c>/</c> is trimmed automatically.
         /// Default: <c>"api"</c>.

@@ -80,7 +80,7 @@ namespace OutWit.Communication.Client.Blazor
 
         private async Task<WitClient?> CreateClientAsync()
         {
-            var baseUri = new Uri(NavigationManager.BaseUri);
+            var baseUri = new Uri(Options.BaseUrl ?? NavigationManager.BaseUri);
             var wsScheme = baseUri.Scheme == "https" ? "wss" : "ws";
             var apiUrl = $"{wsScheme}://{baseUri.Authority}/{Options.ApiPath.TrimStart('/')}";
 

@@ -114,6 +114,28 @@ namespace OutWit.Communication.Client.Blazor.Tests
             Assert.That(factory, Is.Not.Null);
         }
 
+        [Test]
+        public void ConstructorWithBaseUrlDoesNotThrowTest()
+        {
+            var options = new ChannelFactoryOptions { BaseUrl = "https://api.example.com" };
+            var factory = CreateFactory(options);
+
+            Assert.That(factory, Is.Not.Null);
+        }
+
+        [Test]
+        public void ConstructorWithBaseUrlAndCustomPathDoesNotThrowTest()
+        {
+            var options = new ChannelFactoryOptions
+            {
+                BaseUrl = "https://api.example.com",
+                ApiPath = "rpc"
+            };
+            var factory = CreateFactory(options);
+
+            Assert.That(factory, Is.Not.Null);
+        }
+
         #endregion
     }
 }
