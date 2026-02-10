@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+	<PropertyGroup>
+		<TargetFrameworks>net10.0;net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+
+		<Version>1.0.1</Version>
+		<Description>Blazor WebAssembly channel factory for WitRPC communication over WebSocket with RSA/AES encryption via the Web Crypto API.</Description>
+		<PackageTags>OutWit;Communication;WitRPC;Client;Blazor;WebSocket;Encryption;WASM</PackageTags>
+		<RepositoryUrl>https://github.com/dmitrat/WitRPC/tree/main/Communication/OutWit.Communication.Client.Blazor</RepositoryUrl>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<SupportedPlatform Include="browser" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="10.0.2" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.11" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="9.0.11" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.22" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="8.0.22" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.20" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="7.0.20" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.36" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="6.0.36" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\OutWit.Communication.Client.WebSocket\OutWit.Communication.Client.WebSocket.csproj" />
+	</ItemGroup>
+
+</Project>

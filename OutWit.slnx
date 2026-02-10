@@ -9,6 +9,8 @@
     <File Path="InterProcess/Directory.Build.props" />
   </Folder>
   <Folder Name="/Communication/">
+    <Project Path="Communication/OutWit.Communication.Client.Blazor.Tests/OutWit.Communication.Client.Blazor.Tests.csproj" />
+    <Project Path="Communication/OutWit.Communication.Client.Blazor/OutWit.Communication.Client.Blazor.csproj" Id="bda58b21-fe0c-44c1-a03b-05a9bcc0dbbd" />
     <Project Path="Communication/OutWit.Communication.Client.DependencyInjection/OutWit.Communication.Client.DependencyInjection.csproj" />
     <Project Path="Communication/OutWit.Communication.Client.Encryption.BouncyCastle/OutWit.Communication.Client.Encryption.BouncyCastle.csproj" />
     <Project Path="Communication/OutWit.Communication.Client.HealthChecks/OutWit.Communication.Client.HealthChecks.csproj" />

@@ -46,6 +46,7 @@ jobs:
           - OutWit.Communication.Client.DependencyInjection
           - OutWit.Communication.Client.HealthChecks
           - OutWit.Communication.Client.Encryption.BouncyCastle
+          - OutWit.Communication.Client.Blazor
           # Server Extensions
           - OutWit.Communication.Server.DependencyInjection
           - OutWit.Communication.Server.Encryption.BouncyCastle
