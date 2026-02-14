@@ -5,6 +5,15 @@ window.cryptoInterop = {
     privateKey: null,
     publicKey: null,
 
+    _uint8ToBase64(bytes) {
+        const CHUNK = 0x8000;
+        let binary = '';
+        for (let i = 0; i < bytes.length; i += CHUNK) {
+            binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+        }
+        return btoa(binary);
+    },
+
     async generateKeys(keySize) {
         const keyPair = await window.crypto.subtle.generateKey(
             {
@@ -42,8 +51,7 @@ window.cryptoInterop = {
             encryptedData
         );
 
-        const decryptedBase64 = btoa(String.fromCharCode(...new Uint8Array(decrypted)));
-        return decryptedBase64;
+        return this._uint8ToBase64(new Uint8Array(decrypted));
     },
 
     async encryptAes(base64Key, base64Iv, base64Data) {
@@ -70,7 +78,7 @@ window.cryptoInterop = {
             dataBytes
         );
 
-        return btoa(String.fromCharCode(...new Uint8Array(encrypted)));
+        return this._uint8ToBase64(new Uint8Array(encrypted));
     },
 
     async decryptAes(base64Key, base64Iv, base64EncryptedData) {
@@ -97,6 +105,6 @@ window.cryptoInterop = {
             encryptedBytes
         );
 
-        return btoa(String.fromCharCode(...new Uint8Array(decrypted)));
+        return this._uint8ToBase64(new Uint8Array(decrypted));
     }
 };
