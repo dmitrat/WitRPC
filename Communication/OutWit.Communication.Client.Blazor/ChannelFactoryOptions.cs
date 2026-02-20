@@ -37,6 +37,13 @@ namespace OutWit.Communication.Client.Blazor
         public bool UseEncryption { get; set; } = true;
 
         /// <summary>
+        /// WebSocket send/receive buffer size in bytes.
+        /// Larger values reduce the number of WebSocket frames for big messages.
+        /// Default: 4096 bytes.
+        /// </summary>
+        public int BufferSize { get; set; } = 4096;
+
+        /// <summary>
         /// Automatic reconnection policy.
         /// Set to <c>null</c> to disable auto-reconnect.
         /// </summary>

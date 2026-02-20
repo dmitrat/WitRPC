@@ -98,7 +98,7 @@ namespace OutWit.Communication.Client.Blazor
 
                 var client = WitClientBuilder.Build(builder =>
                 {
-                    builder.WithWebSocket(apiUrl);
+                    builder.WithWebSocket(apiUrl, Options.BufferSize);
                     builder.WithMemoryPack();
                     builder.WithLogger(Logger);
                     builder.WithAccessTokenProvider(TokenProvider);
