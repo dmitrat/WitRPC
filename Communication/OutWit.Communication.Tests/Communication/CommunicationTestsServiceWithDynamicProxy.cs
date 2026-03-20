@@ -53,6 +53,7 @@ namespace OutWit.Communication.Tests.Communication
             //Assert.That(service.DoubleProperty, Is.EqualTo(1.2));
 
             //Assert.That(service.RequestData("text"), Is.EqualTo("text"));
+            Assert.That(service.RequestDate(new DateTimeOffset(2026, 02, 15, 12, 34, 6, new TimeSpan())), Is.EqualTo(new DateTimeOffset(2026, 02, 15, 12, 34, 6, new TimeSpan())));
             Assert.That(service.RequestDataNullable(null), Is.EqualTo("nullable"));
             Assert.That(service.GenericSimple(12, "34", 5.6), Is.EqualTo(5.6));
             Assert.That(service.GenericComplex(12, "34", new ComplexNumber<int, double>(56, 6.7)).Is(new ComplexNumber<int, double>(56, 6.7)), Is.EqualTo(true));

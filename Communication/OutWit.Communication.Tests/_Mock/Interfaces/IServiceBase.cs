@@ -22,6 +22,9 @@ namespace OutWit.Communication.Tests._Mock.Interfaces
         public event EventHandler<ComplexNumber<int, string>> GeneralEvent;
 
 
+        public DateTimeOffset RequestDate(DateTimeOffset date);
+
+
         public string RequestData(string message);
 
         public string RequestDataNullable(string? message);

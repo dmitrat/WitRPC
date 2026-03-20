@@ -35,6 +35,11 @@ namespace OutWit.Communication.Tests.Mock
 
         #region RequestData
 
+        public DateTimeOffset RequestDate(DateTimeOffset date)
+        {
+            return date;
+        }
+
         public string RequestData(string message)
         {
             GeneralEvent(this, new ComplexNumber<int, string>(1, message));

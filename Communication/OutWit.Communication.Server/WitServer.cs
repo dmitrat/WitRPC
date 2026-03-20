@@ -64,15 +64,18 @@ namespace OutWit.Communication.Server
                 DiscoveryServer.DiscoveryMessageRequested += OnDiscoveryMessageRequested;
         }
 
-        private WitMessage ProcessInitialization(Guid client, WitMessage message)
+        private bool TryGetConnection(Guid client, out ConnectionInfo? connection)
         {
-            if (!m_connections.TryGetValue(client, out ConnectionInfo? connection))
-            {
-                Logger?.LogError($"Unexpected recipient id");
-                throw new WitException($"Unexpected recipient id: {client}");
-            }
+            if (m_connections.TryGetValue(client, out connection))
+                return true;
 
-            if(connection.IsInitialized && connection.CanReinitialize)
+            Logger?.LogWarning("Ignoring message for disconnected or unknown client {ClientId}", client);
+            return false;
+        }
+
+        private WitMessage ProcessInitialization(ConnectionInfo connection, WitMessage message)
+        {
+            if (connection.IsInitialized && connection.CanReinitialize)
                 connection.Reinitialize();
 
             if (connection.IsInitialized)
@@ -113,14 +116,8 @@ namespace OutWit.Communication.Server
             }
         }
 
-        private WitMessage ProcessAuthorization(Guid client, WitMessage message)
+        private WitMessage ProcessAuthorization(ConnectionInfo connection, WitMessage message)
         {
-            if (!m_connections.TryGetValue(client, out ConnectionInfo? connection))
-            {
-                Logger?.LogError($"Unexpected recipient id");
-                throw new WitException($"Unexpected recipient id: {client}");
-            }
-
             if (connection.IsAuthorized)
             {
                 Logger?.LogError($"Wrong authorization request");
@@ -204,14 +201,8 @@ namespace OutWit.Communication.Server
             return message.With(x => x.Data = MessageSerializer.Serialize(response!));
         }
 
-        private async Task<WitMessage> Encrypt(Guid client, WitMessage message)
+        private async Task<WitMessage> Encrypt(ConnectionInfo connection, WitMessage message)
         {
-            if (!m_connections.TryGetValue(client, out ConnectionInfo? connection))
-            {
-                Logger?.LogError($"Unexpected recipient id");
-                throw new WitException($"Unexpected recipient id: {client}");
-            }
-
             if (message.Type == WitMessageType.Initialization || message.Data == null)
                 return message;
 
@@ -220,14 +211,8 @@ namespace OutWit.Communication.Server
             return message.With(x => x.Data = data);
         }
 
-        private async Task<WitMessage> Decrypt(Guid client, WitMessage message)
+        private async Task<WitMessage> Decrypt(ConnectionInfo connection, WitMessage message)
         {
-            if (!m_connections.TryGetValue(client, out ConnectionInfo? connection))
-            {
-                Logger?.LogError($"Unexpected recipient id");
-                throw new WitException($"Unexpected recipient id: {client}");
-            }
-
             if (message.Type == WitMessageType.Initialization || message.Data == null)
                 return message;
 
@@ -242,10 +227,10 @@ namespace OutWit.Communication.Server
 
         private async Task SendMessageAsync(Guid client, WitMessage message)
         {
-            if(!m_connections.TryGetValue(client, out ConnectionInfo? connection))
+            if(!TryGetConnection(client, out ConnectionInfo? connection) || connection == null)
                 return;
 
-            var encryptedMessage = await Encrypt(client, message);
+            var encryptedMessage = await Encrypt(connection, message);
             var data = MessageSerializer.Serialize(encryptedMessage);
             await connection.Transport.SendBytesAsync(data);
         }
@@ -263,7 +248,7 @@ namespace OutWit.Communication.Server
                         Data = callback
                     };
 
-                    var encryptedMessage = await Encrypt(connection.Id, message);
+                    var encryptedMessage = await Encrypt(connection, message);
                     var data = MessageSerializer.Serialize(encryptedMessage);
                     await connection.Transport.SendBytesAsync(data);
                 }
@@ -304,27 +289,41 @@ namespace OutWit.Communication.Server
                 return;
 
             await WaitForCallback.WaitAsync();
-
-            var decryptedMessage = await Decrypt(client, message);
-
-            if (message.Type == WitMessageType.Initialization)
-                await SendMessageAsync(client, ProcessInitialization(client, decryptedMessage));
-
-            if (message.Type == WitMessageType.Authorization)
-                await SendMessageAsync(client, ProcessAuthorization(client, decryptedMessage));
-
-            else if (message.Type == WitMessageType.Request)
+            try
             {
-                var responseMessage = await ProcessMessage(client, decryptedMessage);
-                await SendMessageAsync(client, responseMessage);
-            }
+                if (!TryGetConnection(client, out ConnectionInfo? connection) || connection == null)
+                    return;
 
-            WaitForCallback.Release();
+                var decryptedMessage = await Decrypt(connection, message);
+
+                if (message.Type == WitMessageType.Initialization)
+                    await SendMessageAsync(client, ProcessInitialization(connection, decryptedMessage));
+
+                else if (message.Type == WitMessageType.Authorization)
+                    await SendMessageAsync(client, ProcessAuthorization(connection, decryptedMessage));
+
+                else if (message.Type == WitMessageType.Request)
+                {
+                    var responseMessage = await ProcessMessage(client, decryptedMessage);
+                    await SendMessageAsync(client, responseMessage);
+                }
+            }
+            finally
+            {
+                WaitForCallback.Release();
+            }
         }
 
         private async void OnDataReceived(Guid sender, byte[] data)
         {
-            await OnMessageReceived(sender, MessageSerializer.Deserialize<WitMessage>(data));
+            try
+            {
+                await OnMessageReceived(sender, MessageSerializer.Deserialize<WitMessage>(data));
+            }
+            catch (Exception e)
+            {
+                Logger?.LogError(e, "Failed to process message from client {ClientId}", sender);
+            }
         }
 
         private void OnCallback(WitRequest? request)
@@ -360,8 +359,7 @@ namespace OutWit.Communication.Server
 
         private void OnClientDisconnected(Guid sender)
         {
-            if (m_connections.ContainsKey(sender))
-                m_connections.TryRemove(sender, out ConnectionInfo? info);
+            m_connections.TryRemove(sender, out ConnectionInfo? info);
         }
 
         #endregion
