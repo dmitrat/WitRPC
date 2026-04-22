@@ -85,6 +85,17 @@ namespace OutWit.Communication.Tests.Communication
             Assert.That(context.RequestProcessor.ProcessCallCount, Is.EqualTo(2));
         }
 
+        [Test]
+        public void ServerDisposeStopsAndDisposesTransportFactoryTest()
+        {
+            using var context = CreateContext();
+
+            context.Server.Dispose();
+
+            Assert.That(context.Factory.StopCallCount, Is.EqualTo(1));
+            Assert.That(context.Factory.DisposeCallCount, Is.EqualTo(1));
+        }
+
         #endregion
 
         #region Helpers
@@ -112,7 +123,7 @@ namespace OutWit.Communication.Tests.Communication
             var transport = new TestTransportServer();
             factory.ConnectClient(transport);
 
-            return new TestContext(server, transport, logger, messageSerializer, requestProcessor);
+            return new TestContext(server, factory, transport, logger, messageSerializer, requestProcessor);
         }
 
         private static byte[] CreateAuthorizationFrame(IMessageSerializer messageSerializer)
@@ -175,12 +186,14 @@ namespace OutWit.Communication.Tests.Communication
 
             public TestContext(
                 WitServer server,
+                TestTransportServerFactory factory,
                 TestTransportServer transport,
                 TestLogger logger,
                 IMessageSerializer messageSerializer,
                 TestRequestProcessor requestProcessor)
             {
                 Server = server;
+                Factory = factory;
                 Transport = transport;
                 Logger = logger;
                 MessageSerializer = messageSerializer;
@@ -201,6 +214,8 @@ namespace OutWit.Communication.Tests.Communication
             #region Properties
 
             public TestLogger Logger { get; }
+
+            public TestTransportServerFactory Factory { get; }
 
             public IMessageSerializer MessageSerializer { get; }
 
@@ -384,9 +399,15 @@ namespace OutWit.Communication.Tests.Communication
 
             public void StopWaitingForConnection()
             {
+                StopCallCount++;
             }
 
             public IServerOptions Options { get; } = new TestServerOptions();
+
+            public void Dispose()
+            {
+                DisposeCallCount++;
+            }
 
             #endregion
 
@@ -396,6 +417,10 @@ namespace OutWit.Communication.Tests.Communication
             {
                 NewClientConnected(transport);
             }
+
+            public int StopCallCount { get; private set; }
+
+            public int DisposeCallCount { get; private set; }
 
             #endregion
         }

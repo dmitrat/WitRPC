@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace OutWit.Communication.Interfaces
 {
-    public interface ITransportServerFactory
+    public interface ITransportServerFactory : IDisposable
     {
         public event TransportFactoryEventHandler NewClientConnected;
 

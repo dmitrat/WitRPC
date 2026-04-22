@@ -15,6 +15,8 @@ namespace OutWit.Communication.Server.Pipes
 
         private readonly HashSet<Guid> m_clients = new HashSet<Guid>();
 
+        private readonly object m_syncRoot = new();
+
         #endregion
 
         #region Constructors
@@ -31,31 +33,76 @@ namespace OutWit.Communication.Server.Pipes
 
         public void StartWaitingForConnection(ILogger? logger)
         {
-            CancellationTokenSource = new CancellationTokenSource();
-
-            Task.Run(async () =>
+            lock (m_syncRoot)
             {
-                while (!CancellationTokenSource.Token.IsCancellationRequested)
-                {
-                    WaitForConnectionSlot?.WaitOne();
+                if (IsDisposed)
+                    throw new ObjectDisposedException(nameof(NamedPipeServerTransportFactory));
 
-                    var transport = new NamedPipeServerTransport(Options);
+                if (CancellationTokenSource != null)
+                    throw new InvalidOperationException("Pipe listener is already running");
 
-                    if (await transport.InitializeConnectionAsync(CancellationTokenSource.Token))
-                    {
-                        transport.Disconnected += OnTransportDisconnected;
-                        NewClientConnected(transport);
-                        m_clients.Add(transport.Id);
-                    }
-                    else
-                        transport.Dispose();
-                }
-            });
+                CancellationTokenSource = new CancellationTokenSource();
+                AcceptLoopTask = Task.Run(() => AcceptLoopAsync(CancellationTokenSource.Token));
+            }
         }
 
         public void StopWaitingForConnection()
         {
-            CancellationTokenSource?.Cancel(false);
+            CancellationTokenSource? cancellationTokenSource;
+            Task? acceptLoopTask;
+
+            lock (m_syncRoot)
+            {
+                cancellationTokenSource = CancellationTokenSource;
+                acceptLoopTask = AcceptLoopTask;
+
+                CancellationTokenSource = null;
+                AcceptLoopTask = null;
+            }
+
+            if (cancellationTokenSource == null && acceptLoopTask == null)
+                return;
+
+            try
+            {
+                cancellationTokenSource?.Cancel(false);
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+
+            try
+            {
+                acceptLoopTask?.GetAwaiter().GetResult();
+            }
+            catch (Exception)
+            {
+            }
+
+            cancellationTokenSource?.Dispose();
+        }
+
+        private async Task AcceptLoopAsync(CancellationToken cancellationToken)
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                if (WaitHandle.WaitAny(new WaitHandle[] { cancellationToken.WaitHandle, WaitForConnectionSlot! }) == 0)
+                    return;
+
+                var transport = new NamedPipeServerTransport(Options);
+
+                if (await transport.InitializeConnectionAsync(cancellationToken))
+                {
+                    transport.Disconnected += OnTransportDisconnected;
+                    NewClientConnected(transport);
+                    m_clients.Add(transport.Id);
+                }
+                else
+                {
+                    transport.Dispose();
+                    WaitForConnectionSlot?.Release();
+                }
+            }
         }
 
         #endregion
@@ -82,6 +129,24 @@ namespace OutWit.Communication.Server.Pipes
         private Semaphore? WaitForConnectionSlot { get; }
 
         private CancellationTokenSource? CancellationTokenSource { get; set; }
+
+        private Task? AcceptLoopTask { get; set; }
+
+        private bool IsDisposed { get; set; }
+
+        #endregion
+
+        #region IDisposable
+
+        public void Dispose()
+        {
+            if (IsDisposed)
+                return;
+
+            IsDisposed = true;
+            StopWaitingForConnection();
+            WaitForConnectionSlot?.Dispose();
+        }
 
         #endregion
 

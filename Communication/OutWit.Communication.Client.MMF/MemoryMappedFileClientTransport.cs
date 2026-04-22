@@ -55,26 +55,49 @@ namespace OutWit.Communication.Client.MMF
         {
             try
             {
+                CleanupChannel();
+
                 WaitForClient = Semaphore.OpenExisting($"Global\\{Options.Name}_connection");
 
                 if (WaitForClient == null)
                     return false;
 
-                var result = timeout == TimeSpan.Zero 
-                    ? WaitForClient.WaitOne() 
-                    : WaitForClient.WaitOne(timeout);
+                var startTime = DateTime.UtcNow;
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    if (timeout != TimeSpan.Zero)
+                    {
+                        var remaining = timeout - (DateTime.UtcNow - startTime);
+                        if (remaining <= TimeSpan.Zero)
+                            return false;
 
-                if (!result)
-                    return false;
+                        if (!WaitForClient.WaitOne(remaining))
+                            return false;
+                    }
+                    else if (!WaitForClient.WaitOne(TimeSpan.FromMilliseconds(250)))
+                    {
+                        continue;
+                    }
 
-                InitChannel();
+                    try
+                    {
+                        InitChannel();
 
-                Task.Run(ListenForIncomingData);
+                        Task.Run(ListenForIncomingData);
 
-                return true;
+                        return true;
+                    }
+                    catch
+                    {
+                        CleanupChannel();
+                    }
+                }
+
+                return false;
             }
             catch (Exception e)
             {
+                CleanupChannel();
                 return false;
             }
         }
@@ -82,6 +105,29 @@ namespace OutWit.Communication.Client.MMF
         public async Task<bool> ConnectAsync(CancellationToken cancellationToken)
         {
             return await ConnectAsync(TimeSpan.Zero, cancellationToken);
+        }
+
+        private void CleanupChannel()
+        {
+            IsListening = false;
+
+            Reader?.Dispose();
+            Reader = null;
+
+            Writer?.Dispose();
+            Writer = null;
+
+            Stream?.Dispose();
+            Stream = null;
+
+            File?.Dispose();
+            File = null;
+
+            WaitForDataFromClient?.Dispose();
+            WaitForDataFromClient = null;
+
+            WaitForDataFromServer?.Dispose();
+            WaitForDataFromServer = null;
         }
 
 
@@ -165,16 +211,12 @@ namespace OutWit.Communication.Client.MMF
         {
             IsListening = false;
 
-            Reader?.Dispose();
-            Writer?.Dispose();
-            Stream?.Dispose();
-            File?.Dispose();
-
-            WaitForClient?.Release();
-            WaitForClient = null;
-
             WaitForDataFromServer?.Set();
-            WaitForDataFromServer = null;
+
+            CleanupChannel();
+
+            WaitForClient?.Dispose();
+            WaitForClient = null;
 
             Disconnected(Id);
 

@@ -22,6 +22,8 @@ namespace OutWit.Communication.Server
 
         private readonly ConcurrentDictionary<Guid, ConnectionInfo> m_connections = new ();
 
+        private bool m_isDisposed;
+
         #endregion
 
         #region Constructors
@@ -368,12 +370,34 @@ namespace OutWit.Communication.Server
 
         public void Dispose()
         {
+            if (m_isDisposed)
+                return;
+
+            m_isDisposed = true;
+
+            TransportFactory.NewClientConnected -= OnNewClientConnected;
+            RequestProcessor.Callback -= OnCallback;
+
+            if (DiscoveryServer != null)
+                DiscoveryServer.DiscoveryMessageRequested -= OnDiscoveryMessageRequested;
+
+            StopWaitingForConnection();
+
             foreach (var info in m_connections.Values)
             {
                 info.Transport.Dispose();
             }
             
             m_connections.Clear();
+
+            TransportFactory.Dispose();
+
+            if (DiscoveryServer != null)
+            {
+                DiscoveryServer.Dispose();
+            }
+
+            WaitForCallback.Dispose();
         }
 
         #endregion

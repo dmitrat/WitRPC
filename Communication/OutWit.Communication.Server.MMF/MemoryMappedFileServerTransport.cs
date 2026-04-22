@@ -137,10 +137,19 @@ namespace OutWit.Communication.Server.MMF
         {
             IsListening = false;
 
+            WaitForDataFromClient?.Set();
+            WaitForDataFromServer?.Set();
+
             Reader?.Dispose();
             Writer?.Dispose();
             Stream?.Dispose();
             File?.Dispose();
+
+            WaitForDataFromClient?.Dispose();
+            WaitForDataFromClient = null;
+
+            WaitForDataFromServer?.Dispose();
+            WaitForDataFromServer = null;
 
             Disconnected(Id);
         }

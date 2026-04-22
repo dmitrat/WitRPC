@@ -20,6 +20,8 @@ namespace OutWit.Communication.Server.Tcp
 
         private readonly ConcurrentDictionary<Guid, ITransportServer> m_connections = new ();
 
+        private readonly object m_syncRoot = new();
+
         #endregion
 
         #region Constructors
@@ -31,8 +33,6 @@ namespace OutWit.Communication.Server.Tcp
             if (Options.Port == null)
                 throw new WitException($"Port cannot be null");
             
-
-            Listener = new TcpListener(IPAddress.Any, Options.Port.Value);
         }
 
         #endregion
@@ -41,14 +41,88 @@ namespace OutWit.Communication.Server.Tcp
 
         public void StartWaitingForConnection(ILogger? logger)
         {
-            CancellationTokenSource = new CancellationTokenSource();
-
-            Task.Run(async () =>
+            lock (m_syncRoot)
             {
-                Listener.Start();
-                while (!CancellationTokenSource.Token.IsCancellationRequested)
+                if (IsDisposed)
+                    throw new ObjectDisposedException(GetType().Name);
+
+                if (Listener != null)
+                    throw new InvalidOperationException("TCP listener is already running");
+
+                var cancellationTokenSource = new CancellationTokenSource();
+                var listener = new TcpListener(IPAddress.Any, Options.Port.Value);
+                listener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+
+                try
                 {
-                    var client = await Listener.AcceptTcpClientAsync(CancellationTokenSource.Token);
+                    listener.Start();
+                }
+                catch
+                {
+                    cancellationTokenSource.Dispose();
+                    throw;
+                }
+
+                CancellationTokenSource = cancellationTokenSource;
+                Listener = listener;
+                AcceptLoopTask = Task.Run(() => AcceptLoopAsync(listener, cancellationTokenSource.Token));
+            }
+        }
+
+        public void StopWaitingForConnection()
+        {
+            TcpListener? listener;
+            CancellationTokenSource? cancellationTokenSource;
+            Task? acceptLoopTask;
+
+            lock (m_syncRoot)
+            {
+                listener = Listener;
+                cancellationTokenSource = CancellationTokenSource;
+                acceptLoopTask = AcceptLoopTask;
+
+                Listener = null;
+                CancellationTokenSource = null;
+                AcceptLoopTask = null;
+            }
+
+            if (listener == null && cancellationTokenSource == null && acceptLoopTask == null)
+                return;
+
+            try
+            {
+                cancellationTokenSource?.Cancel(false);
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+
+            try
+            {
+                listener?.Stop();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+
+            try
+            {
+                acceptLoopTask?.GetAwaiter().GetResult();
+            }
+            catch (Exception)
+            {
+            }
+
+            cancellationTokenSource?.Dispose();
+        }
+
+        private async Task AcceptLoopAsync(TcpListener listener, CancellationToken cancellationToken)
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                try
+                {
+                    var client = await listener.AcceptTcpClientAsync(cancellationToken);
 
                     if (m_connections.Count >= Options.MaxNumberOfClients)
                     {
@@ -58,7 +132,7 @@ namespace OutWit.Communication.Server.Tcp
 
                     var transport = CreateTransport(client, Options);
 
-                    if (await transport.InitializeConnectionAsync(CancellationTokenSource.Token))
+                    if (await transport.InitializeConnectionAsync(cancellationToken))
                     {
                         m_connections.TryAdd(transport.Id, transport);
 
@@ -66,15 +140,24 @@ namespace OutWit.Communication.Server.Tcp
 
                         NewClientConnected(transport);
                     }
-
-                    
+                    else
+                    {
+                        transport.Dispose();
+                    }
                 }
-            });
-        }
-
-        public void StopWaitingForConnection()
-        {
-            CancellationTokenSource?.Cancel(false);
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+                catch (ObjectDisposedException) when (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+                catch (SocketException) when (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+            }
         }
 
         protected abstract TTransport CreateTransport(TcpClient client, TOptions options);
@@ -97,9 +180,26 @@ namespace OutWit.Communication.Server.Tcp
 
         private TOptions Options { get; }
 
-        private TcpListener Listener { get; }
+        private TcpListener? Listener { get; set; }
+
+        private Task? AcceptLoopTask { get; set; }
 
         private CancellationTokenSource? CancellationTokenSource { get; set; }
+
+        private bool IsDisposed { get; set; }
+
+        #endregion
+
+        #region IDisposable
+
+        public void Dispose()
+        {
+            if (IsDisposed)
+                return;
+
+            IsDisposed = true;
+            StopWaitingForConnection();
+        }
 
         #endregion
 
