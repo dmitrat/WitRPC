@@ -120,6 +120,9 @@ namespace OutWit.Communication.Server.WebSocket
                     byte[] data = memoryStream.ToArray();
                     memoryStream.SetLength(0);
 
+                    if (data.Length == 0)
+                        continue;
+
                     _ = Task.Run(() => Callback(Id, data));
                 }
             }

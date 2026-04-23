@@ -443,7 +443,10 @@ namespace OutWit.Communication.Client
         private async Task OnMessageReceived(WitMessage? message)
         {
             if (message == null)
-                throw new WitException("Received empty message");
+            {
+                Logger?.LogWarning("Ignoring empty incoming message");
+                return;
+            }
 
             if (message.Type == WitMessageType.Unknown)
                 return;
@@ -473,7 +476,27 @@ namespace OutWit.Communication.Client
 
         private async void OnDataReceived(Guid sender, byte[] data)
         {
-            await OnMessageReceived(MessageSerializer.Deserialize<WitMessage>(data));
+            try
+            {
+                if (data == null || data.Length == 0)
+                {
+                    Logger?.LogWarning("Ignoring empty incoming payload from transport {TransportId}", sender);
+                    return;
+                }
+
+                var message = MessageSerializer.Deserialize<WitMessage>(data);
+                if (message == null)
+                {
+                    Logger?.LogWarning("Ignoring incoming payload that could not be deserialized into a message from transport {TransportId}", sender);
+                    return;
+                }
+
+                await OnMessageReceived(message);
+            }
+            catch (Exception e)
+            {
+                Logger?.LogWarning(e, "Failed to process incoming payload from transport {TransportId}", sender);
+            }
         }
 
         private async void OnServerDisconnected(Guid sender)

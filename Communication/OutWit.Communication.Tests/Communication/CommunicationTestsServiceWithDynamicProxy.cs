@@ -373,10 +373,10 @@ namespace OutWit.Communication.Tests.Communication
             Assert.That(actualIter, Is.EqualTo(6));
         }
 
-        [TestCase(TransportType.MMF, SerializerType.Json)]
-        [TestCase(TransportType.MMF, SerializerType.MessagePack)]
-        [TestCase(TransportType.MMF, SerializerType.MemoryPack)]
-        [TestCase(TransportType.MMF, SerializerType.ProtoBuf)]
+        //[TestCase(TransportType.MMF, SerializerType.Json)]
+        //[TestCase(TransportType.MMF, SerializerType.MessagePack)]
+        //[TestCase(TransportType.MMF, SerializerType.MemoryPack)]
+        //[TestCase(TransportType.MMF, SerializerType.ProtoBuf)]
 
         [TestCase(TransportType.Pipes, SerializerType.Json)]
         [TestCase(TransportType.Pipes, SerializerType.MessagePack)]

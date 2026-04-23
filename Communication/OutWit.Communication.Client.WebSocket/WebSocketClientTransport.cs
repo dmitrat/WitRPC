@@ -144,6 +144,9 @@ namespace OutWit.Communication.Client.WebSocket
                     byte[] data = memoryStream.ToArray();
                     memoryStream.SetLength(0);
 
+                    if (data.Length == 0)
+                        continue;
+
                     _ = Task.Run(() => Callback(Id, data));
                 }
             }
