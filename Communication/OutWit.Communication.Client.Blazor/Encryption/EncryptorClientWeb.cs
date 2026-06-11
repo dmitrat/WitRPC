@@ -28,20 +28,28 @@ namespace OutWit.Communication.Client.Blazor.Encryption
             if (IsInitialized)
                 return true;
 
-            await Runtime.InvokeVoidAsync("cryptoInterop.generateKeys", 2048);
+            // generateKeys returns BOTH freshly generated JWKs in one call (no shared global key in
+            // the browser) so concurrent encryptors don't clobber each other's key. See cryptoInterop.js.
+            var keysJson = await Runtime.InvokeAsync<string>("cryptoInterop.generateKeys", 2048);
+
+            using var document = JsonDocument.Parse(keysJson);
+            var publicKeyJwk = document.RootElement.GetProperty("publicKey").GetRawText();
+            var privateKeyJwk = document.RootElement.GetProperty("privateKey").GetRawText();
+
+            // Keep the per-instance private JWK; DecryptRsa hands it back to JS so the browser never
+            // relies on shared global key state for decryption.
+            PrivateKeyJwk = privateKeyJwk;
 
             var options = new JsonSerializerOptions
             {
                 Converters = { new DualNameJsonConverter() }
             };
 
-            var publicKeyString = await Runtime.InvokeAsync<string>("cryptoInterop.getPublicKey");
-            var publicKey = JsonSerializer.Deserialize<RSAParametersWeb>(publicKeyString, options);
+            var publicKey = JsonSerializer.Deserialize<RSAParametersWeb>(publicKeyJwk, options);
             var publicKeyJson = JsonSerializer.Serialize(publicKey, options);
             PublicKey = Encoding.UTF8.GetBytes(publicKeyJson);
 
-            var privateKeyString = await Runtime.InvokeAsync<string>("cryptoInterop.getPrivateKey");
-            var privateKey = JsonSerializer.Deserialize<RSAParametersWeb>(privateKeyString, options);
+            var privateKey = JsonSerializer.Deserialize<RSAParametersWeb>(privateKeyJwk, options);
             var privateKeyJson = JsonSerializer.Serialize(privateKey, options);
             PrivateKey = Encoding.UTF8.GetBytes(privateKeyJson);
 
@@ -66,7 +74,10 @@ namespace OutWit.Communication.Client.Blazor.Encryption
 
         public async Task<byte[]> DecryptRsa(byte[] data)
         {
-            var result = await Runtime.InvokeAsync<string>("cryptoInterop.decryptRSA", Convert.ToBase64String(data));
+            if (PrivateKeyJwk == null)
+                throw new InvalidOperationException("RSA key not initialized. Call InitAsync first.");
+
+            var result = await Runtime.InvokeAsync<string>("cryptoInterop.decryptRSA", PrivateKeyJwk, Convert.ToBase64String(data));
 
             return Convert.FromBase64String(result.Base64UrlToBase64());
         }
@@ -107,6 +118,7 @@ namespace OutWit.Communication.Client.Blazor.Encryption
         {
             PublicKey = null;
             PrivateKey = null;
+            PrivateKeyJwk = null;
             AesKey = null;
             AesIv = null;
             IsInitialized = false;
@@ -123,6 +135,9 @@ namespace OutWit.Communication.Client.Blazor.Encryption
         private byte[]? PublicKey { get; set; }
 
         private byte[]? PrivateKey { get; set; }
+
+        /// <summary>The raw private-key JWK, passed to JS per decryption so no shared global key is used.</summary>
+        private string? PrivateKeyJwk { get; set; }
 
         private string? AesKey { get; set; }
 

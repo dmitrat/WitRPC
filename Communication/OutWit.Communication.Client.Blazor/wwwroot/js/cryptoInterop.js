@@ -1,10 +1,13 @@
 // WitRPC Crypto Interop for Blazor WebAssembly
-// Provides RSA key generation and AES encryption using Web Crypto API
+// Provides RSA key generation and AES encryption using Web Crypto API.
+//
+// Stateless by design: generateKeys RETURNS the freshly generated keypair (both JWKs) instead of
+// stashing it on a shared global, and decryptRSA RECEIVES the private key per call. This lets
+// several EncryptorClientWeb instances — e.g. two concurrent WitRPC connections opened by the same
+// app — hold independent keys without clobbering each other. A single shared global key caused an
+// intermittent RSA-OAEP "OperationError" on whichever handshake lost the generateKeys race.
 
 window.cryptoInterop = {
-    privateKey: null,
-    publicKey: null,
-
     _uint8ToBase64(bytes) {
         const CHUNK = 0x8000;
         let binary = '';
@@ -26,28 +29,32 @@ window.cryptoInterop = {
             ["encrypt", "decrypt"]
         );
 
-        this.privateKey = keyPair.privateKey;
-        this.publicKey = keyPair.publicKey;
+        const publicKey = await window.crypto.subtle.exportKey("jwk", keyPair.publicKey);
+        const privateKey = await window.crypto.subtle.exportKey("jwk", keyPair.privateKey);
+
+        // Return both keys to the caller; no module-level state is kept.
+        return JSON.stringify({ publicKey, privateKey });
     },
 
-    async getPublicKey() {
-        const exported = await window.crypto.subtle.exportKey("jwk", this.publicKey);
-        return JSON.stringify(exported);
-    },
+    async decryptRSA(privateKeyJwk, encryptedBase64) {
+        const privateKey = await window.crypto.subtle.importKey(
+            "jwk",
+            JSON.parse(privateKeyJwk),
+            {
+                name: "RSA-OAEP",
+                hash: "SHA-256"
+            },
+            false,
+            ["decrypt"]
+        );
 
-    async getPrivateKey() {
-        const exported = await window.crypto.subtle.exportKey("jwk", this.privateKey);
-        return JSON.stringify(exported);
-    },
-
-    async decryptRSA(encryptedBase64) {
         const encryptedData = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0)).buffer;
 
         const decrypted = await window.crypto.subtle.decrypt(
             {
                 name: "RSA-OAEP"
             },
-            this.privateKey,
+            privateKey,
             encryptedData
         );
 
