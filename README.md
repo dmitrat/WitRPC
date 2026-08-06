@@ -28,6 +28,7 @@ WitRPC is a modern API for client-server communication designed to simplify deve
   - Auto-reconnection with configurable retry strategies
   - Retry policies for failed calls
 - **Health Checks**: Built-in health check support for ASP.NET Core applications
+- **Service Discovery**: Servers announce themselves over UDP multicast and clients find them on the local network, with no hard-coded addresses.
 - **Cross-Platform Support**: Works across all .NET-supported platforms, including Blazor WebAssembly.
 - **Extensibility**: Default implementations for serialization, encryption, and authorization can be replaced with custom ones.
 
@@ -66,6 +67,7 @@ WitRPC is a modern API for client-server communication designed to simplify deve
 | `OutWit.Communication.Client.HealthChecks` | Health checks for client | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Client.HealthChecks.svg)](https://www.nuget.org/packages/OutWit.Communication.Client.HealthChecks/) |
 | `OutWit.Communication.Client.Encryption.BouncyCastle` | Cross-platform encryption (Blazor WASM) | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Client.Encryption.BouncyCastle.svg)](https://www.nuget.org/packages/OutWit.Communication.Client.Encryption.BouncyCastle/) |
 | `OutWit.Communication.Server.Encryption.BouncyCastle` | Cross-platform encryption | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Server.Encryption.BouncyCastle.svg)](https://www.nuget.org/packages/OutWit.Communication.Server.Encryption.BouncyCastle/) |
+| `OutWit.Communication.Client.Blazor` | Channel factory for Blazor WebAssembly clients | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Client.Blazor.svg)](https://www.nuget.org/packages/OutWit.Communication.Client.Blazor/) |
 
 ### InterProcess
 | Package | Description | NuGet |
@@ -194,7 +196,26 @@ var orderService = client.GetService<IOrderService>();
 
 ### Blazor WebAssembly Support
 
-Use BouncyCastle encryption for Blazor WebAssembly clients:
+`OutWit.Communication.Client.Blazor` is the shortest route: it registers a channel
+factory in the container, and its encryption runs on the browser's Web Crypto API, so
+no extra crypto package is needed in the browser.
+
+```csharp
+// Program.cs of the Blazor WebAssembly app
+using OutWit.Communication.Client.Blazor;
+
+builder.Services.AddWitRpcChannel();          // defaults: encryption, reconnect, retry
+
+// or with options
+builder.Services.AddWitRpcChannel(options =>
+{
+    options.ApiPath = "api";                  // WebSocket endpoint path
+    options.TimeoutSeconds = 15;
+});
+```
+
+Alternatively, configure a client by hand with BouncyCastle encryption, which also
+works in WebAssembly:
 
 ```csharp
 // Client (Blazor WebAssembly)

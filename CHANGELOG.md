@@ -5,7 +5,64 @@ All notable changes to the WitRPC project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.3.0] - 2025-01-XX
+## [2.3.3] - 2026-04-23
+
+### Fixed
+
+- **Empty or undeserializable payloads crashed the client.** `WitClient` threw
+  `WitException("Received empty message")` when a transport handed it an empty
+  buffer, which tore down the receive loop instead of skipping the frame. Empty
+  payloads, and payloads that do not deserialize into a `WitMessage`, are now logged
+  and ignored. WebSocket client and server transports no longer forward empty frames
+  in the first place. Adds `WitClientIncomingPayloadTests`.
+
+## [2.3.2] - 2026-04-22
+
+### Added
+
+#### Blazor WebAssembly client
+
+- **New Package**: `OutWit.Communication.Client.Blazor` - a channel factory for
+  Blazor WebAssembly clients. `IChannelFactory` / `ChannelFactory` with
+  `ChannelFactoryOptions`, `ChannelReconnectOptions`, `ChannelRetryOptions` and
+  `ChannelTokenProvider`, plus `ServiceCollectionExtensions` for one-line
+  registration. Browser-side encryption runs through `EncryptorClientWeb` over the
+  Web Crypto API, so no BouncyCastle assembly is needed in the browser.
+- The channel factory accepts a custom URL, and exposes a `BufferSize` option.
+
+#### Dependency injection surface reworked
+
+- New types on both sides: `IConfigureWitClient` / `ConfigureWitClient` and
+  `IConfigureWitServer` / `ConfigureWitServer`, `IWitClientFactory` /
+  `IWitServerFactory`, the builder contexts `WitClientBuilderContext` and
+  `WitServerBuilderContext` with their extension methods, and
+  `WitClientHostedServiceOptions` / `WitServerHostedServiceOptions`.
+- The registration extensions were simplified around those contexts and a redundant
+  overload was removed.
+
+### Fixed
+
+- **Stale frames after a disconnect.** `WitServer` now resolves the connection
+  through `TryGetConnection` and ignores messages addressed to a disconnected or
+  unknown client, instead of processing them against missing state. Initialization,
+  authorization and encryption now take the resolved connection explicitly.
+- **Transport lifecycle across a restart.** `ITransportServerFactory` is now
+  `IDisposable`, and the memory-mapped file, named pipe, TCP and WebSocket server
+  transport factories release their listeners on disposal. `WitServer.Dispose` became
+  idempotent: it unsubscribes from the transport factory, the request processor and
+  the discovery server, and stops listening. Adds `TransportFactoryLifecycleTests`.
+- Crypto interop fix in the Blazor client.
+- Server-side service resolution from the DI container.
+
+## [2.3.1] - 2026-01-25
+
+### Changed
+
+- Licensing and packaging metadata across every package: `PackageLicenseExpression`
+  set to `Apache-2.0`, a `NOTICE` file added to each package, and `LICENSE`, README
+  and csproj package metadata refreshed. No functional changes.
+
+## [2.3.0] - 2025-12-09
 
 ### Added
 
@@ -221,6 +278,6 @@ app.MapHealthChecks("/health");
 
 ---
 
-## [2.2.0] - Previous Release
+## [2.2.0] - 2025-11-14
 
 *See repository history for previous changes.*
