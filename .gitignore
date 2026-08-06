@@ -73,3 +73,6 @@ Migrations/
 # JetBrains Rider
 .idea/
 .idea_modules/
+
+# Working directories
+@*/
