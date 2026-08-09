@@ -1,31 +1,14 @@
-name: Publish All Packages
-run-name: "Publish All Packages"
+name: Publish Package
+run-name: "Publish Package: ${{ inputs.project }}"
 
 on:
   workflow_dispatch:
     inputs:
-      pushToNuGet:
-        description: 'Push to nuget.org'
-        type: boolean
+      project:
+        description: 'Project to publish (equals .csproj base name)'
         required: true
-        default: true
-      pushToGitHubPackages:
-        description: 'Push to GitHub Packages'
-        type: boolean
-        required: true
-        default: true
-
-permissions:
-  contents: read
-  packages: write
-
-jobs:
-  publish:
-    runs-on: windows-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        project:
+        type: choice
+        options:
           # Core Communication
           - OutWit.Communication
           - OutWit.Communication.Client
@@ -54,6 +37,30 @@ jobs:
           - OutWit.InterProcess
           - OutWit.InterProcess.Host
           - OutWit.InterProcess.Agent
+      pushToNuGet:
+        description: 'Push to nuget.org'
+        type: boolean
+        required: true
+        default: true
+      pushToGitHubPackages:
+        description: 'Push to GitHub Packages'
+        type: boolean
+        required: true
+        default: true
+
+permissions:
+  contents: read
+  packages: write
+  # Lets GitHub mint the OIDC token that nuget.org exchanges for a short-lived
+  # key. Without it the exchange fails quietly rather than loudly, which is the
+  # one failure worth naming here.
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    env:
+      PROJECT: ${{ github.event.inputs.project }}
 
     steps:
       - uses: actions/checkout@v4
@@ -80,7 +87,7 @@ jobs:
         id: paths
         shell: pwsh
         run: |
-          $name = "${{ matrix.project }}"
+          $name = "${{ env.PROJECT }}"
           $lib = Get-ChildItem -Recurse -Filter "$name.csproj" | Select-Object -Expand FullName -First 1
           if (-not $lib) { Write-Error "Library project '$name.csproj' not found"; exit 1 }
           "libCsproj=$lib" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
@@ -111,11 +118,21 @@ jobs:
           --name github
           "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
 
+      # The runner proves to nuget.org which workflow is asking, nuget.org checks
+      # that against its policy and returns a key valid for an hour. Nothing
+      # long-lived exists to leak, and nothing has to be rotated on a calendar.
+      - name: Authenticate to nuget.org (trusted publishing)
+        id: login
+        if: github.event.inputs.pushToNuGet == 'true'
+        uses: NuGet/login@v1
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
       - name: Push to nuget.org (.nupkg)
         if: github.event.inputs.pushToNuGet == 'true'
         run: >
           dotnet nuget push "NuGet\*.nupkg"
-          --api-key ${{ secrets.NUGET_API_KEY }}
+          --api-key ${{ steps.login.outputs.NUGET_API_KEY }}
           --source https://api.nuget.org/v3/index.json
           --skip-duplicate
 
@@ -123,7 +140,7 @@ jobs:
         if: github.event.inputs.pushToNuGet == 'true'
         run: >
           dotnet nuget push "NuGet\*.snupkg"
-          --api-key ${{ secrets.NUGET_API_KEY }}
+          --api-key ${{ steps.login.outputs.NUGET_API_KEY }}
           --source https://api.nuget.org/v3/index.json
           --skip-duplicate
 
@@ -138,6 +155,6 @@ jobs:
       - name: Upload NuGet artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.project }}-nuget
+          name: ${{ env.PROJECT }}-nuget
           path: NuGet/*
           retention-days: 7
