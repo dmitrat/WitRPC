@@ -82,14 +82,23 @@ namespace OutWit.Communication.Tests.Communication
         }
 
         /// <summary>
-        /// Stops the server, refusing to wait forever for it.
+        /// Stops the server without waiting for it indefinitely.
         /// <para>
-        /// StopWaitingForConnection cancels the accept loop and then blocks on it
-        /// through GetAwaiter().GetResult(). A loop parked in a pending accept does
-        /// not observe that cancellation, so the call can never return -- and an
-        /// unbounded wait here parks the whole run and leaves a testhost holding
-        /// bin/ against the next build. Bounded, the same defect is reported as a
-        /// failed test naming the transport, which is what a test is for.
+        /// Not because the transport is broken -- an earlier version of this
+        /// comment claimed it was, and that was wrong. Every server factory does
+        /// wake its accept loop before waiting on it: WebSocket closes the
+        /// HttpListener, because GetContextAsync cannot be cancelled; pipes pass
+        /// the token into WaitForConnectionAsync; MMF waits on the token's handle
+        /// alongside the connection slot. The blocking wait afterwards is what
+        /// gives callers the guarantee that once Stop returns, nothing else will
+        /// be accepted.
+        /// </para>
+        /// <para>
+        /// The bound is here for the same reason every other wait in these tests
+        /// has one: a test must fail and say so rather than park the run and leave
+        /// an orphaned testhost holding bin/ against the next build. If this ever
+        /// trips, it is news -- and the message should be read as "investigate",
+        /// not as a known defect.
         /// </para>
         /// </summary>
         private static void StopWithin(WitServer server, TransportType transportType)
@@ -99,7 +108,7 @@ namespace OutWit.Communication.Tests.Communication
             if (!stop.Wait(STOP_TIMEOUT_MS))
             {
                 Assert.Fail($"StopWaitingForConnection did not return within {STOP_TIMEOUT_MS} ms " +
-                            $"for {transportType}: the accept loop does not observe cancellation.");
+                            $"for {transportType}. This is not a known defect -- investigate.");
             }
         }
 
