@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Linq;
 using OutWit.Communication.Client;
 using OutWit.Communication.Model;
 using OutWit.Communication.Requests;
@@ -70,7 +71,7 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
         public async Task ConnectDisconnectTest(TransportType transportType, SerializerType serializerType)
         {
-            var testName = $"{nameof(ConnectionTest)}_{transportType}_{serializerType}";
+            var testName = $"{nameof(ConnectDisconnectTest)}_{transportType}_{serializerType}";
             
             var server = Shared.GetServerBasic(transportType, serializerType, 1, testName);
             server.StartWaitingForConnection();
@@ -123,7 +124,7 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
         public async Task ReconnectTest(TransportType transportType, SerializerType serializerType)
         {
-            var testName = $"{nameof(ConnectionTest)}_{transportType}_{serializerType}";
+            var testName = $"{nameof(ReconnectTest)}_{transportType}_{serializerType}";
 
             var server = Shared.GetServerBasic(transportType, serializerType, 1, testName);
             server.StartWaitingForConnection();
@@ -166,7 +167,7 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
         public async Task StartStopWaitingForConnectionTest(TransportType transportType, SerializerType serializerType)
         {
-            var testName = $"{nameof(ConnectionTest)}_{transportType}_{serializerType}";
+            var testName = $"{nameof(StartStopWaitingForConnectionTest)}_{transportType}_{serializerType}";
             
             var server = Shared.GetServerBasic(transportType, serializerType, 5, testName);
             server.StartWaitingForConnection();
@@ -232,7 +233,7 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
         public async Task TooManyClientsSingleClientAllowedConnectionTest(TransportType transportType, SerializerType serializerType)
         {
-            var testName = $"{nameof(ConnectionTest)}_{transportType}_{serializerType}";
+            var testName = $"{nameof(TooManyClientsSingleClientAllowedConnectionTest)}_{transportType}_{serializerType}";
 
             var server = Shared.GetServerBasic(transportType, serializerType, 1, testName);
             server.StartWaitingForConnection();
@@ -273,7 +274,7 @@ namespace OutWit.Communication.Tests.Communication
         public async Task TooManyClientsMultiClientsAllowedConnectionTest(TransportType transportType, SerializerType serializerType)
         {
 
-            var testName = $"{nameof(ConnectionTest)}_{transportType}_{serializerType}";
+            var testName = $"{nameof(TooManyClientsMultiClientsAllowedConnectionTest)}_{transportType}_{serializerType}";
 
             var server = Shared.GetServerBasic(transportType, serializerType, 3, testName);
             server.StartWaitingForConnection();
@@ -327,7 +328,7 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
         public async Task SingleClientBasicCommunicationTest(TransportType transportType, SerializerType serializerType)
         {
-            var testName = $"{nameof(ConnectionTest)}_{transportType}_{serializerType}";
+            var testName = $"{nameof(SingleClientBasicCommunicationTest)}_{transportType}_{serializerType}";
 
             var server = Shared.GetServerBasic(transportType, serializerType, 1, testName);
             server.StartWaitingForConnection();
@@ -367,7 +368,7 @@ namespace OutWit.Communication.Tests.Communication
         public async Task MultiClientBasicCommunicationTest(TransportType transportType, SerializerType serializerType)
         {
 
-            var testName = $"{nameof(ConnectionTest)}_{transportType}_{serializerType}";
+            var testName = $"{nameof(MultiClientBasicCommunicationTest)}_{transportType}_{serializerType}";
             
             var server = Shared.GetServerBasic(transportType, serializerType, 11, testName);
             server.StartWaitingForConnection();
@@ -388,26 +389,27 @@ namespace OutWit.Communication.Tests.Communication
 
             var start = DateTime.Now;
 
-            Parallel.For(0, clients.Count, index =>
+            // Awaited rather than Parallel.For with .Result: blocking ten thread-pool
+            // threads on an asynchronous connect starves the very pool the connect
+            // needs to complete, and the test then hangs instead of failing.
+            await Task.WhenAll(clients.Select(async client =>
             {
-                var client = clients[index];
-                Assert.That(client.ConnectAsync(TimeSpan.Zero, CancellationToken.None).Result, Is.True);
+                Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
 
                 Assert.That(client.IsInitialized, Is.True);
                 Assert.That(client.IsAuthorized, Is.True);
-            });
+            }));
             var end = DateTime.Now;
             Console.WriteLine($"Clients initialization duration: {(end - start).TotalMilliseconds} ms");
 
             start = DateTime.Now;
-            Parallel.For(0, clients.Count, index =>
+            await Task.WhenAll(clients.Select(async (client, index) =>
             {
-                var client = clients[index];
-                WitResponse? response = client.SendRequest(new WitRequest { MethodName = $"Test{index}" }).Result;
+                WitResponse? response = await client.SendRequest(new WitRequest { MethodName = $"Test{index}" });
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.Status, Is.EqualTo(CommunicationStatus.Ok));
                 Assert.That(response.Data.FromJsonBytes<string>(), Is.EqualTo($"Test{index}"));
-            });
+            }));
 
             end = DateTime.Now;
             Console.WriteLine($"Clients communication duration: {(end - start).TotalMilliseconds} ms");

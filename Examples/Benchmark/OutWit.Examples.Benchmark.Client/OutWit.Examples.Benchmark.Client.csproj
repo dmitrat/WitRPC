@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -9,17 +9,17 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="CsvHelper" Version="33.1.0" />
-		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.2" />
-		<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.Json" Version="10.0.2" />
-		<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="10.0.2" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.2" />
-		<PackageReference Include="OutWit.Common.Logging" Version="1.2.3" />
-		<PackageReference Include="OutWit.Common.MVVM" Version="2.0.2" />
-		<PackageReference Include="protobuf-net.Grpc.ClientFactory" Version="1.2.2" />
-		<PackageReference Include="System.ServiceModel.Http" Version="10.0.652802" />
-		<PackageReference Include="System.ServiceModel.NetNamedPipe" Version="10.0.652802" />
-		<PackageReference Include="System.ServiceModel.NetTcp" Version="10.0.652802" />
+		<PackageReference Include="CsvHelper" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.Json" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+		<PackageReference Include="OutWit.Common.Logging" />
+		<PackageReference Include="OutWit.Common.MVVM" />
+		<PackageReference Include="protobuf-net.Grpc.ClientFactory" />
+		<PackageReference Include="System.ServiceModel.Http" />
+		<PackageReference Include="System.ServiceModel.NetNamedPipe" />
+		<PackageReference Include="System.ServiceModel.NetTcp" />
 	</ItemGroup>
 
 	<ItemGroup>

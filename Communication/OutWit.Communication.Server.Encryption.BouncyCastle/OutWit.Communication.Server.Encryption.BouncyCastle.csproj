@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net10.0;net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
 
-    <Version>2.3.4</Version>
+    <Version>2.3.5</Version>
 
     <Description>BouncyCastle-based encryption for WitRPC server, providing cross-platform RSA/AES encryption that is compatible with BouncyCastle client encryption.</Description>
     <PackageTags>OutWit;Communication;WitRPC;Encryption;BouncyCastle;Server</PackageTags>
@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" />
+    <PackageReference Include="BouncyCastle.Cryptography" />
   </ItemGroup>
 
   <ItemGroup>

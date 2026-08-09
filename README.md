@@ -5,6 +5,8 @@
 
 WitRPC is a modern API for client-server communication designed to simplify development and provide a robust, extensible framework. It offers a seamless way to handle real-time and event-driven interactions with minimal setup, acting as a powerful alternative to traditional frameworks like WCF and SignalR.
 
+> Current versions (2026-04-23): core/client packages 2.3.3, server packages 2.3.4 (DI extensions 2.3.7/2.3.9, `Client.Blazor` 1.0.6, `InterProcess` 2.3.1). See [CHANGELOG.md](CHANGELOG.md).
+
 ## Features
 
 - **Dynamic Proxy Mechanism**: Client-side proxies mirror server interfaces, enabling natural interaction with server-side objects via method calls, property access, and event subscriptions.
@@ -65,6 +67,7 @@ WitRPC is a modern API for client-server communication designed to simplify deve
 | `OutWit.Communication.Server.DependencyInjection` | DI support for server | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Server.DependencyInjection.svg)](https://www.nuget.org/packages/OutWit.Communication.Server.DependencyInjection/) |
 | `OutWit.Communication.Client.HealthChecks` | Health checks for client | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Client.HealthChecks.svg)](https://www.nuget.org/packages/OutWit.Communication.Client.HealthChecks/) |
 | `OutWit.Communication.Client.Encryption.BouncyCastle` | Cross-platform encryption (Blazor WASM) | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Client.Encryption.BouncyCastle.svg)](https://www.nuget.org/packages/OutWit.Communication.Client.Encryption.BouncyCastle/) |
+| `OutWit.Communication.Client.Blazor` | Blazor WebAssembly channel factory (WebSocket + Web Crypto API encryption) | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Client.Blazor.svg)](https://www.nuget.org/packages/OutWit.Communication.Client.Blazor/) |
 | `OutWit.Communication.Server.Encryption.BouncyCastle` | Cross-platform encryption | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Server.Encryption.BouncyCastle.svg)](https://www.nuget.org/packages/OutWit.Communication.Server.Encryption.BouncyCastle/) |
 
 ### InterProcess

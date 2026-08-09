@@ -73,3 +73,7 @@ Migrations/
 # JetBrains Rider
 .idea/
 .idea_modules/
+
+# Test run artefacts, including blame-hang dumps which run to hundreds of MB
+TestResults/
+*.dmp

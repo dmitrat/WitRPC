@@ -5,7 +5,79 @@ All notable changes to the WitRPC project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.3.0] - 2025-01-XX
+> **Note**: Since 2.3.1, package versions diverge per package family. Each section below lists the package versions it produced (verified against csproj `<Version>` values).
+
+## [2.3.3] - 2026-04-23
+
+Package versions after this release: `OutWit.Communication` + client packages 2.3.3, server packages 2.3.4, `Client.HealthChecks` 2.3.4, `Client.DependencyInjection` 2.3.7, `Server.DependencyInjection` 2.3.9, `Client.Blazor` 1.0.6. (`OutWit.InterProcess.*` remain 2.3.1.)
+
+### Fixed
+
+- **Empty response crash** (commit `cb4a68d`): `WitClient` no longer crashes on empty or malformed incoming payloads; WebSocket client and server transports skip empty frames.
+- New regression test suite `WitClientIncomingPayloadTests` covering empty/garbage incoming payload handling.
+
+## [2.3.2] - 2026-04-22
+
+> **Highlighted: transport restart lifecycle fix.** Server transports previously could not be stopped and restarted on the same endpoint — `WebSocketServerTransportFactory` and `TcpServerTransportFactoryBase` created their listener in the constructor and never released it in `StopWaitingForConnection()`, and `WitServer.Dispose()` never disposed the transport factory. This broke dynamic per-client server recreation after a host restart (observed downstream in OutWit.Cloud).
+
+Package versions after this release: core/client packages 2.3.2, server packages 2.3.3, `Client.DependencyInjection` 2.3.6, `Server.DependencyInjection` 2.3.8, `Client.Blazor` 1.0.5.
+
+### Changed
+
+- **Breaking (interface)**: `ITransportServerFactory` now extends `IDisposable` (commit `8b8501c`); custom transport factories must implement `Dispose()`.
+
+### Fixed
+
+- `WitServer.Dispose()` now stops and disposes its transport factory.
+- Restart-safe listener lifecycle for WebSocket (`HttpListener`), TCP (`TcpListener`), Named Pipes, and Memory-Mapped Files server transport factories: `start -> stop/dispose -> recreate -> start` on the same endpoint/port/name now works.
+- Listener bind now happens synchronously in `StartWaitingForConnection()` — bind failures surface immediately instead of being swallowed in a background accept loop.
+- New regression test suite `TransportFactoryLifecycleTests` (restart cycles for all server transports) plus a server-level test verifying `WitServer.Dispose()` disposes the factory.
+
+Known remaining gap: the REST server (`WitServerRest`) lifecycle was not reworked in this pass.
+
+## [Server 2.3.2] - 2026-03-20
+
+Server packages only: 2.3.1 -> 2.3.2 (`Server.DependencyInjection` -> 2.3.7).
+
+### Fixed
+
+- Hardened `WitServer` against stale frames arriving after a client disconnect (commit `173744a`).
+- New regression test suite `WitServerTransportEdgeCaseTests`.
+
+## [Client.Blazor 1.0.1-1.0.4] - 2026-02-10 to 2026-02-20
+
+### Added
+
+- **New Package**: `OutWit.Communication.Client.Blazor` (1.0.1, commit `8b8530e`) — Blazor WebAssembly channel factory for WitRPC over WebSocket with RSA/AES encryption via the Web Crypto API.
+- 1.0.2 (`654db14`): custom URL option.
+- 1.0.4 (`2edbb8b`, 2026-02-20): configurable `BufferSize` option.
+
+### Fixed
+
+- 1.0.3 (`a12e3fb`, 2026-02-14): crypto interop fix.
+
+## [DependencyInjection 2.3.2-2.3.6] - 2026-02-06
+
+`Client.DependencyInjection` 2.3.1 -> 2.3.5, `Server.DependencyInjection` 2.3.1 -> 2.3.6; other packages unchanged.
+
+### Changed
+
+- Dependency Injection refactoring (`f7b8aab`), additional DI extension methods (`fd21284`), redundant overload removed (`4b582a2`), DI usage simplified (`833a08f`).
+
+### Fixed
+
+- Server DI service resolution fix (`a8a4408`).
+
+## [2.3.1] - 2026-01-25
+
+All packages 2.3.0 -> 2.3.1 (including `OutWit.InterProcess.*`, which remain at 2.3.1).
+
+### Changed
+
+- **License**: project relicensed from the Non-Commercial License (NCL) to **Apache License 2.0**; `NOTICE` files added to all packages (commit `0842296`).
+- Dependencies updated.
+
+## [2.3.0] - 2025-12-09
 
 ### Added
 
@@ -221,6 +293,8 @@ app.MapHealthChecks("/health");
 
 ---
 
-## [2.2.0] - Previous Release
+## [2.2.0] - 2025-11-14
 
-*See repository history for previous changes.*
+- .NET 10 target framework support (commit `68e9601`).
+
+*See repository history for earlier changes.*

@@ -11,6 +11,29 @@ namespace OutWit.Communication.Client.MMF
 {
     public class MemoryMappedFileClientTransport : ITransportClient
     {
+        #region Constants
+
+        /// <summary>
+        /// Written where a frame length would go, to tell the server this client
+        /// is leaving.
+        /// <para>
+        /// A memory-mapped file has no connection to tear down. Where a pipe or a
+        /// socket lets the operating system fail the server's pending read the
+        /// moment a client vanishes, here nothing happens at all: the server goes
+        /// on waiting for data from a client that is already gone, never releases
+        /// its connection slot, and therefore never publishes a channel for the
+        /// next client. The next <see cref="ConnectAsync(TimeSpan, CancellationToken)"/>
+        /// then waits for a signal that can no longer come.
+        /// </para>
+        /// <para>
+        /// The counterpart is <c>MemoryMappedFileServerTransport.DISCONNECT_MARKER</c>.
+        /// A negative value is safe because a real frame length is always positive.
+        /// </para>
+        /// </summary>
+        private const int DISCONNECT_MARKER = -1;
+
+        #endregion
+
         #region Events
 
         public event TransportDataEventHandler Callback = delegate { };
@@ -167,9 +190,35 @@ namespace OutWit.Communication.Client.MMF
 
         public async Task Disconnect()
         {
+            SendDisconnectMarker();
+
             Dispose();
         }
-        
+
+        /// <summary>
+        /// Announces departure to the server before the channel is torn down.
+        /// Best effort: a client that cannot say goodbye still has to leave.
+        /// </summary>
+        private void SendDisconnectMarker()
+        {
+            try
+            {
+                if (Writer == null || Stream == null)
+                    return;
+
+                Stream.Seek(0, SeekOrigin.Begin);
+
+                Writer.Write(DISCONNECT_MARKER);
+                Writer.Flush();
+
+                WaitForDataFromClient?.Set();
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+
         #endregion
 
         #region Functions

@@ -1,0 +1,8 @@
+{
+  "//": "Pins the SDK so the Roslyn that compiles source generators and the analyzers that gate the build are the same on every machine and in CI.",
+  "sdk": {
+    "version": "10.0.300",
+    "rollForward": "latestFeature",
+    "allowPrerelease": false
+  }
+}

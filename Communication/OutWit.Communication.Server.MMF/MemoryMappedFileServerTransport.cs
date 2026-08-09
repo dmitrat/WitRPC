@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using OutWit.Communication.Exceptions;
@@ -11,6 +11,21 @@ namespace OutWit.Communication.Server.MMF
 {
     public class MemoryMappedFileServerTransport : ITransportServer
     {
+        #region Constants
+
+        /// <summary>
+        /// The frame length a client writes instead of a real one when it is
+        /// leaving. See <c>MemoryMappedFileClientTransport.DISCONNECT_MARKER</c>.
+        /// <para>
+        /// Without it this transport cannot tell a departed client from a silent
+        /// one, so it holds its connection slot forever and the factory never
+        /// offers a channel to the next client.
+        /// </para>
+        /// </summary>
+        private const int DISCONNECT_MARKER = -1;
+
+        #endregion
+
         #region Events
 
         public event TransportDataEventHandler Callback = delegate { };
@@ -115,6 +130,16 @@ namespace OutWit.Communication.Server.MMF
 
                     Stream?.Seek(0, SeekOrigin.Begin);
                     int dataLength = Reader.ReadInt32();
+
+                    // The client has gone. Tearing down here is what releases the
+                    // factory's connection slot, which is what lets it publish a
+                    // fresh channel for the next client.
+                    if (dataLength == DISCONNECT_MARKER)
+                    {
+                        Dispose();
+                        return;
+                    }
+
                     if (dataLength > 0)
                     {
                         byte[] data = Reader.ReadBytes(dataLength);
