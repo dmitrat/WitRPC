@@ -1,4 +1,5 @@
-﻿using System.Net;
+using System;
+using System.Net;
 using OutWit.Communication.Serializers;
 using OutWit.Communication.Server.Authorization;
 using OutWit.Communication.Server.Encryption;
@@ -24,6 +25,12 @@ namespace OutWit.Communication.Tests.Communication
     [TestFixture]
     public class CommunicationTestsServiceWithStaticProxy
     {
+
+        // ConnectAsync(TimeSpan.Zero) waits indefinitely -- a deliberate
+        // option of the API, and the wrong one for a test. A test that cannot
+        // connect must fail and say so, not park the run and leave a testhost
+        // behind holding bin/ against the next build.
+        private static readonly TimeSpan CONNECT_TIMEOUT = TimeSpan.FromSeconds(30);
         private const string PIPE_NAME = "TestPipe";
         private const string AUTHORIZATION_TOKEN = "token";
 
@@ -48,7 +55,7 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
         public async Task SimpleRequestsSingleClientTest(TransportType transportType, SerializerType serializerType)
         {
-            var testName = $"{nameof(SimpleRequestsSingleClientTest)}_{transportType}_{serializerType}";
+            var testName = $"CommunicationTestsServiceWithStaticProxy_{nameof(SimpleRequestsSingleClientTest)}_{transportType}_{serializerType}";
 
             var server = Shared.GetServer(transportType, serializerType, 1, testName);
 
@@ -56,7 +63,7 @@ namespace OutWit.Communication.Tests.Communication
 
             var client = Shared.GetClient(transportType, serializerType, testName);
 
-            Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(await client.ConnectAsync(CONNECT_TIMEOUT, CancellationToken.None), Is.True);
             Assert.That(client.IsInitialized, Is.True);
             Assert.That(client.IsAuthorized, Is.True);
 
@@ -89,7 +96,7 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
         public async Task SimpleRequestsSingleClientAsyncTest(TransportType transportType, SerializerType serializerType)
         {
-            var testName = $"{nameof(SimpleRequestsSingleClientAsyncTest)}_{transportType}_{serializerType}";
+            var testName = $"CommunicationTestsServiceWithStaticProxy_{nameof(SimpleRequestsSingleClientAsyncTest)}_{transportType}_{serializerType}";
 
             var server = Shared.GetServer(transportType, serializerType, 1, testName);
 
@@ -97,7 +104,7 @@ namespace OutWit.Communication.Tests.Communication
 
             var client = Shared.GetClient(transportType, serializerType, testName);
 
-            Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(await client.ConnectAsync(CONNECT_TIMEOUT, CancellationToken.None), Is.True);
             Assert.That(client.IsInitialized, Is.True);
             Assert.That(client.IsAuthorized, Is.True);
 
@@ -127,7 +134,7 @@ namespace OutWit.Communication.Tests.Communication
         //[TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
         public async Task PropertyChangedCallbackTest(TransportType transportType, SerializerType serializerType)
         {
-            var testName = $"{nameof(PropertyChangedCallbackTest)}_{transportType}_{serializerType}";
+            var testName = $"CommunicationTestsServiceWithStaticProxy_{nameof(PropertyChangedCallbackTest)}_{transportType}_{serializerType}";
 
             var server = Shared.GetServer(transportType, serializerType, 1, testName);
 
@@ -135,7 +142,7 @@ namespace OutWit.Communication.Tests.Communication
 
             var client = Shared.GetClient(transportType, serializerType, testName);
 
-            Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(await client.ConnectAsync(CONNECT_TIMEOUT, CancellationToken.None), Is.True);
             Assert.That(client.IsInitialized, Is.True);
             Assert.That(client.IsAuthorized, Is.True);
 
@@ -179,7 +186,7 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
         public async Task SingleSubscribeSingleClientSimpleCallbackTest(TransportType transportType, SerializerType serializerType)
         {
-            var testName = $"{nameof(SingleSubscribeSingleClientSimpleCallbackTest)}_{transportType}_{serializerType}";
+            var testName = $"CommunicationTestsServiceWithStaticProxy_{nameof(SingleSubscribeSingleClientSimpleCallbackTest)}_{transportType}_{serializerType}";
 
             var server = Shared.GetServer(transportType, serializerType, 1, testName);
 
@@ -187,7 +194,7 @@ namespace OutWit.Communication.Tests.Communication
 
             var client = Shared.GetClient(transportType, serializerType, testName);
 
-            Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(await client.ConnectAsync(CONNECT_TIMEOUT, CancellationToken.None), Is.True);
             Assert.That(client.IsInitialized, Is.True);
             Assert.That(client.IsAuthorized, Is.True);
 
@@ -234,7 +241,7 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
         public async Task SingleSubscribeSingleClientSimpleCallbackAsyncTest(TransportType transportType, SerializerType serializerType)
         {
-            var testName = $"{nameof(SingleSubscribeSingleClientSimpleCallbackAsyncTest)}_{transportType}_{serializerType}";
+            var testName = $"CommunicationTestsServiceWithStaticProxy_{nameof(SingleSubscribeSingleClientSimpleCallbackAsyncTest)}_{transportType}_{serializerType}";
 
             var server = Shared.GetServer(transportType, serializerType, 1, testName);
 
@@ -242,7 +249,7 @@ namespace OutWit.Communication.Tests.Communication
 
             var client = Shared.GetClient(transportType, serializerType, testName);
 
-            Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(await client.ConnectAsync(CONNECT_TIMEOUT, CancellationToken.None), Is.True);
             Assert.That(client.IsInitialized, Is.True);
             Assert.That(client.IsAuthorized, Is.True);
 
@@ -289,7 +296,7 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
         public async Task SingleSubscribeComplexTypeSingleClientCallbackTest(TransportType transportType, SerializerType serializerType)
         {
-            var testName = $"{nameof(SingleSubscribeComplexTypeSingleClientCallbackTest)}_{transportType}_{serializerType}";
+            var testName = $"CommunicationTestsServiceWithStaticProxy_{nameof(SingleSubscribeComplexTypeSingleClientCallbackTest)}_{transportType}_{serializerType}";
 
             var server = Shared.GetServer(transportType, serializerType, 1, testName);
 
@@ -297,7 +304,7 @@ namespace OutWit.Communication.Tests.Communication
 
             var client = Shared.GetClient(transportType, serializerType, testName);
 
-            Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(await client.ConnectAsync(CONNECT_TIMEOUT, CancellationToken.None), Is.True);
             Assert.That(client.IsInitialized, Is.True);
             Assert.That(client.IsAuthorized, Is.True);
 
@@ -349,7 +356,7 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
         public async Task SingleSubscribeComplexTypeSingleClientCallbackAsyncTest(TransportType transportType, SerializerType serializerType)
         {
-            var testName = $"{nameof(SingleSubscribeComplexTypeSingleClientCallbackAsyncTest)}_{transportType}_{serializerType}";
+            var testName = $"CommunicationTestsServiceWithStaticProxy_{nameof(SingleSubscribeComplexTypeSingleClientCallbackAsyncTest)}_{transportType}_{serializerType}";
 
             var server = Shared.GetServer(transportType, serializerType, 1, testName);
 
@@ -357,7 +364,7 @@ namespace OutWit.Communication.Tests.Communication
 
             var client = Shared.GetClient(transportType, serializerType, testName);
 
-            Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(await client.ConnectAsync(CONNECT_TIMEOUT, CancellationToken.None), Is.True);
             Assert.That(client.IsInitialized, Is.True);
             Assert.That(client.IsAuthorized, Is.True);
 
@@ -406,7 +413,7 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
         public async Task MultiSubscribeMultiClientsCallbackTest(TransportType transportType, SerializerType serializerType)
         {
-            var testName = $"{nameof(MultiSubscribeMultiClientsCallbackTest)}_{transportType}_{serializerType}";
+            var testName = $"CommunicationTestsServiceWithStaticProxy_{nameof(MultiSubscribeMultiClientsCallbackTest)}_{transportType}_{serializerType}";
 
             var server = Shared.GetServer(transportType, serializerType, 5, testName);
 
@@ -414,7 +421,7 @@ namespace OutWit.Communication.Tests.Communication
 
             var client1 = Shared.GetClient(transportType, serializerType, testName);
 
-            Assert.That(await client1.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(await client1.ConnectAsync(CONNECT_TIMEOUT, CancellationToken.None), Is.True);
             Assert.That(client1.IsInitialized, Is.True);
             Assert.That(client1.IsAuthorized, Is.True);
 
@@ -423,7 +430,7 @@ namespace OutWit.Communication.Tests.Communication
 
             var client2 = Shared.GetClient(transportType, serializerType, testName);
 
-            Assert.That(await client2.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(await client2.ConnectAsync(CONNECT_TIMEOUT, CancellationToken.None), Is.True);
             Assert.That(client2.IsInitialized, Is.True);
             Assert.That(client2.IsAuthorized, Is.True);
 
@@ -486,7 +493,7 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
         public async Task MultiSubscribeMultiClientsCallbackAsyncTest(TransportType transportType, SerializerType serializerType)
         {
-            var testName = $"{nameof(MultiSubscribeMultiClientsCallbackAsyncTest)}_{transportType}_{serializerType}";
+            var testName = $"CommunicationTestsServiceWithStaticProxy_{nameof(MultiSubscribeMultiClientsCallbackAsyncTest)}_{transportType}_{serializerType}";
 
             var server = Shared.GetServer(transportType, serializerType, 5, testName);
 
@@ -494,7 +501,7 @@ namespace OutWit.Communication.Tests.Communication
 
             var client1 = Shared.GetClient(transportType, serializerType, testName);
 
-            Assert.That(await client1.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(await client1.ConnectAsync(CONNECT_TIMEOUT, CancellationToken.None), Is.True);
             Assert.That(client1.IsInitialized, Is.True);
             Assert.That(client1.IsAuthorized, Is.True);
 
@@ -503,7 +510,7 @@ namespace OutWit.Communication.Tests.Communication
 
             var client2 = Shared.GetClient(transportType, serializerType, testName);
 
-            Assert.That(await client2.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(await client2.ConnectAsync(CONNECT_TIMEOUT, CancellationToken.None), Is.True);
             Assert.That(client2.IsInitialized, Is.True);
             Assert.That(client2.IsAuthorized, Is.True);
 
@@ -556,7 +563,7 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.Json)]
         public async Task CompositeServiceMultiChannelTest(TransportType transportType, SerializerType serializerType)
         {
-            var testName = $"{nameof(CompositeServiceMultiChannelTest)}_{transportType}_{serializerType}";
+            var testName = $"CommunicationTestsServiceWithStaticProxy_{nameof(CompositeServiceMultiChannelTest)}_{transportType}_{serializerType}";
 
             var server = Shared.GetServerWithCompositeServices(transportType, serializerType, 1, testName);
             server.StartWaitingForConnection();

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
@@ -189,13 +189,21 @@ namespace OutWit.Communication.Tests
                         MaxNumberOfClients = maxNumberOfClients
                     });
 
+                // Port ranges are wide and outside anything Windows reserves.
+                // "netsh interface ipv4 show excludedportrange tcp" lists 5357 and
+                // the 8690-9489 block among others, and the old choices walked
+                // straight into them: 100-300 is the privileged range, and
+                // 5100-5900 contains 5357. Because the seed is
+                // string.GetHashCode(), which .NET Core randomises per process, a
+                // different set of ports was drawn on every run -- so the failures
+                // looked random rather than like a bad range.
                 case TransportType.Tcp:
                     {
                         var random = new Random(name.GetHashCode());
 
                         return new TcpServerTransportFactory(new TcpServerTransportOptions
                         {
-                            Port = random.Next(100, 300),
+                            Port = random.Next(20000, 29999),
                             MaxNumberOfClients = maxNumberOfClients
                         });
                     }
@@ -205,7 +213,7 @@ namespace OutWit.Communication.Tests
                         var random = new Random(name.GetHashCode());
                         return new TcpSecureServerTransportFactory(new TcpSecureServerTransportOptions
                         {
-                            Port = random.Next(100, 300),
+                            Port = random.Next(30000, 39999),
                             MaxNumberOfClients = maxNumberOfClients,
                             Certificate = new X509Certificate(Properties.Resources.certificate1, "Pa$$w0rd")
                         });
@@ -216,7 +224,7 @@ namespace OutWit.Communication.Tests
                     {
                         // Use hash-based port to ensure same port for same test name
                         var random = new Random(name.GetHashCode());
-                        var port = random.Next(5100, 5900);
+                        var port = random.Next(40000, 49999);
                         
                         return new WebSocketServerTransportFactory(new WebSocketServerTransportOptions
                         {
@@ -250,7 +258,7 @@ namespace OutWit.Communication.Tests
                         var random = new Random(name.GetHashCode());
                         return new TcpClientTransport(new TcpClientTransportOptions
                         {
-                            Port = random.Next(100, 300),
+                            Port = random.Next(20000, 29999),
                             Host = "127.0.0.1"
                         });
                     }
@@ -260,7 +268,7 @@ namespace OutWit.Communication.Tests
                         var random = new Random(name.GetHashCode());
                         return new TcpSecureClientTransport(new TcpSecureClientTransportOptions
                         {
-                            Port = random.Next(100, 300),
+                            Port = random.Next(30000, 39999),
                             Host = "127.0.0.1",
                             TargetHost = "localhost",
                             SslValidationCallback = AcceptAllCertificates
@@ -272,7 +280,7 @@ namespace OutWit.Communication.Tests
                     {
                         // Use same hash-based port as server
                         var random = new Random(name.GetHashCode());
-                        var port = random.Next(5100, 5900);
+                        var port = random.Next(40000, 49999);
                         
                         return new WebSocketClientTransport(new WebSocketClientTransportOptions
                         {

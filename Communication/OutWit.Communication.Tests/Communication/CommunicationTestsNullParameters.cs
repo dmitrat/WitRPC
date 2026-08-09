@@ -7,6 +7,12 @@ namespace OutWit.Communication.Tests.Communication
     [TestFixture]
     public class CommunicationTestsNullParameters
     {
+
+        // ConnectAsync(TimeSpan.Zero) waits indefinitely -- a deliberate
+        // option of the API, and the wrong one for a test. A test that cannot
+        // connect must fail and say so, not park the run and leave a testhost
+        // behind holding bin/ against the next build.
+        private static readonly TimeSpan CONNECT_TIMEOUT = TimeSpan.FromSeconds(30);
         #region Single Null Parameter Tests
 
         [TestCase(TransportType.MMF, SerializerType.Json)]
@@ -35,14 +41,14 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.ProtoBuf)]
         public async Task NullStringParameterTest(TransportType transportType, SerializerType serializerType)
         {
-            var testName = $"{nameof(NullStringParameterTest)}_{transportType}_{serializerType}";
+            var testName = $"CommunicationTestsNullParameters_{nameof(NullStringParameterTest)}_{transportType}_{serializerType}";
 
             var server = Shared.GetServer(transportType, serializerType, 1, testName);
             server.StartWaitingForConnection();
 
             var client = Shared.GetClient(transportType, serializerType, testName);
 
-            Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(await client.ConnectAsync(CONNECT_TIMEOUT, CancellationToken.None), Is.True);
 
             var service = Shared.GetServiceDynamic(client);
 
@@ -79,14 +85,14 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.ProtoBuf)]
         public async Task NullStringParameterAsyncTest(TransportType transportType, SerializerType serializerType)
         {
-            var testName = $"{nameof(NullStringParameterAsyncTest)}_{transportType}_{serializerType}";
+            var testName = $"CommunicationTestsNullParameters_{nameof(NullStringParameterAsyncTest)}_{transportType}_{serializerType}";
 
             var server = Shared.GetServer(transportType, serializerType, 1, testName);
             server.StartWaitingForConnection();
 
             var client = Shared.GetClient(transportType, serializerType, testName);
 
-            Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(await client.ConnectAsync(CONNECT_TIMEOUT, CancellationToken.None), Is.True);
 
             var service = Shared.GetServiceDynamic(client);
 
@@ -127,14 +133,14 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.ProtoBuf)]
         public async Task NullReturnValueTest(TransportType transportType, SerializerType serializerType)
         {
-            var testName = $"{nameof(NullReturnValueTest)}_{transportType}_{serializerType}";
+            var testName = $"CommunicationTestsNullParameters_{nameof(NullReturnValueTest)}_{transportType}_{serializerType}";
 
             var server = Shared.GetServer(transportType, serializerType, 1, testName);
             server.StartWaitingForConnection();
 
             var client = Shared.GetClient(transportType, serializerType, testName);
 
-            Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(await client.ConnectAsync(CONNECT_TIMEOUT, CancellationToken.None), Is.True);
 
             var service = Shared.GetServiceDynamic(client);
 
@@ -171,14 +177,14 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.ProtoBuf)]
         public async Task NullReturnValueAsyncTest(TransportType transportType, SerializerType serializerType)
         {
-            var testName = $"{nameof(NullReturnValueAsyncTest)}_{transportType}_{serializerType}";
+            var testName = $"CommunicationTestsNullParameters_{nameof(NullReturnValueAsyncTest)}_{transportType}_{serializerType}";
 
             var server = Shared.GetServer(transportType, serializerType, 1, testName);
             server.StartWaitingForConnection();
 
             var client = Shared.GetClient(transportType, serializerType, testName);
 
-            Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(await client.ConnectAsync(CONNECT_TIMEOUT, CancellationToken.None), Is.True);
 
             var service = Shared.GetServiceDynamic(client);
 
@@ -219,14 +225,14 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.ProtoBuf)]
         public async Task MultipleNullableParametersTest(TransportType transportType, SerializerType serializerType)
         {
-            var testName = $"{nameof(MultipleNullableParametersTest)}_{transportType}_{serializerType}";
+            var testName = $"CommunicationTestsNullParameters_{nameof(MultipleNullableParametersTest)}_{transportType}_{serializerType}";
 
             var server = Shared.GetServer(transportType, serializerType, 1, testName);
             server.StartWaitingForConnection();
 
             var client = Shared.GetClient(transportType, serializerType, testName);
 
-            Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(await client.ConnectAsync(CONNECT_TIMEOUT, CancellationToken.None), Is.True);
 
             var service = Shared.GetServiceDynamic(client);
 
@@ -275,14 +281,14 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.ProtoBuf)]
         public async Task MultipleNullableParametersAsyncTest(TransportType transportType, SerializerType serializerType)
         {
-            var testName = $"{nameof(MultipleNullableParametersAsyncTest)}_{transportType}_{serializerType}";
+            var testName = $"CommunicationTestsNullParameters_{nameof(MultipleNullableParametersAsyncTest)}_{transportType}_{serializerType}";
 
             var server = Shared.GetServer(transportType, serializerType, 1, testName);
             server.StartWaitingForConnection();
 
             var client = Shared.GetClient(transportType, serializerType, testName);
 
-            Assert.That(await client.ConnectAsync(TimeSpan.Zero, CancellationToken.None), Is.True);
+            Assert.That(await client.ConnectAsync(CONNECT_TIMEOUT, CancellationToken.None), Is.True);
 
             var service = Shared.GetServiceDynamic(client);
 
