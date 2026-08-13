@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Castle.Components.DictionaryAdapter.Xml;
 using Microsoft.Extensions.Logging;
 using OutWit.Common.Utils;
 using OutWit.Communication.Exceptions;

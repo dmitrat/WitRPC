@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using Castle.Components.DictionaryAdapter.Xml;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Utils;
 

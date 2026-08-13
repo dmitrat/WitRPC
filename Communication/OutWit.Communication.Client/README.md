@@ -8,7 +8,7 @@ Base client library for the WitRPC framework, providing functionality to connect
 
 Key capabilities of this client library include:
 
--   **Dynamic Service Proxies:** The client produces a proxy for your service interface (e.g. `IMyService`) via `client.GetService<IMyService>()`. This proxy forwards your method calls to the server and raises server-sent events on the client, supporting a natural, object-oriented usage of remote services (no need to manually serialize calls).
+-   **Service Proxies:** The client produces a proxy for your service interface (e.g. `IMyService`) that forwards your method calls to the server and raises server-sent events on the client, supporting a natural, object-oriented usage of remote services (no need to manually serialize calls). Two flavors exist: runtime-generated proxies via `client.GetService<IMyService>()` (requires the opt-in **OutWit.Communication.Client.DynamicProxy** package) and source-generated proxies via `client.GetService<IMyService>(interceptor => new MyServiceProxy(interceptor))` (`[ProxyTarget]` + `OutWit.Common.Proxy.Generator`), which work with this package alone and are NativeAOT/trimming-friendly.
 
 -   **Multiple Service Interfaces:** When the server hosts multiple service interfaces (using composite services), a single client connection can access all of them. Just call `client.GetService<T>()` with different interface types to get proxies for each service.
     

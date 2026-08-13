@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using MemoryPack;
@@ -56,6 +57,11 @@ namespace OutWit.Communication.Model
             return new ParameterType(type);
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2057",
+            Justification = "Name-based resolution only ever targets contract types the consuming " +
+                            "application references statically (they appear on the service interface), " +
+                            "so they are preserved by trimming; an unknown name returns null and " +
+                            "surfaces as a regular method-resolution failure.")]
         public static explicit operator Type?(ParameterType type)
         {
             return System.Type.GetType($"{type.Type}, {type.Assembly}");

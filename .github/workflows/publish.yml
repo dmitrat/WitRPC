@@ -26,6 +26,7 @@ on:
           - OutWit.Communication.Server.MMF
           - OutWit.Communication.Server.Rest
           # Client Extensions
+          - OutWit.Communication.Client.DynamicProxy
           - OutWit.Communication.Client.DependencyInjection
           - OutWit.Communication.Client.HealthChecks
           - OutWit.Communication.Client.Encryption.BouncyCastle

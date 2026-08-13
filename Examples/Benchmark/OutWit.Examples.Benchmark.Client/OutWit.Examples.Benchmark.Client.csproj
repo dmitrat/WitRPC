@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -23,6 +23,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\..\Communication\OutWit.Communication.Client.DynamicProxy\OutWit.Communication.Client.DynamicProxy.csproj" />
 		<ProjectReference Include="..\..\..\Communication\OutWit.Communication.Client.MMF\OutWit.Communication.Client.MMF.csproj" />
 		<ProjectReference Include="..\..\..\Communication\OutWit.Communication.Client.Pipes\OutWit.Communication.Client.Pipes.csproj" />
 		<ProjectReference Include="..\..\..\Communication\OutWit.Communication.Client.Tcp\OutWit.Communication.Client.Tcp.csproj" />

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
-using Castle.DynamicProxy;
 using Microsoft.Extensions.Logging;
 using OutWit.Common.Json;
 using OutWit.Common.MemoryPack;
@@ -38,15 +37,6 @@ namespace OutWit.Communication.Client
             optionsBuilder(options);
 
             return Build(options);
-        }
-
-        public static TService GetService<TService>(this WitClient me, bool strongAssemblyMatch = true)
-            where TService : class
-        {
-            var proxyGenerator = new ProxyGenerator();
-            var interceptor = new RequestInterceptorDynamic(me, strongAssemblyMatch);
-
-            return proxyGenerator.CreateInterfaceProxyWithoutTarget<TService>(interceptor);
         }
 
         public static TService GetService<TService>(this WitClient me, Func<IProxyInterceptor, TService> create, bool strongAssemblyMatch = true)

@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <!-- Directory.Build.props turns packing on for Release; ILC refuses to publish with it. -->
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+
+    <!--
+      Target state: any trimming/AOT warning fails the publish (TreatWarningsAsErrors).
+      Current state: the WitRPC assemblies themselves are AOT-warning-free, but the
+      dependency graph is not yet - MemoryPack's non-source-gen fallback paths and
+      OutWit.Common(.Json/.MemoryPack) reflection helpers emit IL2xxx/IL3050.
+      Until those are annotated upstream, the hard gates are: the publish succeeds,
+      the closure guard below passes, and the produced binary runs.
+      TODO: flip TreatWarningsAsErrors back to true once OutWit.Common.* and
+      MemoryPack are AOT-annotation-clean.
+    -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OutWit.Communication.Client\OutWit.Communication.Client.csproj" />
+    <ProjectReference Include="..\OutWit.Communication.Client.WebSocket\OutWit.Communication.Client.WebSocket.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OutWit.Common.Proxy.Generator">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- Guard: the AOT graph must not contain the dynamic proxy path. -->
+  <Target Name="AssertNoCastleInClosure" AfterTargets="ResolveReferences">
+    <ItemGroup>
+      <_CastleRefs Include="@(ReferencePath)" Condition="$([System.String]::Copy('%(FileName)').StartsWith('Castle.'))" />
+      <_DynamicProxyRefs Include="@(ReferencePath)" Condition="'%(FileName)' == 'OutWit.Communication.Client.DynamicProxy'" />
+    </ItemGroup>
+    <Error Condition="'@(_CastleRefs)' != ''" Text="Castle assemblies found in the AOT smoke closure: @(_CastleRefs). The client core must stay free of the dynamic proxy path." />
+    <Error Condition="'@(_DynamicProxyRefs)' != ''" Text="OutWit.Communication.Client.DynamicProxy found in the AOT smoke closure. This project must exercise the static path only." />
+  </Target>
+
+</Project>

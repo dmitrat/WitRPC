@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
-using Castle.Components.DictionaryAdapter.Xml;
 using Microsoft.Extensions.Logging;
 using OutWit.Common.Aspects;
 using OutWit.Common.Logging;

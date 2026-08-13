@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Note**: Since 2.3.1, package versions diverge per package family. Each section below lists the package versions it produced (verified against csproj `<Version>` values).
 
+## [2.4.0] - 2026-08-13
+
+> **Highlighted: dynamic proxy package split.** Runtime dynamic proxy support (Castle.Core) moved out of the core packages into the new opt-in `OutWit.Communication.Client.DynamicProxy` package. `OutWit.Communication`, `OutWit.Communication.Client`, and `OutWit.Communication.Server` no longer depend on Castle.Core, and the client core publishes cleanly under NativeAOT with source-generated proxies.
+
+Package versions after this release: `OutWit.Communication` + client/server packages and non-MMF transports 2.4.0, `Client.DependencyInjection` 2.4.0, `Client.DynamicProxy` 2.4.0 (new), `Client.Blazor` 1.0.9, `OutWit.InterProcess.Host` 2.3.3. Unchanged: MMF transports 2.4.0 (published earlier), `Client.HealthChecks` 2.3.5, `Server.DependencyInjection` 2.3.10, `Encryption.BouncyCastle` 2.3.4/2.3.5, `OutWit.InterProcess`/`.Agent` 2.3.2. `Client.Blazor` 1.0.9, `Client.DependencyInjection` 2.4.0, and `InterProcess.Host` 2.3.3 are mandatory updates when moving to client 2.4.0 — their published predecessors bind to the relocated dynamic `GetService` and would fail at runtime against the new client.
+
+### Added
+
+- **New package**: `OutWit.Communication.Client.DynamicProxy` (2.4.0) — carries `RequestInterceptorDynamic`, the Castle `IInvocation` adapter (`ProxyUtils`), and the relocated dynamic `GetService<TService>()` extension. Namespaces are unchanged (`OutWit.Communication.Interceptors`, `OutWit.Communication.Utils`, `OutWit.Communication.Client`), so existing call sites recompile after adding a package reference.
+- **New project**: `OutWit.Communication.Client.AotSmoke` — non-packable NativeAOT publish gate exercising the static-proxy path (`[ProxyTarget]` + `OutWit.Common.Proxy.Generator`); an MSBuild guard fails the build if any `Castle.*` assembly (or the DynamicProxy package itself) appears in its reference closure.
+- New test suite `DynamicProxySplitTests` pinning the split at assembly-metadata level: core assemblies reference no Castle, the moved types live in the new package, the relocated extension keeps the `OutWit.Communication.Client` namespace and `WitClient` receiver.
+
+### Changed
+
+- **Breaking (binary, dynamic path only)**: `GetService<TService>(this WitClient, bool strongAssemblyMatch = true)` moved from the `OutWit.Communication.Client` assembly to `OutWit.Communication.Client.DynamicProxy`. Migration: add a reference to the new package; no code changes. The static-proxy overload is untouched and stays in the core client. No type forwarding is provided by design — forwarding would keep Castle.Core in the core.
+- `Castle.Core` PackageReference removed from `OutWit.Communication`; dead `Castle.Components.DictionaryAdapter.Xml` usings removed from `WitServer`, `EncryptorServerGeneral`, and the BasicHost example.
+- `OutWit.Communication.Client.Blazor`, `OutWit.Communication.Client.DependencyInjection`, and `OutWit.InterProcess.Host` now reference `OutWit.Communication.Client.DynamicProxy` (they sit on the dynamic path; behavior unchanged). Examples using the dynamic overload reference it as well.
+- `ParameterType`'s name-based `Type` resolution now carries an `UnconditionalSuppressMessage(IL2057)` with a documented justification — it was the only WitRPC-owned AOT analysis warning on the client path.
+
+### Known AOT gaps (upstream)
+
+The AOT smoke publish succeeds and the WitRPC assemblies are AOT-warning-free, but the dependency graph is not yet: MemoryPack's non-source-gen fallback paths (~19 diagnostics) and the `OutWit.Common`/`OutWit.Common.Json`/`OutWit.Common.MemoryPack` reflection helpers (~16) still emit IL2xxx/IL3050 analysis warnings. `TreatWarningsAsErrors` in the smoke project stays off until those are annotated upstream; the closure guard and the run-the-binary check are the hard gates meanwhile.
+
 ## [2.3.3] - 2026-04-23
 
 Package versions after this release: `OutWit.Communication` + client packages 2.3.3, server packages 2.3.4, `Client.HealthChecks` 2.3.4, `Client.DependencyInjection` 2.3.7, `Server.DependencyInjection` 2.3.9, `Client.Blazor` 1.0.6. (`OutWit.InterProcess.*` remain 2.3.1.)
