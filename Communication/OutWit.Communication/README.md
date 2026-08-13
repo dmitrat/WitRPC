@@ -130,6 +130,8 @@ Using WitRPC involves defining a service interface, implementing it on the serve
     
     The `GetService<T>()` call returns an implementation of `IExampleService` that acts as a local proxy. Any calls you make on `serviceProxy` will be sent to the server's `ExampleService`. Similarly, any events raised by the server will trigger the corresponding events on this proxy object.
     
+    > **Since 2.4.0:** this parameterless overload generates the proxy at runtime (Castle.Core) and lives in the opt-in [OutWit.Communication.Client.DynamicProxy](https://www.nuget.org/packages/OutWit.Communication.Client.DynamicProxy/) package. The NativeAOT/trimming-friendly alternative needs no extra package: annotate the interface with `[ProxyTarget("ExampleServiceProxy")]` (source generator `OutWit.Common.Proxy.Generator`) and call `client.GetService<IExampleService>(interceptor => new ExampleServiceProxy(interceptor))`.
+    
 5.  **Use the Service Proxy**. Now you can call methods and subscribe to events on `serviceProxy` as if it were a local object:
     
     ```csharp

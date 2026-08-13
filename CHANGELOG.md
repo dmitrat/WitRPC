@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Note**: Since 2.3.1, package versions diverge per package family. Each section below lists the package versions it produced (verified against csproj `<Version>` values).
 
+## [2.4.1] - 2026-08-13
+
+Documentation-only wave: no code changes. The package READMEs (shown on nuget.org) now document the 2.4.0 dynamic proxy split — the parameterless `GetService<T>()` requires the opt-in `OutWit.Communication.Client.DynamicProxy` package, and the source-generated (`[ProxyTarget]`) path needs no extra package.
+
+Package versions after this release: `OutWit.Communication`, `Client.Pipes`, `Client.Tcp`, `Client.WebSocket`, `Client.MMF`, `Client.Rest`, `Server` 2.4.1; `Server.DependencyInjection` 2.3.11. (`Client` and `Client.DynamicProxy` shipped correct READMEs in 2.4.0 and are not republished; server transports have no client-side samples and stay 2.4.0.)
+
+### Fixed
+
+- Proxy-usage note added to the READMEs of the core package, all five client transports, the server package, and the server DI extension.
+- `Client.Rest` README rewritten: it documented a non-existent API (`options.WithRest(...)` + `GetService<T>()` on a builder-produced client). The real surface is `new WitClientRest(RestClientTransportOptions, IAccessTokenProvider)` with a proxy built over `RequestInterceptor` (static) or `RequestInterceptorDynamic` (dynamic, opt-in package). This predates 2.4.0.
+
 ## [2.4.0] - 2026-08-13
 
 > **Highlighted: dynamic proxy package split.** Runtime dynamic proxy support (Castle.Core) moved out of the core packages into the new opt-in `OutWit.Communication.Client.DynamicProxy` package. `OutWit.Communication`, `OutWit.Communication.Client`, and `OutWit.Communication.Server` no longer depend on Castle.Core, and the client core publishes cleanly under NativeAOT with source-generated proxies.

@@ -49,6 +49,8 @@ await client.ConnectAsync(TimeSpan.FromSeconds(5));
 IMyService service = client.GetService<IMyService>();
 ```
 
+> **Since 2.4.0:** the parameterless `GetService<T>()` generates its proxy at runtime (Castle.Core) and lives in the opt-in [OutWit.Communication.Client.DynamicProxy](https://www.nuget.org/packages/OutWit.Communication.Client.DynamicProxy/) package — install it alongside this transport. The NativeAOT/trimming-friendly alternative needs no extra package: annotate the interface with `[ProxyTarget("MyServiceProxy")]` (source generator `OutWit.Common.Proxy.Generator`) and call `client.GetService<IMyService>(interceptor => new MyServiceProxy(interceptor))`.
+
 In this example, the client will perform a WebSocket handshake to `ws://localhost:5000/service`. On the server side, you should have something like:
 
 ```csharp

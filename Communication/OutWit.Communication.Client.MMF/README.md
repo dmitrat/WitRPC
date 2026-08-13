@@ -40,6 +40,8 @@ await client.ConnectAsync(TimeSpan.FromSeconds(5));
 IMyService service = client.GetService<IMyService>();
 ```
 
+> **Since 2.4.0:** the parameterless `GetService<T>()` generates its proxy at runtime (Castle.Core) and lives in the opt-in [OutWit.Communication.Client.DynamicProxy](https://www.nuget.org/packages/OutWit.Communication.Client.DynamicProxy/) package — install it alongside this transport. The NativeAOT/trimming-friendly alternative needs no extra package: annotate the interface with `[ProxyTarget("MyServiceProxy")]` (source generator `OutWit.Common.Proxy.Generator`) and call `client.GetService<IMyService>(interceptor => new MyServiceProxy(interceptor))`.
+
 In this snippet, we call `options.WithMemoryMappedFile("MyApp_MMF")` to tell the WitRPC client to use a memory-mapped file transport with the given name. The server must be configured with the **same name** (and optionally a size, if using a non-default size). Once the client calls `ConnectAsync`, it will attempt to open the memory-mapped file that the server created and establish communication through it.
 
 Using the `service` proxy obtained from the client is the same as with any other transport: you call methods and subscribe to events normally. The difference is entirely under the hood: requests and responses are being written to and read from shared memory.

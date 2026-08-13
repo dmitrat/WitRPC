@@ -118,6 +118,8 @@ var userService = client.GetService<IUserService>();
 var orderService = client.GetService<IOrderService>();
 ```
 
+> The parameterless `GetService<T>()` requires the client to reference the opt-in [OutWit.Communication.Client.DynamicProxy](https://www.nuget.org/packages/OutWit.Communication.Client.DynamicProxy/) package (since 2.4.0); source-generated proxies (`[ProxyTarget]` + `OutWit.Common.Proxy.Generator`) need no extra package.
+
 #### Auto-Start on Startup
 
 Enable automatic server start when the application starts:

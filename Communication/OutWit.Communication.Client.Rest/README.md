@@ -28,24 +28,33 @@ Install-Package OutWit.Communication.Client.Rest
 
 ### Usage
 
-To use the REST transport, configure the client with the base URL of the REST endpoint:
+The REST client is stateless and is constructed directly (it does not go through `WitClientBuilder` and needs no `ConnectAsync` — every call is an independent HTTP request):
 
 ```csharp
-using OutWit.Communication.Client;
+using OutWit.Communication.Client.Authorization;
 using OutWit.Communication.Client.Rest;
-using OutWit.Communication.Serializers;
+using OutWit.Communication.Interceptors;
+using OutWit.Communication.Model;
 
-var client = WitClientBuilder.Build(options =>
-{
-    options.WithRest("http://localhost:5000/api/example/"); // base URL for the RESTful service
-    options.WithJson();       // REST uses JSON format by default
-    options.WithoutEncryption(); // rely on HTTPS for encryption at transport level
-    // If the server requires an access token for auth:
-    // options.WithAccessToken("YourBearerToken");
-});
-await client.ConnectAsync(TimeSpan.FromSeconds(5));
+var client = new WitClientRest(
+    new RestClientTransportOptions
+    {
+        Host = (HostInfo)"http://localhost:5000/api/example/" // base URL for the RESTful service
+    },
+    new AccessTokenProviderStatic("YourBearerToken")); // or AccessTokenProviderPlain() when no auth is required
 
-IExampleService service = client.GetService<IExampleService>();
+// Source-generated proxy: [ProxyTarget("ExampleServiceProxy")] on the interface
+// plus the OutWit.Common.Proxy.Generator package — no extra runtime dependency:
+IExampleService service = new ExampleServiceProxy(new RequestInterceptor(client, true));
+```
+
+Runtime-generated proxies work as well — add the opt-in [OutWit.Communication.Client.DynamicProxy](https://www.nuget.org/packages/OutWit.Communication.Client.DynamicProxy/) package (since 2.4.0) and create the proxy through Castle:
+
+```csharp
+using Castle.DynamicProxy;
+
+IExampleService service = new ProxyGenerator()
+    .CreateInterfaceProxyWithoutTarget<IExampleService>(new RequestInterceptorDynamic(client, true));
 ```
 
 In this example, the client will send HTTP requests to `http://localhost:5000/api/example/`. Each method call on `service` will be translated into an HTTP request (usually a POST) to an endpoint like `http://localhost:5000/api/example/MethodName` with a JSON payload containing the method parameters. The server will process the request and send back a JSON response, which the client library will convert into the method’s return value (or throw an exception if the server returned an error).

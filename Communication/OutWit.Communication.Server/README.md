@@ -85,6 +85,8 @@ var orderService = client.GetService<IOrderService>();
 var notificationService = client.GetService<INotificationService>();
 ```
 
+> The parameterless `GetService<T>()` requires the client to reference the opt-in [OutWit.Communication.Client.DynamicProxy](https://www.nuget.org/packages/OutWit.Communication.Client.DynamicProxy/) package (since 2.4.0); source-generated proxies (`[ProxyTarget]` + `OutWit.Common.Proxy.Generator`) need no extra package.
+
 This approach is cleaner than creating a single "super-interface" that inherits from all service interfaces.
 
 ### Server Lifecycle

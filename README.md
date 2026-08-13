@@ -5,7 +5,7 @@
 
 WitRPC is a modern API for client-server communication designed to simplify development and provide a robust, extensible framework. It offers a seamless way to handle real-time and event-driven interactions with minimal setup, acting as a powerful alternative to traditional frameworks like WCF and SignalR.
 
-> Current versions (2026-08-13): core, client, and server packages 2.4.0 (incl. all transports, `Client.DependencyInjection`, and the new `Client.DynamicProxy`); `Client.Blazor` 1.0.9, `Client.HealthChecks` 2.3.5, `Server.DependencyInjection` 2.3.10, `InterProcess` 2.3.2 (`Host` 2.3.3). See [CHANGELOG.md](CHANGELOG.md).
+> Current versions (2026-08-13): core 2.4.1, client transports 2.4.1, server 2.4.1 (server transports 2.4.0); `Client` 2.4.0, `Client.DependencyInjection` 2.4.0, `Client.DynamicProxy` 2.4.0 (new), `Client.Blazor` 1.0.9, `Client.HealthChecks` 2.3.5, `Server.DependencyInjection` 2.3.11, `InterProcess` 2.3.2 (`Host` 2.3.3). See [CHANGELOG.md](CHANGELOG.md).
 
 ## Features
 

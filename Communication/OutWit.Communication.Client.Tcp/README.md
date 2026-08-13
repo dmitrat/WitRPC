@@ -47,6 +47,8 @@ await client.ConnectAsync(TimeSpan.FromSeconds(5));
 IMyService service = client.GetService<IMyService>();
 ```
 
+> **Since 2.4.0:** the parameterless `GetService<T>()` generates its proxy at runtime (Castle.Core) and lives in the opt-in [OutWit.Communication.Client.DynamicProxy](https://www.nuget.org/packages/OutWit.Communication.Client.DynamicProxy/) package — install it alongside this transport. The NativeAOT/trimming-friendly alternative needs no extra package: annotate the interface with `[ProxyTarget("MyServiceProxy")]` (source generator `OutWit.Common.Proxy.Generator`) and call `client.GetService<IMyService>(interceptor => new MyServiceProxy(interceptor))`.
+
 In this example, the client opens a TCP connection to `example.com:5001`. If your server is on the same machine, you could use `"localhost"` or the machine's local IP address instead of `"example.com"`. The `ConnectAsync` call attempts to establish the socket connection within 5 seconds.
 
 By default, we called `WithEncryption()`, which means the WitRPC protocol will encrypt the request/response payloads at the application layer (using AES/RSA). This is useful if you're running over plaintext TCP. If you plan to use TLS at the transport layer, you might omit this (or use `WithoutEncryption()`).
