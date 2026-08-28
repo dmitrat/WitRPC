@@ -21,7 +21,8 @@ namespace OutWit.Communication.Server.Rest
             if (options.RequestProcessor == null)
                 throw new WitException("Request processor cannot be empty");
 
-            return new WitServerRest(options.TransportOptions, options.TokenValidator, options.RequestProcessor, options.Logger, options.Timeout);
+            return new WitServerRest(options.TransportOptions, options.TokenValidator, options.RequestProcessor, options.Logger, options.Timeout,
+                options.MaxBodyBytes, options.MaxConcurrentRequests);
         }
 
         #region Transport

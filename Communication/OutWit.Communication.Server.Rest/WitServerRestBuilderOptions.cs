@@ -33,6 +33,12 @@ namespace OutWit.Communication.Server.Rest
 
         public TimeSpan? Timeout { get; set; }
 
+        /// <summary>The largest request body accepted, in bytes. A larger body is refused with 413.</summary>
+        public long MaxBodyBytes { get; set; } = WitServerRest.DEFAULT_MAX_BODY_BYTES;
+
+        /// <summary>The most requests processed at once. Unbounded by default.</summary>
+        public int MaxConcurrentRequests { get; set; } = int.MaxValue;
+
         #endregion
     }
 }

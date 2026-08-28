@@ -44,6 +44,12 @@ namespace OutWit.Communication.Client.Rest
 
         public RestClientRequestModes Mode { get; set; }
 
+        /// <summary>
+        /// How long to wait for the HTTP response before giving up. <c>null</c> or
+        /// <see cref="TimeSpan.Zero"/> waits indefinitely.
+        /// </summary>
+        public TimeSpan? Timeout { get; set; }
+
         #endregion
     }
 
