@@ -488,7 +488,6 @@ namespace OutWit.Communication.Tests.Communication
         [TestCase(TransportType.WebSocket, SerializerType.MemoryPack)]
         public async Task MultiClientBasicCommunicationTest(TransportType transportType, SerializerType serializerType)
         {
-
             var testName = $"CommunicationTestsBasic_{nameof(MultiClientBasicCommunicationTest)}_{transportType}_{serializerType}";
             
             var server = Server(transportType, serializerType, 11, testName);

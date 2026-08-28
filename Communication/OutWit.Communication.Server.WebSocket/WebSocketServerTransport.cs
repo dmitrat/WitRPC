@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
+using OutWit.Communication.Utils;
 
 namespace OutWit.Communication.Server.WebSocket
 {
@@ -12,7 +13,11 @@ namespace OutWit.Communication.Server.WebSocket
     {
         #region Events
 
-        public event TransportDataEventHandler Callback = delegate { };
+        public event TransportDataEventHandler Callback
+        {
+            add => InboundBuffer.Subscribe(value);
+            remove => InboundBuffer.Unsubscribe(value);
+        }
 
         public event TransportEventHandler Disconnected = delegate { };
 
@@ -23,6 +28,7 @@ namespace OutWit.Communication.Server.WebSocket
         public WebSocketServerTransport(System.Net.WebSockets.WebSocket? client, WebSocketServerTransportOptions options)
         {
             Id = Guid.NewGuid();
+            InboundBuffer = new TransportInboundBuffer(Id);
 
             Client = client;
             Options = options;
@@ -123,7 +129,7 @@ namespace OutWit.Communication.Server.WebSocket
                     if (data.Length == 0)
                         continue;
 
-                    _ = Task.Run(() => Callback(Id, data));
+                    InboundBuffer.Raise(data);
                 }
             }
             catch (Exception)
@@ -152,6 +158,8 @@ namespace OutWit.Communication.Server.WebSocket
         public Guid Id { get; }
 
         public bool CanReinitialize { get; } = false;
+
+        private TransportInboundBuffer InboundBuffer { get; }
 
         private WebSocketServerTransportOptions Options { get; }
 

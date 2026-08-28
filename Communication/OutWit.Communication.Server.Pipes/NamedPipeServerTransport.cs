@@ -2,6 +2,7 @@
 using System.IO;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
+using OutWit.Communication.Utils;
 using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +13,11 @@ namespace OutWit.Communication.Server.Pipes
     {
         #region Events
 
-        public event TransportDataEventHandler Callback = delegate { };
+        public event TransportDataEventHandler Callback
+        {
+            add => InboundBuffer.Subscribe(value);
+            remove => InboundBuffer.Unsubscribe(value);
+        }
 
         public event TransportEventHandler Disconnected = delegate { };
 
@@ -23,6 +28,7 @@ namespace OutWit.Communication.Server.Pipes
         public NamedPipeServerTransport(NamedPipeServerTransportOptions options)
         {
             Id = Guid.NewGuid();
+            InboundBuffer = new TransportInboundBuffer(Id);
 
             Options = options;
 
@@ -122,7 +128,7 @@ namespace OutWit.Communication.Server.Pipes
                     }
 
                     if (totalBytesRead == messageLength)
-                        _ = Task.Run(() => Callback(Id, dataBuffer));
+                        InboundBuffer.Raise(dataBuffer);
                 }
             }
             catch (Exception)
@@ -150,6 +156,8 @@ namespace OutWit.Communication.Server.Pipes
         public Guid Id { get; }
 
         public bool CanReinitialize { get; } = false;
+
+        private TransportInboundBuffer InboundBuffer { get; }
 
         private NamedPipeServerTransportOptions Options { get; }
 

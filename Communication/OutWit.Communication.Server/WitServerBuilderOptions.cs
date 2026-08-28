@@ -51,6 +51,16 @@ namespace OutWit.Communication.Server
 
         public string? Description { get; set; }
 
+        /// <summary>
+        /// The most service methods the server will run at once, across all
+        /// connections. Each connection's own requests are always processed in
+        /// order; this caps how many connections may be mid-call together.
+        /// Unbounded by default. Set to 1 to serialise every call, as the server
+        /// did before 3.0 — but note that service methods are now invoked
+        /// concurrently across connections, so they must be thread-safe.
+        /// </summary>
+        public int MaxConcurrentRequests { get; set; } = int.MaxValue;
+
         #endregion
     }
 }

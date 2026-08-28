@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -73,7 +74,7 @@ namespace OutWit.Communication.Client
 
             Timeout = timeout;
 
-            WaitForRequest = new SemaphoreSlim(1, 1);
+            SendLock = new SemaphoreSlim(1, 1);
             ReconnectionCts = new CancellationTokenSource();
             RetryPolicy = new RetryPolicy(retryOptions, logger);
 
@@ -291,12 +292,15 @@ namespace OutWit.Communication.Client
         {
             timeout ??= Timeout;
 
-            if (timeout == null || timeout == TimeSpan.Zero)
-                await WaitForRequest.WaitAsync();
-
-            else if (!await WaitForRequest.WaitAsync(timeout.Value))
+            // Register the wait BEFORE sending, keyed by this message's id, so a
+            // response that comes back before the send call even returns — a real
+            // possibility on the in-process and MMF transports — is matched, not
+            // dropped. Several requests may be in flight at once; each is matched
+            // to its own response by id.
+            var pending = new TaskCompletionSource<WitMessage?>(TaskCreationOptions.RunContinuationsAsynchronously);
+            if (!PendingRequests.TryAdd(message.Id, pending))
             {
-                Logger?.LogError("Response timeout");
+                Logger?.LogError("Duplicate message id {MessageId}", message.Id);
                 return null;
             }
 
@@ -305,37 +309,38 @@ namespace OutWit.Communication.Client
                 var encryptedMessage = await Encrypt(message);
                 byte[] data = MessageSerializer.Serialize(encryptedMessage);
 
-                await Transport.SendBytesAsync(data);
-
-                WaitForResponse = new TaskCompletionSource<WitMessage?>();
-
-                var result = (timeout != null && timeout != TimeSpan.Zero)
-                    ? await WaitForResponse.Task.WaitAsync(timeout.Value)
-                    : await WaitForResponse.Task.WaitAsync(CancellationToken.None);
-
-                if (result == null)
+                // Only the physical write is serialised — the transports do not
+                // support concurrent sends. The waits above and below do not hold
+                // the lock, so requests still overlap on the wire's turnaround.
+                await SendLock.WaitAsync();
+                try
                 {
-                    Logger?.LogError("Response timeout");
-                    return null;
+                    await Transport.SendBytesAsync(data);
+                }
+                finally
+                {
+                    SendLock.Release();
                 }
 
-                if (result.Id != message.Id)
-                {
-                    Logger?.LogError("Received response inconsistent");
-                    throw new WitException($"Received response inconsistent");
-                }
-                return result;
+
+                if (timeout != null && timeout != TimeSpan.Zero)
+                    return await pending.Task.WaitAsync(timeout.Value);
+
+                return await pending.Task;
             }
-            catch (Exception e)
+            catch (TimeoutException)
             {
-                //Logger?.LogError(e, "Failed to send message");
+                Logger?.LogError("Response timeout for message {MessageId}", message.Id);
+                return null;
+            }
+            catch (Exception)
+            {
                 return null;
             }
             finally
             {
-                WaitForRequest.Release();
+                PendingRequests.TryRemove(message.Id, out _);
             }
-
         }
 
         private async Task<WitMessage> Encrypt(WitMessage message)
@@ -468,10 +473,11 @@ namespace OutWit.Communication.Client
             if (message.Type == WitMessageType.Callback)
                 CallbackReceived(decryptedMessage.Data.GetRequest(MessageSerializer));
 
+            else if (PendingRequests.TryGetValue(decryptedMessage.Id, out var pending))
+                pending.TrySetResult(decryptedMessage);
+
             else
-            {
-                WaitForResponse?.TrySetResult(decryptedMessage);
-            }
+                Logger?.LogWarning("Dropping a response with no waiting request: {MessageId}", decryptedMessage.Id);
         }
 
         private async void OnDataReceived(Guid sender, byte[] data)
@@ -490,6 +496,7 @@ namespace OutWit.Communication.Client
                     Logger?.LogWarning("Ignoring incoming payload that could not be deserialized into a message from transport {TransportId}", sender);
                     return;
                 }
+
 
                 await OnMessageReceived(message);
             }
@@ -527,7 +534,12 @@ namespace OutWit.Communication.Client
         {
             ReconnectionCts?.Cancel();
             ReconnectionCts?.Dispose();
-            WaitForRequest?.Dispose();
+
+            foreach (var pending in PendingRequests.Values)
+                pending.TrySetResult(null);
+            PendingRequests.Clear();
+
+            SendLock?.Dispose();
             Encryptor?.Dispose();
             Transport?.Dispose();
         }
@@ -541,9 +553,9 @@ namespace OutWit.Communication.Client
 
         private TimeSpan? ConnectionTimeout { get; set; }
 
-        private TaskCompletionSource<WitMessage?>? WaitForResponse { get; set; }
+        private ConcurrentDictionary<Guid, TaskCompletionSource<WitMessage?>> PendingRequests { get; } = new();
 
-        private SemaphoreSlim WaitForRequest { get; }
+        private SemaphoreSlim SendLock { get; }
 
         private CancellationTokenSource ReconnectionCts { get; set; }
 

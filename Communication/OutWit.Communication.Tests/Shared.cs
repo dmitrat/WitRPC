@@ -137,7 +137,17 @@ namespace OutWit.Communication.Tests
             return new WitClient(GetClientTransport(transportType, testName),
                 new EncryptorClientGeneral(),
                 new AccessTokenProviderStatic(AUTHORIZATION_TOKEN),
-                GetSerializer(serializerType), 
+                GetSerializer(serializerType),
+                new MessageSerializerMemoryPack(),
+                null, null);
+        }
+
+        public static WitClient GetClientWithToken(TransportType transportType, SerializerType serializerType, string testName, string token)
+        {
+            return new WitClient(GetClientTransport(transportType, testName),
+                new EncryptorClientGeneral(),
+                new AccessTokenProviderStatic(token),
+                GetSerializer(serializerType),
                 new MessageSerializerMemoryPack(),
                 null, null);
         }

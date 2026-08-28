@@ -44,7 +44,7 @@ namespace OutWit.Communication.Server
                 throw new WitException("Request processor cannot be empty");
 
             return new WitServer(options.TransportFactory, options.EncryptorFactory, options.TokenValidator, options.ParametersSerializer, options.MessageSerializer,
-                options.RequestProcessor, options.DiscoveryServer, options.Logger, options.Timeout, options.Name, options.Description);
+                options.RequestProcessor, options.DiscoveryServer, options.Logger, options.Timeout, options.Name, options.Description, options.MaxConcurrentRequests);
         }
 
         #region Processor
@@ -293,6 +293,20 @@ namespace OutWit.Communication.Server
         public static WitServerBuilderOptions WithTimeout(this WitServerBuilderOptions me, TimeSpan timeout)
         {
             me.Timeout = timeout;
+            return me;
+        }
+
+        #endregion
+
+        #region Concurrency
+
+        /// <summary>
+        /// Caps how many service methods the server runs at once across all
+        /// connections. See <see cref="WitServerBuilderOptions.MaxConcurrentRequests"/>.
+        /// </summary>
+        public static WitServerBuilderOptions WithMaxConcurrentRequests(this WitServerBuilderOptions me, int maxConcurrentRequests)
+        {
+            me.MaxConcurrentRequests = maxConcurrentRequests;
             return me;
         }
 

@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -21,6 +20,8 @@ namespace OutWit.Communication.Server
 
         private readonly ConcurrentDictionary<Guid, ConnectionInfo> m_connections = new ();
 
+        private readonly SemaphoreSlim m_processingLimit;
+
         private bool m_isDisposed;
 
         #endregion
@@ -30,7 +31,7 @@ namespace OutWit.Communication.Server
         public WitServer(ITransportServerFactory transportFactory, IEncryptorServerFactory encryptorFactory,
             IAccessTokenValidator tokenValidator, IMessageSerializer parametersSerializer, IMessageSerializer messageSerializer,
             IRequestProcessor requestProcessor, IDiscoveryServer? discoveryServer,
-            ILogger? logger, TimeSpan? timeout, string? name, string? description)
+            ILogger? logger, TimeSpan? timeout, string? name, string? description, int maxConcurrentRequests = int.MaxValue)
         {
             TransportFactory = transportFactory;
             EncryptorFactory = encryptorFactory;
@@ -43,11 +44,11 @@ namespace OutWit.Communication.Server
             Timeout = timeout;
             Name = name;
             Description = description;
-            
+
             RequestProcessor.ResetSerializer(ParametersSerializer);
-            
+
             Id = Guid.NewGuid();
-            WaitForCallback = new SemaphoreSlim(1, 1);
+            m_processingLimit = new SemaphoreSlim(Math.Max(1, maxConcurrentRequests));
 
             InitEvents();
         }
@@ -72,87 +73,6 @@ namespace OutWit.Communication.Server
 
             Logger?.LogWarning("Ignoring message for disconnected or unknown client {ClientId}", client);
             return false;
-        }
-
-        private WitMessage ProcessInitialization(ConnectionInfo connection, WitMessage message)
-        {
-            if (connection.IsInitialized && connection.CanReinitialize)
-                connection.Reinitialize();
-
-            if (connection.IsInitialized)
-            {
-                Logger?.LogError($"Wrong initialization request");
-                throw new WitException($"Wrong initialization request");
-            }
-
-            if (message.Data == null)
-                return message.With(x=>x.Data = null);
-
-            WitRequestInitialization? request = 
-                MessageSerializer.Deserialize<WitRequestInitialization>(message.Data);
-
-            if(request == null || request.PublicKey == null)
-                return message.With(x => x.Data = null);
-
-            try
-            {
-                var response = new WitResponseInitialization
-                {
-                    SymmetricKey = connection.Encryptor.GetSymmetricKey(),
-                    Vector = connection.Encryptor.GetVector()
-                };
-
-                byte[] responseBytes = connection.Encryptor
-                    .EncryptForClient(MessageSerializer.Serialize(response), request.PublicKey)
-                    .GetAwaiter().GetResult();
-
-                connection.IsInitialized = true;
-
-                return message.With(x => x.Data = responseBytes);
-            }
-            catch (Exception e)
-            {
-                Logger?.LogError(e, $"Error during initialization");
-                return message.With(x => x.Data = null);
-            }
-        }
-
-        private WitMessage ProcessAuthorization(ConnectionInfo connection, WitMessage message)
-        {
-            if (connection.IsAuthorized)
-            {
-                Logger?.LogError($"Wrong authorization request");
-                throw new WitException($"Wrong authorization request");
-            }
-
-            if (message.Data == null)
-                return message.With(x => x.Data = null);
-
-            WitRequestAuthorization? request =
-                MessageSerializer.Deserialize<WitRequestAuthorization>(message.Data);
-
-            if (request == null || request.Token == null)
-                return message.With(x => x.Data = null);
-
-            try
-            {
-                connection.IsAuthorized = TokenValidator.IsAuthorizationTokenValid(request.Token);
-
-                var response = new WitResponseAuthorization
-                {
-                    IsAuthorized = connection.IsAuthorized,
-                    Message = connection.IsAuthorized ? "Authorized" : "Forbidden"
-                };
-
-                byte[] responseBytes = MessageSerializer.Serialize(response);
-
-                return message.With(x => x.Data = responseBytes);
-            }
-            catch (Exception e)
-            {
-                Logger?.LogError(e, $"Error during authorization");
-                return message.With(x => x.Data = null);
-            }
         }
 
         #endregion
@@ -180,11 +100,87 @@ namespace OutWit.Communication.Server
             DiscoveryServer.Stop();
         }
 
-        protected async Task<WitMessage> ProcessMessage(Guid client, WitMessage message)
+        #endregion
+
+        #region Handshake
+
+        private WitMessage ProcessInitialization(ConnectionInfo connection, WitMessage message)
+        {
+            if (message.Data == null)
+                return message.With(x => x.Data = null);
+
+            WitRequestInitialization? request =
+                MessageSerializer.Deserialize<WitRequestInitialization>(message.Data);
+
+            if(request == null || request.PublicKey == null)
+                return message.With(x => x.Data = null);
+
+            try
+            {
+                var response = new WitResponseInitialization
+                {
+                    SymmetricKey = connection.Encryptor.GetSymmetricKey(),
+                    Vector = connection.Encryptor.GetVector()
+                };
+
+                byte[] responseBytes = connection.Encryptor
+                    .EncryptForClient(MessageSerializer.Serialize(response), request.PublicKey)
+                    .GetAwaiter().GetResult();
+
+                connection.State = ConnectionState.Initialized;
+
+                return message.With(x => x.Data = responseBytes);
+            }
+            catch (Exception e)
+            {
+                Logger?.LogError(e, $"Error during initialization");
+                return message.With(x => x.Data = null);
+            }
+        }
+
+        private WitMessage ProcessAuthorization(ConnectionInfo connection, WitMessage message)
+        {
+            if (message.Data == null)
+                return message.With(x => x.Data = null);
+
+            WitRequestAuthorization? request =
+                MessageSerializer.Deserialize<WitRequestAuthorization>(message.Data);
+
+            if (request == null || request.Token == null)
+                return message.With(x => x.Data = null);
+
+            try
+            {
+                bool authorized = TokenValidator.IsAuthorizationTokenValid(request.Token);
+                if (authorized)
+                    connection.State = ConnectionState.Authorized;
+
+                var response = new WitResponseAuthorization
+                {
+                    IsAuthorized = authorized,
+                    Message = authorized ? "Authorized" : "Forbidden"
+                };
+
+                byte[] responseBytes = MessageSerializer.Serialize(response);
+
+                return message.With(x => x.Data = responseBytes);
+            }
+            catch (Exception e)
+            {
+                Logger?.LogError(e, $"Error during authorization");
+                return message.With(x => x.Data = null);
+            }
+        }
+
+        #endregion
+
+        #region Processing
+
+        private async Task<WitMessage> ProcessMessage(WitMessage message)
         {
             var request = message.Data.GetRequest(MessageSerializer);
 
-            WitResponse? response = null;
+            WitResponse? response;
             if (request == null)
             {
                 Logger?.LogError($"Request is empty");
@@ -193,11 +189,21 @@ namespace OutWit.Communication.Server
 
             else if (!TokenValidator.IsRequestTokenValid(request.Token))
             {
-                Logger?.LogError($"Tokes is not valid");
-                response = WitResponse.UnauthorizedRequest("Tokes is not valid");
+                Logger?.LogError($"Token is not valid");
+                response = WitResponse.UnauthorizedRequest("Token is not valid");
             }
-            else 
-                response = await RequestProcessor.Process(request);
+            else
+            {
+                await m_processingLimit.WaitAsync().ConfigureAwait(false);
+                try
+                {
+                    response = await RequestProcessor.Process(request).ConfigureAwait(false);
+                }
+                finally
+                {
+                    m_processingLimit.Release();
+                }
+            }
 
             return message.With(x => x.Data = MessageSerializer.Serialize(response!));
         }
@@ -224,40 +230,24 @@ namespace OutWit.Communication.Server
 
         #endregion
 
-        #region Tools
+        #region Send
 
-        private async Task SendMessageAsync(Guid client, WitMessage message)
+        private async Task SendMessageAsync(ConnectionInfo connection, WitMessage message)
         {
-            if(!TryGetConnection(client, out ConnectionInfo? connection) || connection == null)
-                return;
-
-            var encryptedMessage = await Encrypt(connection, message);
-            var data = MessageSerializer.Serialize(encryptedMessage);
-            await connection.Transport.SendBytesAsync(data);
-        }
-
-        private async Task SendCallbackAsync(byte[] callback)
-        {
-            foreach (var connection in m_connections.Values)
+            await connection.SendLock.WaitAsync().ConfigureAwait(false);
+            try
             {
-                try
-                {
-                    var message = new WitMessage
-                    {
-                        Id = connection.Id,
-                        Type = WitMessageType.Callback,
-                        Data = callback
-                    };
-
-                    var encryptedMessage = await Encrypt(connection, message);
-                    var data = MessageSerializer.Serialize(encryptedMessage);
-                    await connection.Transport.SendBytesAsync(data);
-                }
-                catch (Exception e)
-                {
-                    Logger?.LogError(e, "Failed to send callback");
-                }
-        
+                var encryptedMessage = await Encrypt(connection, message);
+                var data = MessageSerializer.Serialize(encryptedMessage);
+                await connection.Transport.SendBytesAsync(data);
+            }
+            catch (Exception e)
+            {
+                Logger?.LogError(e, "Failed to send message to client {ClientId}", connection.Id);
+            }
+            finally
+            {
+                connection.SendLock.Release();
             }
         }
 
@@ -280,69 +270,185 @@ namespace OutWit.Communication.Server
             };
         }
 
+        private void CloseConnection(ConnectionInfo connection)
+        {
+            // Disposing the transport raises Disconnected, which removes and
+            // disposes the connection. Stop taking inbound frames first.
+            connection.CompleteInbound();
+            connection.Transport.Dispose();
+        }
+
+        #endregion
+
+        #region Connection Loop
+
+        private async Task ProcessConnectionAsync(ConnectionInfo connection)
+        {
+            try
+            {
+                while (await connection.Inbound.Reader.WaitToReadAsync().ConfigureAwait(false))
+                {
+                    while (connection.Inbound.Reader.TryRead(out byte[]? data))
+                    {
+                        if (!await ProcessFrameAsync(connection, data).ConfigureAwait(false))
+                            return;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Logger?.LogError(e, "Connection loop failed for client {ClientId}", connection.Id);
+                CloseConnection(connection);
+            }
+        }
+
+        /// <summary>
+        /// Handles one inbound frame in the connection's order. Returns
+        /// <c>false</c> when the connection must stop being processed (it was
+        /// closed for an out-of-order or rejected message).
+        /// </summary>
+        private async Task<bool> ProcessFrameAsync(ConnectionInfo connection, byte[] data)
+        {
+            WitMessage? message;
+            try
+            {
+                message = MessageSerializer.Deserialize<WitMessage>(data);
+            }
+            catch (Exception e)
+            {
+                Logger?.LogWarning(e, "Failed to deserialize a frame from client {ClientId}", connection.Id);
+                return true;
+            }
+
+            if (message == null || message.Type == WitMessageType.Unknown)
+                return true;
+
+            var decrypted = await Decrypt(connection, message);
+
+            switch (message.Type)
+            {
+                case WitMessageType.Initialization:
+                    if (connection.IsInitialized && connection.CanReinitialize)
+                        connection.Reinitialize();
+
+                    if (connection.IsInitialized)
+                    {
+                        Logger?.LogWarning("Out-of-order initialization from client {ClientId}; closing", connection.Id);
+                        CloseConnection(connection);
+                        return false;
+                    }
+
+                    await SendMessageAsync(connection, ProcessInitialization(connection, decrypted));
+                    return true;
+
+                case WitMessageType.Authorization:
+                    if (connection.State != ConnectionState.Initialized)
+                    {
+                        Logger?.LogWarning("Out-of-order authorization from client {ClientId}; closing", connection.Id);
+                        CloseConnection(connection);
+                        return false;
+                    }
+
+                    await SendMessageAsync(connection, ProcessAuthorization(connection, decrypted));
+
+                    if (!connection.IsAuthorized)
+                    {
+                        Logger?.LogWarning("Authorization failed for client {ClientId}; closing", connection.Id);
+                        CloseConnection(connection);
+                        return false;
+                    }
+
+                    return true;
+
+                case WitMessageType.Request:
+                    if (!connection.IsAuthorized)
+                    {
+                        Logger?.LogWarning("Request before authorization from client {ClientId}; closing", connection.Id);
+                        CloseConnection(connection);
+                        return false;
+                    }
+
+                    var tag = connection.Id.ToString().Substring(0, 4);
+                    var responseMessage = await ProcessMessage(decrypted);
+                    await SendMessageAsync(connection, responseMessage);
+                    return true;
+
+                default:
+                    // Clients do not send callbacks; ignore anything else.
+                    return true;
+            }
+        }
+
+        #endregion
+
+        #region Callbacks
+
+        private void OnCallback(WitRequest? request)
+        {
+            if (request == null || m_isDisposed)
+                return;
+
+            byte[] callback;
+            try
+            {
+                callback = MessageSerializer.Serialize(request);
+            }
+            catch (Exception e)
+            {
+                Logger?.LogError(e, "Failed to serialize callback");
+                return;
+            }
+
+            foreach (var connection in m_connections.Values)
+            {
+                // Only clients that finished the handshake receive events, and the
+                // send goes through the connection's send lock so it never
+                // interleaves with a response on the same transport.
+                if (!connection.IsAuthorized)
+                    continue;
+
+                _ = SendCallbackAsync(connection, callback);
+            }
+        }
+
+        private async Task SendCallbackAsync(ConnectionInfo connection, byte[] callback)
+        {
+            var message = new WitMessage
+            {
+                Id = connection.Id,
+                Type = WitMessageType.Callback,
+                Data = callback
+            };
+
+            var send = SendMessageAsync(connection, message);
+
+            if (Timeout != null && Timeout != TimeSpan.Zero)
+            {
+                try
+                {
+                    await send.WaitAsync(Timeout.Value).ConfigureAwait(false);
+                }
+                catch (TimeoutException)
+                {
+                    Logger?.LogWarning("Callback to client {ClientId} timed out", connection.Id);
+                }
+            }
+            else
+            {
+                await send.ConfigureAwait(false);
+            }
+        }
+
         #endregion
 
         #region Event Handlers
 
-        private async Task OnMessageReceived(Guid client, WitMessage? message)
+        private void OnDataReceived(Guid sender, byte[] data)
         {
-            if(message == null || message.Type == WitMessageType.Unknown)
+            if (!TryGetConnection(sender, out ConnectionInfo? connection) || connection == null)
                 return;
 
-            await WaitForCallback.WaitAsync();
-            try
-            {
-                if (!TryGetConnection(client, out ConnectionInfo? connection) || connection == null)
-                    return;
-
-                var decryptedMessage = await Decrypt(connection, message);
-
-                if (message.Type == WitMessageType.Initialization)
-                    await SendMessageAsync(client, ProcessInitialization(connection, decryptedMessage));
-
-                else if (message.Type == WitMessageType.Authorization)
-                    await SendMessageAsync(client, ProcessAuthorization(connection, decryptedMessage));
-
-                else if (message.Type == WitMessageType.Request)
-                {
-                    var responseMessage = await ProcessMessage(client, decryptedMessage);
-                    await SendMessageAsync(client, responseMessage);
-                }
-            }
-            finally
-            {
-                WaitForCallback.Release();
-            }
-        }
-
-        private async void OnDataReceived(Guid sender, byte[] data)
-        {
-            try
-            {
-                await OnMessageReceived(sender, MessageSerializer.Deserialize<WitMessage>(data));
-            }
-            catch (Exception e)
-            {
-                Logger?.LogError(e, "Failed to process message from client {ClientId}", sender);
-            }
-        }
-
-        private void OnCallback(WitRequest? request)
-        {
-            if (request == null)
-                return;
-
-            Task.Run(async () =>
-            {
-                await WaitForCallback.WaitAsync();
-
-                if(Timeout != null && Timeout != TimeSpan.Zero)
-                    SendCallbackAsync(MessageSerializer.Serialize(request)).Wait(Timeout.Value);
-                else
-                    SendCallbackAsync(MessageSerializer.Serialize(request)).Wait();
-
-                WaitForCallback.Release();
-            });
+            connection.Inbound.Writer.TryWrite(data);
         }
 
         private void OnDiscoveryMessageRequested(IDiscoveryServer sender)
@@ -352,15 +458,28 @@ namespace OutWit.Communication.Server
 
         private void OnNewClientConnected(ITransportServer transport)
         {
+            // Keep this fast and subscribe promptly: the transport is already
+            // reading, and any work done before the Callback subscription is a
+            // window in which a fast client's first frame is delivered to nobody.
+            // The encryptor is built lazily on the processing loop for that reason.
+            var connection = new ConnectionInfo(transport, EncryptorFactory);
+
+            if (!m_connections.TryAdd(transport.Id, connection))
+            {
+                connection.Dispose();
+                return;
+            }
+
             transport.Callback += OnDataReceived;
             transport.Disconnected += OnClientDisconnected;
 
-            m_connections.TryAdd(transport.Id, new ConnectionInfo(transport, EncryptorFactory.CreateEncryptor()));
+            _ = ProcessConnectionAsync(connection);
         }
 
         private void OnClientDisconnected(Guid sender)
         {
-            m_connections.TryRemove(sender, out ConnectionInfo? info);
+            if (m_connections.TryRemove(sender, out ConnectionInfo? info) && info != null)
+                info.Dispose();
         }
 
         #endregion
@@ -385,8 +504,9 @@ namespace OutWit.Communication.Server
             foreach (var info in m_connections.Values)
             {
                 info.Transport.Dispose();
+                info.Dispose();
             }
-            
+
             m_connections.Clear();
 
             TransportFactory.Dispose();
@@ -396,7 +516,7 @@ namespace OutWit.Communication.Server
                 DiscoveryServer.Dispose();
             }
 
-            WaitForCallback.Dispose();
+            m_processingLimit.Dispose();
         }
 
         #endregion
@@ -410,14 +530,12 @@ namespace OutWit.Communication.Server
         private IEncryptorServerFactory EncryptorFactory { get; }
 
         private IMessageSerializer ParametersSerializer { get; }
-        
+
         private IMessageSerializer MessageSerializer { get; }
 
         private IAccessTokenValidator TokenValidator { get; }
 
         private IDiscoveryServer? DiscoveryServer { get; }
-
-        private SemaphoreSlim WaitForCallback { get; }
 
         private ILogger? Logger { get; }
 

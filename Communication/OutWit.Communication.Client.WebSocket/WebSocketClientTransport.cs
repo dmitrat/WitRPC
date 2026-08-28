@@ -104,8 +104,16 @@ namespace OutWit.Communication.Client.WebSocket
 
         public async Task Disconnect()
         {
-            if (Client != null && Client.State == WebSocketState.Open)
-                await Client.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client disconnecting", CancellationToken.None);
+            try
+            {
+                if (Client != null && Client.State == WebSocketState.Open)
+                    await Client.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client disconnecting", CancellationToken.None);
+            }
+            catch (Exception)
+            {
+                // The peer may already be closing the socket — a clean close then
+                // races and throws. Disposing below is all that is left to do.
+            }
 
             Dispose();
         }
