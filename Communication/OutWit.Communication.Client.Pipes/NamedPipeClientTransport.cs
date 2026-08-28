@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
+using OutWit.Communication.Utils;
 
 namespace OutWit.Communication.Client.Pipes
 {
@@ -116,26 +117,11 @@ namespace OutWit.Communication.Client.Pipes
             {
                 while (IsListening && Stream.IsConnected)
                 {
-                    int bytesRead = await Stream.ReadAsync(lengthBuffer, 0, lengthBuffer.Length);
-                    if (bytesRead == 0)
+                    byte[]? dataBuffer = await StreamFrameReader.ReadFrameAsync(Stream, lengthBuffer, Options.MaxMessageSize);
+                    if (dataBuffer == null)
                         throw new WitExceptionTransport($"Server disconnected");
 
-                    int messageLength = BitConverter.ToInt32(lengthBuffer, 0);
-
-                    var dataBuffer = new byte[messageLength];
-                    int totalBytesRead = 0;
-
-                    while (totalBytesRead < messageLength)
-                    {
-                        int read = await Stream.ReadAsync(dataBuffer, totalBytesRead, messageLength - totalBytesRead);
-                        if (read == 0)
-                            throw new WitExceptionTransport($"Server disconnected");
-
-                        totalBytesRead += read;
-                    }
-
-                    if (totalBytesRead == messageLength)
-                        _ = Task.Run(() => Callback(Id, dataBuffer));
+                    _ = Task.Run(() => Callback(Id, dataBuffer));
                 }
             }
             catch (Exception)
@@ -148,8 +134,13 @@ namespace OutWit.Communication.Client.Pipes
 
         #region IDisposable
 
+        private int m_disposed;
+
         public void Dispose()
         {
+            if (Interlocked.Exchange(ref m_disposed, 1) != 0)
+                return;
+
             IsListening = false;
             Stream?.Dispose();
 

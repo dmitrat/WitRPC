@@ -1,6 +1,7 @@
 ﻿using System;
 using OutWit.Common.Abstract;
 using OutWit.Common.Values;
+using OutWit.Communication.Utils;
 
 namespace OutWit.Communication.Client.WebSocket
 {
@@ -30,6 +31,7 @@ namespace OutWit.Communication.Client.WebSocket
         {
             return new WebSocketClientTransportOptions
             {
+                MaxMessageSize = MaxMessageSize,
                 Url = Url,
                 BufferSize = BufferSize
             };
@@ -38,6 +40,9 @@ namespace OutWit.Communication.Client.WebSocket
         #endregion
 
         #region Properties
+
+        /// <summary>The largest frame accepted from the peer, in bytes. Larger frames close the connection instead of being allocated.</summary>
+        public long MaxMessageSize { get; set; } = StreamFrameReader.DEFAULT_MAX_MESSAGE_SIZE;
 
         public string? Url { get; set; }
 

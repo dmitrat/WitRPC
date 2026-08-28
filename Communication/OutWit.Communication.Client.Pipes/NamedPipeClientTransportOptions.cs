@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using OutWit.Common.Abstract;
 using OutWit.Common.Values;
+using OutWit.Communication.Utils;
 
 namespace OutWit.Communication.Client.Pipes
 {
@@ -31,6 +32,7 @@ namespace OutWit.Communication.Client.Pipes
         {
             return new NamedPipeClientTransportOptions
             {
+                MaxMessageSize = MaxMessageSize,
                 ServerName = ServerName,
                 PipeName = PipeName
             };
@@ -39,6 +41,9 @@ namespace OutWit.Communication.Client.Pipes
         #endregion
 
         #region Properties
+
+        /// <summary>The largest frame accepted from the peer, in bytes. Larger frames close the connection instead of being allocated.</summary>
+        public long MaxMessageSize { get; set; } = StreamFrameReader.DEFAULT_MAX_MESSAGE_SIZE;
 
         public string? ServerName { get; set; }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using OutWit.Common.Abstract;
 using OutWit.Common.Values;
 using OutWit.Communication.Interfaces;
+using OutWit.Communication.Utils;
 
 namespace OutWit.Communication.Server.Tcp
 {
@@ -38,6 +39,7 @@ namespace OutWit.Communication.Server.Tcp
         {
             return new TcpServerTransportOptions
             {
+                MaxMessageSize = MaxMessageSize,
                 Port = Port,
                 MaxNumberOfClients = MaxNumberOfClients
             };
@@ -59,6 +61,9 @@ namespace OutWit.Communication.Server.Tcp
         #endregion
 
         #region Properties
+
+        /// <summary>The largest frame accepted from the peer, in bytes. Larger frames close the connection instead of being allocated.</summary>
+        public long MaxMessageSize { get; set; } = StreamFrameReader.DEFAULT_MAX_MESSAGE_SIZE;
 
         public int MaxNumberOfClients { get; set; }
         

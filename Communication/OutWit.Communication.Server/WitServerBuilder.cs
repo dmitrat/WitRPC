@@ -44,7 +44,8 @@ namespace OutWit.Communication.Server
                 throw new WitException("Request processor cannot be empty");
 
             return new WitServer(options.TransportFactory, options.EncryptorFactory, options.TokenValidator, options.ParametersSerializer, options.MessageSerializer,
-                options.RequestProcessor, options.DiscoveryServer, options.Logger, options.Timeout, options.Name, options.Description, options.MaxConcurrentRequests);
+                options.RequestProcessor, options.DiscoveryServer, options.Logger, options.Timeout, options.Name, options.Description, options.MaxConcurrentRequests,
+                options.HandshakeTimeout);
         }
 
         #region Processor
@@ -307,6 +308,16 @@ namespace OutWit.Communication.Server
         public static WitServerBuilderOptions WithMaxConcurrentRequests(this WitServerBuilderOptions me, int maxConcurrentRequests)
         {
             me.MaxConcurrentRequests = maxConcurrentRequests;
+            return me;
+        }
+
+        /// <summary>
+        /// Sets how long a client has to finish the handshake before the server
+        /// closes it. See <see cref="WitServerBuilderOptions.HandshakeTimeout"/>.
+        /// </summary>
+        public static WitServerBuilderOptions WithHandshakeTimeout(this WitServerBuilderOptions me, TimeSpan handshakeTimeout)
+        {
+            me.HandshakeTimeout = handshakeTimeout;
             return me;
         }
 

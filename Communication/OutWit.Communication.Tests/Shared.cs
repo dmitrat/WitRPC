@@ -132,6 +132,23 @@ namespace OutWit.Communication.Tests
                 null, null, null, null);
         }
 
+        public static WitServer GetServerBasicWithHandshakeTimeout(TransportType transportType, SerializerType serializerType, int maxNumberOfClients, string testName, TimeSpan handshakeTimeout)
+        {
+            return new WitServer(GetServerTransport(transportType, maxNumberOfClients, testName),
+                new EncryptorServerFactory<EncryptorServerGeneral>(),
+                new AccessTokenValidatorStatic(AUTHORIZATION_TOKEN),
+                GetSerializer(serializerType),
+                new MessageSerializerMemoryPack(),
+                new MockRequestProcessor(),
+                new DiscoveryServer(new DiscoveryServerOptions
+                {
+                    IpAddress = IPAddress.Parse("239.255.255.250"),
+                    Port = 3702,
+                    Mode = DiscoveryServerMode.StartStop
+                }),
+                null, null, null, null, int.MaxValue, handshakeTimeout);
+        }
+
         public static WitClient GetClient(TransportType transportType, SerializerType serializerType, string testName)
         {
             return new WitClient(GetClientTransport(transportType, testName),

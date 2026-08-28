@@ -61,6 +61,15 @@ namespace OutWit.Communication.Server
         /// </summary>
         public int MaxConcurrentRequests { get; set; } = int.MaxValue;
 
+        /// <summary>
+        /// How long a connected client has to finish the handshake (initialize
+        /// and authorize) before the server closes it. Stops a client that
+        /// connects and then holds the socket open without ever authorizing from
+        /// tying up a connection slot. Default 30 seconds; set to <c>null</c> or
+        /// <see cref="TimeSpan.Zero"/> to disable.
+        /// </summary>
+        public TimeSpan? HandshakeTimeout { get; set; } = TimeSpan.FromSeconds(30);
+
         #endregion
     }
 }

@@ -31,7 +31,8 @@ namespace OutWit.Communication.Server
         public WitServer(ITransportServerFactory transportFactory, IEncryptorServerFactory encryptorFactory,
             IAccessTokenValidator tokenValidator, IMessageSerializer parametersSerializer, IMessageSerializer messageSerializer,
             IRequestProcessor requestProcessor, IDiscoveryServer? discoveryServer,
-            ILogger? logger, TimeSpan? timeout, string? name, string? description, int maxConcurrentRequests = int.MaxValue)
+            ILogger? logger, TimeSpan? timeout, string? name, string? description, int maxConcurrentRequests = int.MaxValue,
+            TimeSpan? handshakeTimeout = null)
         {
             TransportFactory = transportFactory;
             EncryptorFactory = encryptorFactory;
@@ -46,6 +47,8 @@ namespace OutWit.Communication.Server
             Description = description;
 
             RequestProcessor.ResetSerializer(ParametersSerializer);
+
+            HandshakeTimeout = handshakeTimeout;
 
             Id = Guid.NewGuid();
             m_processingLimit = new SemaphoreSlim(Math.Max(1, maxConcurrentRequests));
@@ -474,6 +477,33 @@ namespace OutWit.Communication.Server
             transport.Disconnected += OnClientDisconnected;
 
             _ = ProcessConnectionAsync(connection);
+            _ = EnforceHandshakeTimeoutAsync(connection);
+        }
+
+        private async Task EnforceHandshakeTimeoutAsync(ConnectionInfo connection)
+        {
+            if (HandshakeTimeout == null || HandshakeTimeout == TimeSpan.Zero)
+                return;
+
+            try
+            {
+                await Task.Delay(HandshakeTimeout.Value).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+
+            if (m_isDisposed || connection.IsAuthorized)
+                return;
+
+            // Still connected but never authorized within the window: close it so
+            // it cannot hold a slot open indefinitely.
+            if (m_connections.TryGetValue(connection.Id, out var current) && ReferenceEquals(current, connection))
+            {
+                Logger?.LogWarning("Client {ClientId} did not finish the handshake in time; closing", connection.Id);
+                CloseConnection(connection);
+            }
         }
 
         private void OnClientDisconnected(Guid sender)
@@ -540,6 +570,8 @@ namespace OutWit.Communication.Server
         private ILogger? Logger { get; }
 
         private TimeSpan? Timeout { get; }
+
+        private TimeSpan? HandshakeTimeout { get; }
 
         public string? Name { get; }
 

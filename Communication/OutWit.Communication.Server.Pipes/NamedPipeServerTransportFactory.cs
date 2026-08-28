@@ -93,9 +93,11 @@ namespace OutWit.Communication.Server.Pipes
 
                 if (await transport.InitializeConnectionAsync(cancellationToken))
                 {
+                    lock (m_syncRoot)
+                        m_clients.Add(transport.Id);
+
                     transport.Disconnected += OnTransportDisconnected;
                     NewClientConnected(transport);
-                    m_clients.Add(transport.Id);
                 }
                 else
                 {
@@ -111,11 +113,12 @@ namespace OutWit.Communication.Server.Pipes
 
         private void OnTransportDisconnected(Guid sender)
         {
-            if (m_clients.Contains(sender))
-            {
-                m_clients.Remove(sender);
+            bool removed;
+            lock (m_syncRoot)
+                removed = m_clients.Remove(sender);
+
+            if (removed)
                 WaitForConnectionSlot?.Release();
-            }
         }
 
         #endregion

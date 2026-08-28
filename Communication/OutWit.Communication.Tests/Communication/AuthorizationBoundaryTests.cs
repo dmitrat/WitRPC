@@ -136,6 +136,45 @@ namespace OutWit.Communication.Tests.Communication
             }
         }
 
+        [TestCase(TransportType.Pipes)]
+        [TestCase(TransportType.WebSocket)]
+        public async Task ConnectionThatNeverHandshakesIsClosedTest(TransportType transportType)
+        {
+            var name = $"AuthBoundary_ConnectionThatNeverHandshakesIsClosedTest_{transportType}_{m_runId}";
+
+            WitServer? server = null;
+            OutWit.Communication.Interfaces.ITransportClient? transport = null;
+            try
+            {
+                server = Shared.GetServerBasicWithHandshakeTimeout(transportType, SerializerType.Json, 5, name, TimeSpan.FromMilliseconds(500));
+                server.StartWaitingForConnection();
+
+                // A raw transport that connects but never initializes or authorizes.
+                transport = Shared.GetClientTransport(transportType, name);
+
+                var disconnected = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                transport.Disconnected += _ => disconnected.TrySetResult(true);
+
+                Assert.That(await transport.ConnectAsync(TimeSpan.FromSeconds(2), CancellationToken.None), Is.True);
+
+                // The server closes a connection that has not finished the
+                // handshake within its window.
+                Assert.That(await WaitAsync(disconnected.Task), Is.True,
+                    "the server did not close a connection that never handshaked");
+            }
+            finally
+            {
+                if (transport != null)
+                    await transport.Disconnect();
+
+                if (server != null)
+                {
+                    server.StopWaitingForConnection();
+                    server.Dispose();
+                }
+            }
+        }
+
         #endregion
 
         #region Tools

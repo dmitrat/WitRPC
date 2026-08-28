@@ -98,26 +98,11 @@ namespace OutWit.Communication.Server.Tcp
             {
                 while (IsListening && Client.Connected)
                 {
-                    int bytesRead = await Stream.ReadAsync(lengthBuffer, 0, lengthBuffer.Length);
-                    if (bytesRead == 0)
+                    byte[]? dataBuffer = await StreamFrameReader.ReadFrameAsync(Stream, lengthBuffer, Options.MaxMessageSize);
+                    if (dataBuffer == null)
                         throw new WitExceptionTransport($"Client disconnected");
 
-                    int messageLength = BitConverter.ToInt32(lengthBuffer, 0);
-
-                    var dataBuffer = new byte[messageLength];
-                    int totalBytesRead = 0;
-
-                    while (totalBytesRead < messageLength)
-                    {
-                        int read = await Stream.ReadAsync(dataBuffer, totalBytesRead, messageLength - totalBytesRead);
-                        if (read == 0)
-                            throw new WitExceptionTransport($"Client disconnected");
-
-                        totalBytesRead += read;
-                    }
-
-                    if (totalBytesRead == messageLength)
-                        InboundBuffer.Raise(dataBuffer);
+                    InboundBuffer.Raise(dataBuffer);
                 }
             }
             catch (Exception)
@@ -130,8 +115,13 @@ namespace OutWit.Communication.Server.Tcp
 
         #region IDisposable
 
+        private int m_disposed;
+
         public void Dispose()
         {
+            if (Interlocked.Exchange(ref m_disposed, 1) != 0)
+                return;
+
             IsListening = false;
 
             Stream?.Dispose();

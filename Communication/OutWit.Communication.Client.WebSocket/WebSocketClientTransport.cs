@@ -147,6 +147,9 @@ namespace OutWit.Communication.Client.WebSocket
 
                         memoryStream.Write(buffer, 0, result.Count);
 
+                        if (memoryStream.Length > Options.MaxMessageSize)
+                            throw new WitExceptionTransport($"Incoming message exceeds the {Options.MaxMessageSize} byte limit");
+
                     } while (!result.EndOfMessage);
 
                     byte[] data = memoryStream.ToArray();
@@ -168,8 +171,13 @@ namespace OutWit.Communication.Client.WebSocket
 
         #region IDisposable
 
+        private int m_disposed;
+
         public void Dispose()
         {
+            if (Interlocked.Exchange(ref m_disposed, 1) != 0)
+                return;
+
             IsListening = false;
 
             Client?.Dispose();
