@@ -199,10 +199,22 @@ protocol version check. These are features, not hardening.
   MMF suite is 84/84 across serializers, static/dynamic proxy, reconnect,
   one-to-one and the callback tests the audit reported as hanging. Commits on
   `v3`: `e2b60a3` (rework + harness), `fc78f64` (ack-after-registration fix).
-- [ ] Stage 2 — core concurrency and auth boundary
+- [x] Stage 2 — core concurrency and auth boundary. Per-connection inbound queue
+  + processing loop, per-connection send lock, server-wide concurrency cap
+  (`MaxConcurrentRequests`, unbounded default), explicit handshake state machine,
+  callbacks only to authorized connections, failed auth closes the connection,
+  async callback path with `try/finally`. Client gained a pending-request map
+  (register-before-send, multiplexing). Pulled forward from Stage 3: the
+  transport init-race fix (`TransportInboundBuffer` on Pipes/TCP/WebSocket
+  server transports) — without it, a fast client's first frame was dropped
+  before the server subscribed, which is what made multi-client flaky. Commit on
+  `v3`: `1f952b0`. Deferred to Stage 4 (needs the wire): cancellation/deadline
+  propagation. **Behaviour change for consumers:** service methods are now
+  invoked concurrently across connections and must be thread-safe; set
+  `MaxConcurrentRequests = 1` to restore global serialization.
 - [ ] Stage 3 — framing, limits, lifecycle (includes the per-connection outbound
   send lock for the stream transports; the conformance ConcurrentSends test is
-  MMF-only until then)
+  MMF-only until then. The transport init-race buffer already landed in Stage 2.)
 - [ ] Stage 4 — protocol 3
 - [ ] Stage 5 — REST
 - [ ] Stage 6 — InterProcess
