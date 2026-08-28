@@ -1,28 +1,30 @@
 using System;
-using System.IO;
 using System.IO.MemoryMappedFiles;
-using OutWit.Communication.Exceptions;
-using OutWit.Communication.Interfaces;
-using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
+using OutWit.Communication.Exceptions;
+using OutWit.Communication.Interfaces;
+using OutWit.Communication.MMF;
 
 namespace OutWit.Communication.Server.MMF
 {
+    /// <summary>
+    /// The server end of a one-to-one memory-mapped channel.
+    /// <para>
+    /// Creates every kernel object (the file, four events, two mutexes) and
+    /// owns the <c>server_alive</c> mutex for its lifetime. A client attaches by
+    /// opening the objects, taking <c>client_alive</c>, and sending a
+    /// <see cref="MmfFrameFlags.Hello"/>; from that point the reader thread
+    /// watches the client's mutex and a client that leaves — gracefully or by
+    /// dying — is seen immediately. A departed client always gets a fresh
+    /// transport from the factory, so nothing is ever reinitialised in place.
+    /// </para>
+    /// </summary>
     public class MemoryMappedFileServerTransport : ITransportServer
     {
         #region Constants
 
-        /// <summary>
-        /// The frame length a client writes instead of a real one when it is
-        /// leaving. See <c>MemoryMappedFileClientTransport.DISCONNECT_MARKER</c>.
-        /// <para>
-        /// Without it this transport cannot tell a departed client from a silent
-        /// one, so it holds its connection slot forever and the factory never
-        /// offers a channel to the next client.
-        /// </para>
-        /// </summary>
-        private const int DISCONNECT_MARKER = -1;
+        private const int JOIN_TIMEOUT_MS = 2000;
 
         #endregion
 
@@ -34,16 +36,42 @@ namespace OutWit.Communication.Server.MMF
 
         #endregion
 
+        #region Fields
+
+        private readonly object m_syncRoot = new();
+
+        private readonly TaskCompletionSource<bool> m_attached = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        private MemoryMappedFile? m_file;
+
+        private MmfChannel? m_channel;
+
+        private MmfPresence? m_serverAlive;
+
+        private Mutex? m_clientAlive;
+
+        private MmfPeerWatch? m_clientWatch;
+
+        private Thread? m_reader;
+
+        private bool m_disposed;
+
+        #endregion
+
         #region Constructors
 
+        /// <summary>
+        /// Creates the channel objects. Throws when the name is in use — a stale
+        /// server, or the previous client of this name still closing its handles.
+        /// </summary>
+        /// <param name="options">Name and size of the channel.</param>
+        /// <exception cref="WitExceptionTransport">Invalid options or the channel name is busy.</exception>
         public MemoryMappedFileServerTransport(MemoryMappedFileServerTransportOptions options)
         {
             Id = Guid.NewGuid();
-
             Options = options;
 
             InitChannel();
-
         }
 
         #endregion
@@ -53,128 +81,272 @@ namespace OutWit.Communication.Server.MMF
         private void InitChannel()
         {
             if (string.IsNullOrEmpty(Options.Name))
-                throw new WitExceptionTransport($"Failed to create memory mapped file: name is empty");
+                throw new WitExceptionTransport("Failed to create memory mapped file: name is empty");
 
-            if (Options.Size <= 0)
-                throw new WitExceptionTransport($"Failed to create memory mapped file: size is zero");
+            if (Options.Size < MmfChannelLayout.MIN_FILE_SIZE)
+                throw new WitExceptionTransport($"Failed to create memory mapped file: size must be at least {MmfChannelLayout.MIN_FILE_SIZE} bytes");
 
-            File = MemoryMappedFile.CreateNew(Options.Name, Options.Size, MemoryMappedFileAccess.ReadWrite);
-            Stream = File.CreateViewStream(0, 0);
-            Reader = new BinaryReader(Stream);
-            Writer = new BinaryWriter(Stream);
+            string name = Options.Name;
+            long size = Options.Size;
 
-            WaitForDataFromClient = new EventWaitHandle(false, EventResetMode.AutoReset, $"Global\\{Options.Name}_client");
-            WaitForDataFromServer = new EventWaitHandle(false, EventResetMode.AutoReset, $"Global\\{Options.Name}_server");
+            MemoryMappedViewAccessor? accessor = null;
+            EventWaitHandle? clientToServerReady = null;
+            EventWaitHandle? clientToServerFree = null;
+            EventWaitHandle? serverToClientReady = null;
+            EventWaitHandle? serverToClientFree = null;
 
-            IsListening = true;
+            try
+            {
+                m_file = MemoryMappedFile.CreateNew(MmfChannelLayout.FileName(name), size, MemoryMappedFileAccess.ReadWrite);
+
+                accessor = m_file.CreateViewAccessor(0, 0, MemoryMappedFileAccess.ReadWrite);
+                accessor.Write(MmfChannelLayout.FILE_OFFSET_MAGIC, MmfChannelLayout.MAGIC);
+                accessor.Write(MmfChannelLayout.FILE_OFFSET_VERSION, MmfChannelLayout.LAYOUT_VERSION);
+                accessor.Write(MmfChannelLayout.FILE_OFFSET_SIZE, size);
+                accessor.Write(MmfChannelLayout.FILE_OFFSET_CAPACITY, MmfChannelLayout.Capacity(size));
+
+                clientToServerReady = CreateEvent(MmfChannelLayout.ClientToServerReadyName(name), false);
+                clientToServerFree = CreateEvent(MmfChannelLayout.ClientToServerFreeName(name), true);
+                serverToClientReady = CreateEvent(MmfChannelLayout.ServerToClientReadyName(name), false);
+                serverToClientFree = CreateEvent(MmfChannelLayout.ServerToClientFreeName(name), true);
+
+                m_clientAlive = CreateMutex(MmfChannelLayout.ClientAliveName(name));
+
+                m_channel = MmfChannel.ForServer(accessor, size,
+                    clientToServerReady, clientToServerFree, serverToClientReady, serverToClientFree);
+
+                // Presence created before the reader starts, so that once a client
+                // can open it the whole channel is already listening.
+                m_serverAlive = MmfPresence.Create(MmfChannelLayout.ServerAliveName(name));
+
+                m_reader = new Thread(ReaderLoop)
+                {
+                    IsBackground = true,
+                    Name = "WitRPC MMF server reader"
+                };
+
+                m_reader.Start();
+            }
+            catch
+            {
+                if (m_channel == null)
+                {
+                    clientToServerReady?.Dispose();
+                    clientToServerFree?.Dispose();
+                    serverToClientReady?.Dispose();
+                    serverToClientFree?.Dispose();
+                    accessor?.Dispose();
+                }
+
+                Cleanup();
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Creates a fresh event, refusing to adopt a leftover one. A leftover
+        /// carries the previous session's signal state; adopting a still-signaled
+        /// ready event would wake the new reader onto a zeroed region and it would
+        /// tear itself down. Refusing makes the factory retry until every old
+        /// handle is closed, so each channel instance gets clean events.
+        /// </summary>
+        private static EventWaitHandle CreateEvent(string name, bool initialState)
+        {
+            var handle = new EventWaitHandle(initialState, EventResetMode.AutoReset, name, out bool createdNew);
+            if (createdNew)
+                return handle;
+
+            handle.Dispose();
+            throw new WitExceptionTransport($"Memory mapped file channel is busy: {name} already exists");
+        }
+
+        /// <summary>
+        /// Creates a fresh seat mutex, refusing to adopt a leftover one. As with
+        /// the events, a lingering handle means the previous session has not fully
+        /// closed; the factory retries until it has.
+        /// </summary>
+        private static Mutex CreateMutex(string name)
+        {
+            var mutex = new Mutex(false, name, out bool createdNew);
+            if (createdNew)
+                return mutex;
+
+            mutex.Dispose();
+            throw new WitExceptionTransport($"Memory mapped file channel is busy: {name} already exists");
         }
 
         #endregion
 
         #region ITransport
 
+        /// <summary>
+        /// Waits for a client to attach. The reader is already running from
+        /// construction, so the caller may publish the connection slot before
+        /// awaiting this. Returns <c>false</c> when <paramref name="token"/> fires
+        /// first or the transport is disposed.
+        /// </summary>
+        /// <param name="token">Cancels the wait.</param>
+        /// <returns><c>true</c> once a client has said hello.</returns>
         public async Task<bool> InitializeConnectionAsync(CancellationToken token)
         {
             try
             {
-                Task.Run(ListenForIncomingData);
-
-                return true;
+                return await m_attached.Task.WaitAsync(token).ConfigureAwait(false);
             }
-            catch (Exception e)
+            catch (OperationCanceledException)
             {
                 return false;
             }
         }
 
-
         public async Task SendBytesAsync(byte[] data)
         {
-            if (Writer == null || Reader == null)
+            MmfChannel? channel;
+
+            lock (m_syncRoot)
+            {
+                channel = m_disposed ? null : m_channel;
+            }
+
+            if (channel == null)
                 return;
 
             try
             {
-                Stream?.Seek(0, SeekOrigin.Begin);
-
-                Writer.Write(data.Length);
-                Writer.Write(data);
-                Writer.Flush();
-
-                WaitForDataFromServer?.Set();
-
+                await channel.SendAsync(data, MmfFrameFlags.Data).ConfigureAwait(false);
             }
-            catch (IOException e)
+            catch (Exception)
             {
                 Dispose();
             }
-
         }
 
         #endregion
 
         #region Functions
 
-        private async Task ListenForIncomingData()
+        private void ReaderLoop()
         {
-            if (Stream == null || Writer == null || Reader == null)
+            MmfChannel? channel = m_channel;
+            Mutex? clientAlive = m_clientAlive;
+
+            if (channel == null || clientAlive == null)
+            {
+                m_attached.TrySetResult(false);
                 return;
+            }
+
+            var attached = false;
 
             try
             {
-                while (IsListening && Stream != null)
+                while (true)
                 {
-                    WaitForDataFromClient?.WaitOne();
-                    if (!IsListening)
-                        return;
+                    MmfReceiveResult result = channel.Receive(CancellationToken.None);
 
-                    Stream?.Seek(0, SeekOrigin.Begin);
-                    int dataLength = Reader.ReadInt32();
-
-                    // The client has gone. Tearing down here is what releases the
-                    // factory's connection slot, which is what lets it publish a
-                    // fresh channel for the next client.
-                    if (dataLength == DISCONNECT_MARKER)
+                    switch (result.Kind)
                     {
-                        Dispose();
-                        return;
-                    }
+                        case MmfReceiveKind.Message:
+                            if (!attached)
+                            {
+                                if (result.Flags != MmfFrameFlags.Hello)
+                                {
+                                    Dispose();
+                                    return;
+                                }
 
-                    if (dataLength > 0)
-                    {
-                        byte[] data = Reader.ReadBytes(dataLength);
+                                // A client is present and holds the seat. Confirm
+                                // the hello so the client knows it reached a live
+                                // server, start watching its liveness, then unblock
+                                // the accept.
+                                channel.SendAsync(Array.Empty<byte>(), MmfFrameFlags.HelloAck).GetAwaiter().GetResult();
+                                attached = true;
+                                m_clientWatch = new MmfPeerWatch(clientAlive, Dispose);
+                                m_attached.TrySetResult(true);
+                                continue;
+                            }
 
-                        _ = Task.Run(() => Callback(Id, data));
+                            if (result.Flags == MmfFrameFlags.Hello)
+                            {
+                                // A fresh hello while already attached means the
+                                // seat changed hands: the previous client is gone
+                                // and a new one wants a channel. This instance is
+                                // stale — tear down so the factory hands the new
+                                // client a fresh transport (its own id, encryptor
+                                // and authorization), never the departed one's.
+                                Dispose();
+                                return;
+                            }
+
+                            byte[] data = result.Data ?? Array.Empty<byte>();
+                            _ = Task.Run(() => Callback(Id, data));
+                            continue;
+
+                        case MmfReceiveKind.Stopped:
+                        case MmfReceiveKind.Cancelled:
+                            return;
+
+                        default:
+                            Dispose();
+                            return;
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 Dispose();
             }
+            finally
+            {
+                m_attached.TrySetResult(false);
+            }
+        }
+
+        private void Cleanup()
+        {
+            m_channel?.Dispose();
+            m_channel = null;
+
+            m_clientAlive?.Dispose();
+            m_clientAlive = null;
+
+            m_file?.Dispose();
+            m_file = null;
         }
 
         #endregion
 
         #region IDisposable
 
+        /// <summary>
+        /// Tears the channel down, releases the server's presence so the client
+        /// sees the disconnect, and raises <see cref="Disconnected"/> exactly once.
+        /// </summary>
         public void Dispose()
         {
-            IsListening = false;
+            Thread? reader;
 
-            WaitForDataFromClient?.Set();
-            WaitForDataFromServer?.Set();
+            lock (m_syncRoot)
+            {
+                if (m_disposed)
+                    return;
 
-            Reader?.Dispose();
-            Writer?.Dispose();
-            Stream?.Dispose();
-            File?.Dispose();
+                m_disposed = true;
+                reader = m_reader;
+            }
 
-            WaitForDataFromClient?.Dispose();
-            WaitForDataFromClient = null;
+            m_channel?.Stop();
 
-            WaitForDataFromServer?.Dispose();
-            WaitForDataFromServer = null;
+            if (reader != null && Thread.CurrentThread != reader)
+                reader.Join(JOIN_TIMEOUT_MS);
+
+            m_clientWatch?.Dispose();
+            m_clientWatch = null;
+
+            m_serverAlive?.Dispose();
+            m_serverAlive = null;
+
+            Cleanup();
 
             Disconnected(Id);
         }
@@ -184,24 +356,10 @@ namespace OutWit.Communication.Server.MMF
         #region Properties
 
         public Guid Id { get; }
-        
-        public bool CanReinitialize { get; } = true;
+
+        public bool CanReinitialize { get; } = false;
 
         private MemoryMappedFileServerTransportOptions Options { get; }
-
-        private MemoryMappedFile? File { get; set; }
-
-        private MemoryMappedViewStream? Stream { get; set; }
-
-        private BinaryReader? Reader { get; set; }
-
-        private BinaryWriter? Writer { get; set; }
-
-        private EventWaitHandle? WaitForDataFromClient { get; set; }
-
-        private EventWaitHandle? WaitForDataFromServer { get; set; }
-
-        private bool IsListening { get; set; }
 
         #endregion
     }

@@ -1,36 +1,33 @@
-﻿using System;
+using System;
 using System.IO;
 using System.IO.MemoryMappedFiles;
-using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
+using OutWit.Communication.MMF;
 
 namespace OutWit.Communication.Client.MMF
 {
+    /// <summary>
+    /// The client end of a one-to-one memory-mapped channel.
+    /// <para>
+    /// Connecting means opening the objects the server created, taking the
+    /// <c>client_alive</c> mutex — which is the one seat on the channel — and
+    /// sending a <see cref="MmfFrameFlags.Hello"/>. The reader thread watches the
+    /// server's presence mutex, so a server that stops or dies is seen at once.
+    /// Disconnecting releases the seat, which is what the server watches.
+    /// </para>
+    /// </summary>
     public class MemoryMappedFileClientTransport : ITransportClient
     {
         #region Constants
 
-        /// <summary>
-        /// Written where a frame length would go, to tell the server this client
-        /// is leaving.
-        /// <para>
-        /// A memory-mapped file has no connection to tear down. Where a pipe or a
-        /// socket lets the operating system fail the server's pending read the
-        /// moment a client vanishes, here nothing happens at all: the server goes
-        /// on waiting for data from a client that is already gone, never releases
-        /// its connection slot, and therefore never publishes a channel for the
-        /// next client. The next <see cref="ConnectAsync(TimeSpan, CancellationToken)"/>
-        /// then waits for a signal that can no longer come.
-        /// </para>
-        /// <para>
-        /// The counterpart is <c>MemoryMappedFileServerTransport.DISCONNECT_MARKER</c>.
-        /// A negative value is safe because a real frame length is always positive.
-        /// </para>
-        /// </summary>
-        private const int DISCONNECT_MARKER = -1;
+        private const int CONNECT_RETRY_DELAY_MS = 100;
+
+        private const int HELLO_ACK_TIMEOUT_MS = 1000;
+
+        private const int JOIN_TIMEOUT_MS = 2000;
 
         #endregion
 
@@ -42,214 +39,382 @@ namespace OutWit.Communication.Client.MMF
 
         #endregion
 
+        #region Fields
+
+        private readonly object m_syncRoot = new();
+
+        private MemoryMappedFile? m_file;
+
+        private MmfChannel? m_channel;
+
+        private MmfPresence? m_clientAlive;
+
+        private Mutex? m_serverAlive;
+
+        private MmfPeerWatch? m_serverWatch;
+
+        private TaskCompletionSource<bool>? m_helloAck;
+
+        private Thread? m_reader;
+
+        private bool m_connected;
+
+        #endregion
+
         #region Constructors
 
         public MemoryMappedFileClientTransport(MemoryMappedFileClientTransportOptions options)
         {
+            Id = Guid.NewGuid();
             Options = options;
             Address = options.Name;
         }
 
         #endregion
 
-        #region Initialization
-
-        private void InitChannel()
-        {
-            if (string.IsNullOrEmpty(Options.Name))
-                throw new WitExceptionTransport($"Failed to open memory mapped file: name is empty");
-
-            File = MemoryMappedFile.OpenExisting(Options.Name, MemoryMappedFileRights.ReadWrite);
-            Stream = File.CreateViewStream(0, 0);
-            Reader = new BinaryReader(Stream);
-            Writer = new BinaryWriter(Stream);
-
-            WaitForDataFromClient = EventWaitHandle.OpenExisting($"Global\\{Options.Name}_client");
-            WaitForDataFromServer = EventWaitHandle.OpenExisting($"Global\\{Options.Name}_server");
-
-            IsListening = true;
-        }
-
-        #endregion
-
         #region ITransport
 
+        /// <summary>
+        /// Polls for the server's channel until it can be attached to, the
+        /// timeout elapses, or the token fires. <see cref="TimeSpan.Zero"/> waits
+        /// indefinitely. A channel that belongs to a different layout version is
+        /// refused immediately rather than retried.
+        /// </summary>
+        /// <param name="timeout">Overall connect timeout; zero for none.</param>
+        /// <param name="cancellationToken">Cancels the attempt.</param>
+        /// <returns><c>true</c> once attached.</returns>
         public async Task<bool> ConnectAsync(TimeSpan timeout, CancellationToken cancellationToken)
         {
-            try
+            if (string.IsNullOrEmpty(Options.Name))
+                return false;
+
+            Close();
+
+            DateTime? deadline = timeout == TimeSpan.Zero ? null : DateTime.UtcNow + timeout;
+
+            while (!cancellationToken.IsCancellationRequested)
             {
-                CleanupChannel();
+                MmfConnectOutcome outcome = TryOpen();
 
-                WaitForClient = Semaphore.OpenExisting($"Global\\{Options.Name}_connection");
-
-                if (WaitForClient == null)
+                if (outcome == MmfConnectOutcome.Fatal)
                     return false;
 
-                var startTime = DateTime.UtcNow;
-                while (!cancellationToken.IsCancellationRequested)
+                if (outcome == MmfConnectOutcome.Opened)
                 {
-                    if (timeout != TimeSpan.Zero)
-                    {
-                        var remaining = timeout - (DateTime.UtcNow - startTime);
-                        if (remaining <= TimeSpan.Zero)
-                            return false;
-
-                        if (!WaitForClient.WaitOne(remaining))
-                            return false;
-                    }
-                    else if (!WaitForClient.WaitOne(TimeSpan.FromMilliseconds(250)))
-                    {
-                        continue;
-                    }
-
-                    try
-                    {
-                        InitChannel();
-
-                        Task.Run(ListenForIncomingData);
-
+                    // A successful open may have landed on a server instance that
+                    // is on its way out during a restart handoff. Only a hello
+                    // acknowledged by a live server counts as connected; otherwise
+                    // drop this attempt and keep polling for the fresh instance.
+                    if (await SayHelloAndAwaitAckAsync().ConfigureAwait(false))
                         return true;
-                    }
-                    catch
-                    {
-                        CleanupChannel();
-                    }
+
+                    Close();
                 }
 
-                return false;
+                if (deadline != null && DateTime.UtcNow >= deadline.Value)
+                    return false;
+
+                try
+                {
+                    await Task.Delay(CONNECT_RETRY_DELAY_MS, cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    return false;
+                }
             }
-            catch (Exception e)
-            {
-                CleanupChannel();
-                return false;
-            }
+
+            return false;
         }
 
         public async Task<bool> ConnectAsync(CancellationToken cancellationToken)
         {
-            return await ConnectAsync(TimeSpan.Zero, cancellationToken);
+            return await ConnectAsync(TimeSpan.Zero, cancellationToken).ConfigureAwait(false);
         }
-
-        private void CleanupChannel()
-        {
-            IsListening = false;
-
-            Reader?.Dispose();
-            Reader = null;
-
-            Writer?.Dispose();
-            Writer = null;
-
-            Stream?.Dispose();
-            Stream = null;
-
-            File?.Dispose();
-            File = null;
-
-            WaitForDataFromClient?.Dispose();
-            WaitForDataFromClient = null;
-
-            WaitForDataFromServer?.Dispose();
-            WaitForDataFromServer = null;
-        }
-
 
         public async Task<bool> ReconnectAsync(TimeSpan timeout, CancellationToken cancellationToken)
         {
-            Dispose();
-            InitChannel();
+            Close();
 
-            return await ConnectAsync(timeout, cancellationToken);
+            return await ConnectAsync(timeout, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<bool> ReconnectAsync(CancellationToken cancellationToken)
         {
-            return await ReconnectAsync(TimeSpan.Zero, cancellationToken);
+            return await ReconnectAsync(TimeSpan.Zero, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task SendBytesAsync(byte[] data)
         {
-            if (Writer == null || Reader == null)
+            MmfChannel? channel;
+
+            lock (m_syncRoot)
+            {
+                channel = m_connected ? m_channel : null;
+            }
+
+
+            if (channel == null)
                 return;
 
             try
             {
-                Stream?.Seek(0, SeekOrigin.Begin);
-
-                Writer.Write(data.Length);
-                Writer.Write(data);
-                Writer?.Flush();
-
-                WaitForDataFromClient?.Set();
+                await channel.SendAsync(data, MmfFrameFlags.Data).ConfigureAwait(false);
             }
-            catch (IOException ex)
+            catch (Exception)
             {
-                Dispose();
+                Close();
             }
         }
 
         public async Task Disconnect()
         {
-            SendDisconnectMarker();
+            Close();
 
-            Dispose();
+            await Task.CompletedTask;
         }
-
-        /// <summary>
-        /// Announces departure to the server before the channel is torn down.
-        /// Best effort: a client that cannot say goodbye still has to leave.
-        /// </summary>
-        private void SendDisconnectMarker()
-        {
-            try
-            {
-                if (Writer == null || Stream == null)
-                    return;
-
-                Stream.Seek(0, SeekOrigin.Begin);
-
-                Writer.Write(DISCONNECT_MARKER);
-                Writer.Flush();
-
-                WaitForDataFromClient?.Set();
-            }
-            catch (Exception)
-            {
-            }
-        }
-
 
         #endregion
 
         #region Functions
 
-        private async Task ListenForIncomingData()
+        private MmfConnectOutcome TryOpen()
         {
-            if (Stream == null || Writer == null || Reader == null)
+            string name = Options.Name!;
+
+            MemoryMappedFile? file = null;
+            MemoryMappedViewAccessor? accessor = null;
+            Mutex? serverAlive = null;
+            EventWaitHandle? clientToServerReady = null;
+            EventWaitHandle? clientToServerFree = null;
+            EventWaitHandle? serverToClientReady = null;
+            EventWaitHandle? serverToClientFree = null;
+            MmfPresence? clientAlive = null;
+            MmfChannel? channel = null;
+
+            try
+            {
+                // The server creates its presence last, so once this opens the rest exists.
+                serverAlive = Mutex.OpenExisting(MmfChannelLayout.ServerAliveName(name));
+
+                // Claim the connection slot. Exactly one permit is posted by a
+                // fresh, ready channel, so claiming it is what guarantees we attach
+                // to that instance and never to a departing one still holding the
+                // same named objects during a restart. No permit means no channel
+                // is currently offering itself — retry.
+                using (var slot = Semaphore.OpenExisting(MmfChannelLayout.SlotName(name)))
+                {
+                    if (!slot.WaitOne(0))
+                    {
+                        serverAlive.Dispose();
+                        return MmfConnectOutcome.Retry;
+                    }
+                }
+
+                // The slot makes the seat uncontended; take it for liveness.
+                clientAlive = MmfPresence.Acquire(MmfChannelLayout.ClientAliveName(name), TimeSpan.Zero);
+
+                file = MemoryMappedFile.OpenExisting(MmfChannelLayout.FileName(name), MemoryMappedFileRights.ReadWrite);
+                accessor = file.CreateViewAccessor(0, 0, MemoryMappedFileAccess.ReadWrite);
+
+                int magic = accessor.ReadInt32(MmfChannelLayout.FILE_OFFSET_MAGIC);
+                int version = accessor.ReadInt32(MmfChannelLayout.FILE_OFFSET_VERSION);
+                long size = accessor.ReadInt64(MmfChannelLayout.FILE_OFFSET_SIZE);
+
+                if (magic != MmfChannelLayout.MAGIC || version != MmfChannelLayout.LAYOUT_VERSION || size < MmfChannelLayout.MIN_FILE_SIZE)
+                {
+                    accessor.Dispose();
+                    file.Dispose();
+                    clientAlive.Dispose();
+                    serverAlive.Dispose();
+
+                    return MmfConnectOutcome.Fatal;
+                }
+
+                clientToServerReady = EventWaitHandle.OpenExisting(MmfChannelLayout.ClientToServerReadyName(name));
+                clientToServerFree = EventWaitHandle.OpenExisting(MmfChannelLayout.ClientToServerFreeName(name));
+                serverToClientReady = EventWaitHandle.OpenExisting(MmfChannelLayout.ServerToClientReadyName(name));
+                serverToClientFree = EventWaitHandle.OpenExisting(MmfChannelLayout.ServerToClientFreeName(name));
+
+                channel = MmfChannel.ForClient(accessor, size,
+                    clientToServerReady, clientToServerFree, serverToClientReady, serverToClientFree);
+
+                lock (m_syncRoot)
+                {
+                    m_file = file;
+                    m_channel = channel;
+                    m_clientAlive = clientAlive;
+                    m_serverAlive = serverAlive;
+                    m_helloAck = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                    m_connected = true;
+
+                    m_reader = new Thread(ReaderLoop)
+                    {
+                        IsBackground = true,
+                        Name = "WitRPC MMF client reader"
+                    };
+
+                    m_reader.Start();
+
+                    // Liveness is watched off the frame path, so a server that
+                    // stops or dies is seen without the reader waiting on a mutex.
+                    m_serverWatch = new MmfPeerWatch(serverAlive, Close);
+                }
+
+                return MmfConnectOutcome.Opened;
+            }
+            catch (Exception)
+            {
+                if (channel != null)
+                {
+                    channel.Dispose();
+                }
+                else
+                {
+                    clientToServerReady?.Dispose();
+                    clientToServerFree?.Dispose();
+                    serverToClientReady?.Dispose();
+                    serverToClientFree?.Dispose();
+                    accessor?.Dispose();
+                }
+
+                clientAlive?.Dispose();
+                serverAlive?.Dispose();
+                file?.Dispose();
+
+                return MmfConnectOutcome.Retry;
+            }
+        }
+
+        private async Task<bool> SayHelloAndAwaitAckAsync()
+        {
+            MmfChannel? channel;
+            TaskCompletionSource<bool>? helloAck;
+
+            lock (m_syncRoot)
+            {
+                channel = m_channel;
+                helloAck = m_helloAck;
+            }
+
+            if (channel == null || helloAck == null)
+                return false;
+
+            try
+            {
+                await channel.SendAsync(Array.Empty<byte>(), MmfFrameFlags.Hello).ConfigureAwait(false);
+
+                return await helloAck.Task.WaitAsync(TimeSpan.FromMilliseconds(HELLO_ACK_TIMEOUT_MS)).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        private void ReaderLoop()
+        {
+            MmfChannel? channel;
+
+            lock (m_syncRoot)
+            {
+                channel = m_channel;
+            }
+
+            if (channel == null)
                 return;
 
             try
             {
-                while (IsListening && Stream!.CanRead)
+                while (true)
                 {
-                    WaitForDataFromServer?.WaitOne();
-                    if(!IsListening)
-                        return;
+                    MmfReceiveResult result = channel.Receive(CancellationToken.None);
 
-                    Stream?.Seek(0, SeekOrigin.Begin);
-                    int dataLength = Reader.ReadInt32();
-                    if (dataLength > 0)
+                    switch (result.Kind)
                     {
-                        byte[] data = Reader.ReadBytes(dataLength);
+                        case MmfReceiveKind.Message:
+                            if (result.Flags == MmfFrameFlags.HelloAck)
+                            {
+                                m_helloAck?.TrySetResult(true);
+                                continue;
+                            }
 
-                        _ = Task.Run(() => Callback(Id, data));
+                            if (result.Flags != MmfFrameFlags.Data)
+                                continue;
+
+                            byte[] data = result.Data ?? Array.Empty<byte>();
+                            _ = Task.Run(() => Callback(Id, data));
+                            continue;
+
+                        case MmfReceiveKind.Stopped:
+                        case MmfReceiveKind.Cancelled:
+                            return;
+
+                        default:
+                            Close();
+                            return;
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Dispose();
+                Close();
             }
+        }
+
+        /// <summary>
+        /// Leaves the channel: releases the seat (which the server watches),
+        /// closes every handle, and raises <see cref="Disconnected"/> once per
+        /// connection. A later <see cref="ConnectAsync(TimeSpan, CancellationToken)"/> starts afresh.
+        /// </summary>
+        private void Close()
+        {
+            MemoryMappedFile? file;
+            MmfChannel? channel;
+            MmfPresence? clientAlive;
+            Mutex? serverAlive;
+            MmfPeerWatch? serverWatch;
+            TaskCompletionSource<bool>? helloAck;
+            Thread? reader;
+            bool wasConnected;
+
+            lock (m_syncRoot)
+            {
+                wasConnected = m_connected;
+
+                file = m_file;
+                channel = m_channel;
+                clientAlive = m_clientAlive;
+                serverAlive = m_serverAlive;
+                serverWatch = m_serverWatch;
+                helloAck = m_helloAck;
+                reader = m_reader;
+
+                m_file = null;
+                m_channel = null;
+                m_clientAlive = null;
+                m_serverAlive = null;
+                m_serverWatch = null;
+                m_helloAck = null;
+                m_reader = null;
+                m_connected = false;
+            }
+
+            helloAck?.TrySetResult(false);
+
+            channel?.Stop();
+
+            if (reader != null && Thread.CurrentThread != reader)
+                reader.Join(JOIN_TIMEOUT_MS);
+
+            serverWatch?.Dispose();
+            clientAlive?.Dispose();
+            channel?.Dispose();
+            serverAlive?.Dispose();
+            file?.Dispose();
+
+            if (wasConnected)
+                Disconnected(Id);
         }
 
         #endregion
@@ -258,18 +423,7 @@ namespace OutWit.Communication.Client.MMF
 
         public void Dispose()
         {
-            IsListening = false;
-
-            WaitForDataFromServer?.Set();
-
-            CleanupChannel();
-
-            WaitForClient?.Dispose();
-            WaitForClient = null;
-
-            Disconnected(Id);
-
-
+            Close();
         }
 
         #endregion
@@ -280,23 +434,20 @@ namespace OutWit.Communication.Client.MMF
 
         public string? Address { get; }
 
+        private string Tag => Id.ToString().Substring(0, 4);
+
         private MemoryMappedFileClientTransportOptions Options { get; }
 
-        private MemoryMappedFile? File { get; set; }
+        #endregion
 
-        private MemoryMappedViewStream? Stream { get; set; }
+        #region Nested Types
 
-        private BinaryReader? Reader { get; set; }
-
-        private BinaryWriter? Writer { get; set; }
-
-        private EventWaitHandle? WaitForDataFromClient { get; set; }
-
-        private EventWaitHandle? WaitForDataFromServer{ get; set; }
-
-        private Semaphore? WaitForClient { get; set; }
-
-        private bool IsListening { get; set; }
+        private enum MmfConnectOutcome
+        {
+            Opened,
+            Retry,
+            Fatal
+        }
 
         #endregion
     }

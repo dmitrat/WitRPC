@@ -77,3 +77,6 @@ Migrations/
 # Test run artefacts, including blame-hang dumps which run to hundreds of MB
 TestResults/
 *.dmp
+
+# Local working-document directories
+**/@*/

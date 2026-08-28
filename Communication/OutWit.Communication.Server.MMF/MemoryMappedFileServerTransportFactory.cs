@@ -1,31 +1,88 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
+using OutWit.Communication.MMF;
 
 namespace OutWit.Communication.Server.MMF
 {
-    public class MemoryMappedFileServerTransportFactory : ITransportServerFactory, IDisposable
+    /// <summary>
+    /// Publishes one memory-mapped channel at a time under a fixed name.
+    /// <para>
+    /// The transport is one-to-one by design: a channel has exactly one client,
+    /// and the next client is served by a fresh channel created after the
+    /// previous one is gone. <see cref="NewClientConnected"/> is raised when a
+    /// client has actually attached, not when a channel merely exists.
+    /// </para>
+    /// </summary>
+    public class MemoryMappedFileServerTransportFactory : ITransportServerFactory
     {
+        #region Constants
+
+        /// <summary>
+        /// The previous client may still be closing its handles when the next
+        /// channel is created under the same name; retry quietly for this long.
+        /// </summary>
+        private const int CREATE_RETRY_WINDOW_MS = 5000;
+
+        private const int CREATE_RETRY_DELAY_MS = 50;
+
+        private const int CREATE_RETRY_IDLE_DELAY_MS = 500;
+
+        /// <summary>
+        /// How long a ready channel waits for the client that claimed its slot to
+        /// actually attach. A client claims the slot and then says hello within
+        /// microseconds; a claim that never turns into a hello (a client that died
+        /// between the two) recycles the channel rather than parking the factory.
+        /// </summary>
+        private const int ATTACH_TIMEOUT_MS = 10000;
+
+        #endregion
+
         #region Events
 
         public event TransportFactoryEventHandler NewClientConnected = delegate { };
 
-        private readonly HashSet<Guid> m_clients = new();
+        #endregion
+
+        #region Fields
 
         private readonly object m_syncRoot = new();
+
+        private readonly Semaphore m_slot;
+
+        private MemoryMappedFileServerTransport? m_active;
+
+        private TaskCompletionSource<bool>? m_slotReleased;
 
         #endregion
 
         #region Constructors
 
+        /// <summary>
+        /// Validates the options. No kernel object is created until
+        /// <see cref="StartWaitingForConnection"/>.
+        /// </summary>
+        /// <param name="options">Name and size of the channel.</param>
+        /// <exception cref="WitExceptionTransport">Name is empty or size is too small.</exception>
         public MemoryMappedFileServerTransportFactory(MemoryMappedFileServerTransportOptions options)
         {
             Options = options;
-            WaitForConnectionSlot = new Semaphore(1, 1);
-            WaitForClient = new Semaphore(0, 1, $"Global\\{options.Name}_connection");
+
+            if (string.IsNullOrEmpty(Options.Name))
+                throw new WitExceptionTransport("Memory mapped file name cannot be empty");
+
+            if (Options.Size < MmfChannelLayout.MIN_FILE_SIZE)
+                throw new WitExceptionTransport($"Memory mapped file size must be at least {MmfChannelLayout.MIN_FILE_SIZE} bytes");
+
+            // The connection slot outlives individual channel instances: it is how
+            // a fresh, ready channel offers itself to exactly one client. Drain any
+            // permit left by a previous run so it starts empty.
+            m_slot = new Semaphore(0, 1, MmfChannelLayout.SlotName(Options.Name!));
+            DrainSlot();
         }
 
         #endregion
@@ -42,8 +99,10 @@ namespace OutWit.Communication.Server.MMF
                 if (CancellationTokenSource != null)
                     throw new InvalidOperationException("MMF listener is already running");
 
-                CancellationTokenSource = new CancellationTokenSource();
-                AcceptLoopTask = Task.Run(() => AcceptLoopAsync(CancellationTokenSource.Token, logger));
+                var cancellationTokenSource = new CancellationTokenSource();
+
+                CancellationTokenSource = cancellationTokenSource;
+                AcceptLoopTask = Task.Run(() => AcceptLoopAsync(cancellationTokenSource.Token, logger));
             }
         }
 
@@ -80,70 +139,119 @@ namespace OutWit.Communication.Server.MMF
             {
             }
 
-            DrainPendingClientSignals();
             cancellationTokenSource?.Dispose();
-        }
-
-        private void DrainPendingClientSignals()
-        {
-            if (WaitForClient == null)
-                return;
-
-            while (WaitForClient.WaitOne(0))
-            {
-            }
         }
 
         private async Task AcceptLoopAsync(CancellationToken cancellationToken, ILogger? logger)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                if (WaitHandle.WaitAny(new WaitHandle[] { cancellationToken.WaitHandle, WaitForConnectionSlot! }) == 0)
+                MemoryMappedFileServerTransport? transport = await CreateTransportAsync(cancellationToken, logger).ConfigureAwait(false);
+                if (transport == null)
                     return;
 
-                MemoryMappedFileServerTransport? transport = null;
-                var registered = false;
+                // The channel is listening (its reader ran from construction).
+                // Offer it to one client by posting a single permit.
+                DrainSlot();
+                m_slot.Release();
 
+                bool attached;
                 try
                 {
-                    transport = new MemoryMappedFileServerTransport(Options);
+                    using var attachTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    attachTimeout.CancelAfter(ATTACH_TIMEOUT_MS);
 
-                    if (await transport.InitializeConnectionAsync(cancellationToken))
-                    {
-                        transport.Disconnected += OnTransportDisconnected;
-
-                        m_clients.Add(transport.Id);
-                        registered = true;
-                        NewClientConnected(transport);
-                        WaitForClient?.Release();
-                    }
-                    else
-                    {
-                        transport.Dispose();
-                        WaitForConnectionSlot?.Release();
-                    }
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                {
-                    if (registered)
-                        transport?.Dispose();
-                    else
-                        WaitForConnectionSlot?.Release();
-
-                    return;
+                    attached = await transport.InitializeConnectionAsync(attachTimeout.Token).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
                     logger?.LogError(ex, "MMF SERVER LOOP ERROR");
+                    attached = false;
+                }
 
-                    if (registered)
-                        transport?.Dispose();
-                    else
-                        WaitForConnectionSlot?.Release();
+                if (!attached)
+                {
+                    // No client claimed and attached in time (or we are stopping).
+                    // Drop the offer and recycle.
+                    DrainSlot();
+                    transport.Dispose();
+                    continue;
+                }
 
-                    await Task.Delay(100, cancellationToken);
+                var released = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+                lock (m_syncRoot)
+                {
+                    m_active = transport;
+                    m_slotReleased = released;
+                }
+
+                transport.Disconnected += OnTransportDisconnected;
+
+                NewClientConnected(transport);
+
+                try
+                {
+                    await released.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Stop only stops accepting; the attached client is left to
+                    // whoever owns the connection, as with every other transport.
+                    return;
                 }
             }
+        }
+
+        private void DrainSlot()
+        {
+            while (m_slot.WaitOne(0))
+            {
+            }
+        }
+
+        private async Task<MemoryMappedFileServerTransport?> CreateTransportAsync(CancellationToken cancellationToken, ILogger? logger)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var reported = false;
+
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                try
+                {
+                    return new MemoryMappedFileServerTransport(Options);
+                }
+                catch (Exception ex)
+                {
+                    int delay = CREATE_RETRY_DELAY_MS;
+
+                    if (stopwatch.ElapsedMilliseconds < CREATE_RETRY_WINDOW_MS)
+                    {
+                        logger?.LogDebug(ex, "MMF channel {Name} is not free yet, retrying", Options.Name);
+                    }
+                    else
+                    {
+                        if (!reported)
+                        {
+                            logger?.LogError(ex, "MMF channel {Name} could not be created for {Elapsed} ms; still retrying", Options.Name, stopwatch.ElapsedMilliseconds);
+                            reported = true;
+                        }
+
+                        delay = CREATE_RETRY_IDLE_DELAY_MS;
+                    }
+
+                    try
+                    {
+                        await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        return null;
+                    }
+                }
+            }
+
+            return null;
         }
 
         #endregion
@@ -152,11 +260,19 @@ namespace OutWit.Communication.Server.MMF
 
         private void OnTransportDisconnected(Guid sender)
         {
-            if (m_clients.Contains(sender))
+            TaskCompletionSource<bool>? released = null;
+
+            lock (m_syncRoot)
             {
-                m_clients.Remove(sender);
-                WaitForConnectionSlot?.Release();
+                if (m_active != null && m_active.Id == sender)
+                {
+                    m_active = null;
+                    released = m_slotReleased;
+                    m_slotReleased = null;
+                }
             }
+
+            released?.TrySetResult(true);
         }
 
         #endregion
@@ -169,9 +285,19 @@ namespace OutWit.Communication.Server.MMF
                 return;
 
             IsDisposed = true;
+
             StopWaitingForConnection();
-            WaitForConnectionSlot?.Dispose();
-            WaitForClient?.Dispose();
+
+            MemoryMappedFileServerTransport? active;
+            lock (m_syncRoot)
+            {
+                active = m_active;
+                m_active = null;
+            }
+
+            active?.Dispose();
+
+            m_slot.Dispose();
         }
 
         #endregion
@@ -182,10 +308,6 @@ namespace OutWit.Communication.Server.MMF
 
         private MemoryMappedFileServerTransportOptions Options { get; }
 
-        private Semaphore? WaitForConnectionSlot { get; }
-
-        private Semaphore? WaitForClient { get; }
-
         private CancellationTokenSource? CancellationTokenSource { get; set; }
 
         private Task? AcceptLoopTask { get; set; }
@@ -193,7 +315,5 @@ namespace OutWit.Communication.Server.MMF
         private bool IsDisposed { get; set; }
 
         #endregion
-
-   
     }
 }

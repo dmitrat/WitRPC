@@ -171,7 +171,7 @@ namespace OutWit.Communication.Tests
         }
 
 
-        private static ITransportServerFactory GetServerTransport(TransportType transportType, int maxNumberOfClients, string name)
+        public static ITransportServerFactory GetServerTransport(TransportType transportType, int maxNumberOfClients, string name)
         {
             switch (transportType)
             {
@@ -236,7 +236,7 @@ namespace OutWit.Communication.Tests
             }
         }
 
-        private static ITransportClient GetClientTransport(TransportType transportType, string name)
+        public static ITransportClient GetClientTransport(TransportType transportType, string name)
         {
             switch (transportType)
             {
