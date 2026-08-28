@@ -199,6 +199,34 @@ namespace OutWit.Communication.Server.MMF
             }
         }
 
+        /// <summary>
+        /// Acknowledges the client's hello, completing its connect. Called by the
+        /// factory only after the connection has been registered with the layer
+        /// above, so the client never sends its first message before the server
+        /// can route it.
+        /// </summary>
+        public async Task ConfirmAttachedAsync()
+        {
+            MmfChannel? channel;
+
+            lock (m_syncRoot)
+            {
+                channel = m_disposed ? null : m_channel;
+            }
+
+            if (channel == null)
+                return;
+
+            try
+            {
+                await channel.SendAsync(Array.Empty<byte>(), MmfFrameFlags.HelloAck).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                Dispose();
+            }
+        }
+
         public async Task SendBytesAsync(byte[] data)
         {
             MmfChannel? channel;
@@ -255,11 +283,12 @@ namespace OutWit.Communication.Server.MMF
                                     return;
                                 }
 
-                                // A client is present and holds the seat. Confirm
-                                // the hello so the client knows it reached a live
-                                // server, start watching its liveness, then unblock
-                                // the accept.
-                                channel.SendAsync(Array.Empty<byte>(), MmfFrameFlags.HelloAck).GetAwaiter().GetResult();
+                                // A client is present and holds the seat. Start
+                                // watching its liveness and unblock the accept.
+                                // The hello is acknowledged later, by ConfirmAttachedAsync,
+                                // only once the layer above has registered the
+                                // connection — otherwise the client could send its
+                                // first message before the server is ready to route it.
                                 attached = true;
                                 m_clientWatch = new MmfPeerWatch(clientAlive, Dispose);
                                 m_attached.TrySetResult(true);

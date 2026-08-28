@@ -190,6 +190,11 @@ namespace OutWit.Communication.Server.MMF
 
                 NewClientConnected(transport);
 
+                // The connection is now registered above; acknowledge the hello so
+                // the client's connect completes only once the server can route its
+                // first message.
+                await transport.ConfirmAttachedAsync().ConfigureAwait(false);
+
                 try
                 {
                     await released.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
