@@ -212,9 +212,20 @@ protocol version check. These are features, not hardening.
   propagation. **Behaviour change for consumers:** service methods are now
   invoked concurrently across connections and must be thread-safe; set
   `MaxConcurrentRequests = 1` to restore global serialization.
-- [ ] Stage 3 — framing, limits, lifecycle (includes the per-connection outbound
-  send lock for the stream transports; the conformance ConcurrentSends test is
-  MMF-only until then. The transport init-race buffer already landed in Stage 2.)
+- [x] Stage 3 — framing, limits, lifecycle. Commit on `v3`: `63ab272`.
+  - Framing safety (P0-3): `StreamFrameReader` (read the length in full, reject a
+    non-positive or over-`MaxMessageSize` length before allocating, read the
+    payload to completion) on TCP and Pipes; WebSocket caps its fragment
+    accumulation the same way. `MaxMessageSize` per transport, 256 MB default.
+  - Handshake timeout (30 s default, configurable): a client that connects and
+    never authorizes is closed rather than holding a slot.
+  - Idempotent `Dispose` on every stream transport (`Disconnected` raised once).
+  - Pipes factory client-set synchronized; a slot released only for a tracked
+    client (closed a slot leak).
+  - Deferred with reason: per-connection outbound send lock inside the stream
+    transports (the WitServer/WitClient layer already serializes sends, so the
+    conformance ConcurrentSends test stays MMF-only); async TLS handshake (TCP/TLS
+    unused by the consumers); bounded inbound queue; `IAsyncDisposable`.
 - [ ] Stage 4 — protocol 3
 - [ ] Stage 5 — REST
 - [ ] Stage 6 — InterProcess
