@@ -192,11 +192,35 @@ protocol version check. These are features, not hardening.
 
 ## Progress
 
-- [ ] Stage 0 — baseline recorded; conformance harness in place
-- [ ] Stage 1 — MMF
+- [x] Stage 0 — `Transports/TransportConformanceTests` in place: one
+  `ITransport`-level contract for every transport pair, plus MMF-specific tests.
+- [x] Stage 1 — MMF reworked (one-to-one, lossless, atomic handoff). All 11
+  conformance tests pass repeatedly; the full end-to-end WitServer/WitClient
+  MMF suite is 84/84 across serializers, static/dynamic proxy, reconnect,
+  one-to-one and the callback tests the audit reported as hanging. Commits on
+  `v3`: `e2b60a3` (rework + harness), `fc78f64` (ack-after-registration fix).
 - [ ] Stage 2 — core concurrency and auth boundary
-- [ ] Stage 3 — framing, limits, lifecycle
+- [ ] Stage 3 — framing, limits, lifecycle (includes the per-connection outbound
+  send lock for the stream transports; the conformance ConcurrentSends test is
+  MMF-only until then)
 - [ ] Stage 4 — protocol 3
 - [ ] Stage 5 — REST
 - [ ] Stage 6 — InterProcess
 - [ ] Stage 7 — release
+
+### Stage 1 notes (for whoever picks up Stage 2+)
+
+- MMF wire layout changed, so both ends must run 3.0 (acceptable for a local
+  link). Public API is unchanged: `WithMemoryMappedFile(name[, size])`, options
+  `{ Name, Size }`. Layout, names and the handshake live in `Communication/_Shared/MMF`.
+- The handoff is gated by a factory-owned slot semaphore (`{name}_slot`, max 1):
+  a ready channel posts one permit; a client claims it before attaching. This is
+  what makes a reconnecting client always land on a fresh instance.
+- The server's hello-ack is deliberately sent by the factory *after*
+  `NewClientConnected` (via `ConfirmAttachedAsync`), so the connection is
+  registered before the client's connect returns. Any future transport that
+  adds a connect handshake must preserve this ordering or the layer above drops
+  the client's first message.
+- Test isolation: conformance channel names carry a per-fixture run id, and echo
+  tests wait for `WaitForClientAsync` before the first send. Watch for the same
+  reactive-echo-wiring race if you add echo-style harness tests elsewhere.
