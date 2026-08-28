@@ -202,6 +202,16 @@ namespace OutWit.Communication.Server
                 {
                     response = await RequestProcessor.Process(request).ConfigureAwait(false);
                 }
+                catch (Exception e)
+                {
+                    // A service method that throws is a fault of that one call, not
+                    // of the connection. Turn it into an error response so the caller
+                    // gets an answer and the connection stays open for the next
+                    // request, instead of the exception unwinding to the connection
+                    // loop and closing it.
+                    Logger?.LogError(e, "Request processor threw for method {MethodName}", request.MethodName);
+                    response = WitResponse.InternalServerError($"Request processing failed: {e.Message}", e);
+                }
                 finally
                 {
                     m_processingLimit.Release();

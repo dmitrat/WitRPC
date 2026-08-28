@@ -74,14 +74,24 @@ namespace OutWit.Communication.Tests.Communication
                 return Task.FromResult(WitResponse.Success(Array.Empty<byte>()));
             });
 
+            // Drive the connection through the handshake so its requests are
+            // actually processed; the plain validator authorizes any token.
+            context.Transport.RaiseDataReceived(CreateInitializationFrame(context.MessageSerializer));
+            context.Transport.RaiseDataReceived(CreateAuthorizationFrame(context.MessageSerializer));
+            Assert.That(WaitUntil(() => context.Transport.SentData.Count == 2), Is.True);
+
+            // The first request's service call throws. That must fault only this
+            // one call -- a response still comes back, and the connection stays up.
             context.Transport.RaiseDataReceived(CreateRequestFrame(context.MessageSerializer, "FirstRequest"));
 
             Assert.That(WaitUntil(() => context.RequestProcessor.ProcessCallCount == 1), Is.True);
-            Assert.That(context.Transport.SentData.Count, Is.EqualTo(0));
+            Assert.That(WaitUntil(() => context.Transport.SentData.Count == 3), Is.True);
 
+            // The next request on the same connection is processed normally, proving
+            // the throw did not tear the connection down.
             context.Transport.RaiseDataReceived(CreateRequestFrame(context.MessageSerializer, "SecondRequest"));
 
-            Assert.That(WaitUntil(() => context.Transport.SentData.Count == 1), Is.True);
+            Assert.That(WaitUntil(() => context.Transport.SentData.Count == 4), Is.True);
             Assert.That(context.RequestProcessor.ProcessCallCount, Is.EqualTo(2));
         }
 
