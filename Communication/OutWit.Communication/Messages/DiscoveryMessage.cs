@@ -2,20 +2,16 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using MessagePack;
 using System.Runtime.Serialization;
 using MemoryPack;
 using OutWit.Common.Abstract;
 using OutWit.Common.Collections;
 using OutWit.Common.Values;
-using ProtoBuf;
 
 namespace OutWit.Communication.Messages
 {
-    [MessagePackObject]
     [DataContract]
     [MemoryPackable(GenerateType.VersionTolerant)]
-    [ProtoContract]
     public partial class DiscoveryMessage : ModelBase
     {
         #region Functions
@@ -61,53 +57,39 @@ namespace OutWit.Communication.Messages
 
         #region Properties
 
-        [Key(0)]
 
         [MemoryPackOrder(0)]
         [DataMember]
-        [ProtoMember(1)]
         public Guid? ServiceId { get; set; }
 
-        [Key(1)]
 
         [MemoryPackOrder(1)]
         [DataMember]
-        [ProtoMember(2)]
         public DateTimeOffset? Timestamp { get; set; }
         
-        [Key(2)]
         
         [MemoryPackOrder(2)]
         [DataMember]
-        [ProtoMember(3)]
         public DiscoveryMessageType? Type { get; set; }
 
-        [Key(3)]
 
         [MemoryPackOrder(3)]
         [DataMember]
-        [ProtoMember(4)]
         public string? ServiceName { get; set; }
 
-        [Key(4)]
 
         [MemoryPackOrder(4)]
         [DataMember]
-        [ProtoMember(5)]
         public string? ServiceDescription { get; set; }
 
-        [Key(5)]
 
         [MemoryPackOrder(5)]
         [DataMember]
-        [ProtoMember(6)]
         public string? Transport { get; set; }
 
-        [Key(6)]
 
         [MemoryPackOrder(6)]
         [DataMember]
-        [ProtoMember(7)]
         public Dictionary<string, string>? Data { get; set; }
 
         #endregion

@@ -2,21 +2,17 @@
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using MemoryPack;
-using MessagePack;
 using OutWit.Common.Abstract;
 using OutWit.Common.Collections;
 using OutWit.Common.Values;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Model;
 using OutWit.Communication.Utils;
-using ProtoBuf;
 
 namespace OutWit.Communication.Responses
 {
-    [MessagePackObject]
     [DataContract]
     [MemoryPackable(GenerateType.VersionTolerant)]
-    [ProtoContract]
     public partial class WitResponse : ModelBase
     {
         #region Constructors
@@ -26,7 +22,6 @@ namespace OutWit.Communication.Responses
             
         }
 
-        [SerializationConstructor]
         [JsonConstructor]
         [MemoryPackConstructor]
         public WitResponse(CommunicationStatus status, byte[]? data, string? errorMessage, string? errorDetails)
@@ -168,32 +163,24 @@ namespace OutWit.Communication.Responses
 
         #region Properties
 
-        [Key(0)]
 
         [MemoryPackOrder(0)]
         [DataMember]
-        [ProtoMember(1)]
         public CommunicationStatus Status { get; }
 
-        [Key(1)]
 
         [MemoryPackOrder(1)]
         [DataMember]
-        [ProtoMember(2)]
         public byte[]? Data { get; }
 
-        [Key(2)]
 
         [MemoryPackOrder(2)]
         [DataMember]
-        [ProtoMember(3)]
         public string? ErrorMessage { get; set; }
 
-        [Key(3)]
 
         [MemoryPackOrder(3)]
         [DataMember]
-        [ProtoMember(4)]
         public string? ErrorDetails { get; }
 
         #endregion

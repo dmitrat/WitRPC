@@ -11,6 +11,8 @@ using OutWit.Communication.Client;
 using OutWit.Communication.Client.Reconnection;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Serializers;
+using OutWit.Communication.Serializers.MessagePack;
+using OutWit.Communication.Serializers.ProtoBuf;
 using OutWit.Communication.Server.Authorization;
 using OutWit.Communication.Server.Discovery;
 using OutWit.Communication.Server.Encryption;

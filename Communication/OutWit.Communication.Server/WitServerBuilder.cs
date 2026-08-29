@@ -5,8 +5,6 @@ using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using OutWit.Common.Json;
 using OutWit.Common.MemoryPack;
-using OutWit.Common.MessagePack;
-using OutWit.Common.ProtoBuf;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Model;
@@ -171,23 +169,6 @@ namespace OutWit.Communication.Server
 
         #endregion
 
-        #region MessagePack
-
-        public static WitServerBuilderOptions WithMessagePack(this WitServerBuilderOptions me)
-        {
-            me.ParametersSerializer = new MessageSerializerMessagePack();
-            return me;
-        }
-
-        public static WitServerBuilderOptions WithMessagePack(this WitServerBuilderOptions me, Action<MessagePackOptions> options)
-        {
-            MessagePackUtils.Register(options);
-            
-            return me.WithMessagePack();
-        }
-        
-        #endregion
-
         #region MemoryPack
 
         public static WitServerBuilderOptions WithMemoryPack(this WitServerBuilderOptions me)
@@ -200,23 +181,6 @@ namespace OutWit.Communication.Server
         {
             MemoryPackUtils.Register(options);
             return me.WithMemoryPack();
-        }
-        
-        #endregion
-
-        #region ProtoBuf
-
-        public static WitServerBuilderOptions WithProtoBuf(this WitServerBuilderOptions me)
-        {
-            me.ParametersSerializer = new MessageSerializerProtoBuf();
-            return me;
-        }
-
-        public static WitServerBuilderOptions WithProtoBuf(this WitServerBuilderOptions me, Action<ProtoBufOptions> options)
-        {
-            ProtoBufUtils.Register(options);
-            
-            return me.WithProtoBuf();
         }
         
         #endregion

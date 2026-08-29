@@ -1,8 +1,6 @@
 ﻿using System;
 using OutWit.Common.Json;
 using OutWit.Common.MemoryPack;
-using OutWit.Common.MessagePack;
-using OutWit.Common.ProtoBuf;
 using OutWit.Common.Utils;
 using OutWit.Communication.Responses;
 using OutWit.Communication.Utils;
@@ -77,25 +75,6 @@ namespace OutWit.Communication.Tests.Responses
         }
 
         [Test]
-        public void MessagePackSerializationTest()
-        {
-            var response1 = new WitResponseAuthorization
-            {
-                IsAuthorized = true,
-                Message = "2"
-            };
-
-            var bytes = response1.ToMessagePackBytes();
-            Assert.That(bytes, Is.Not.Null);
-
-            var response2 = bytes.FromMessagePackBytes<WitResponseAuthorization>();
-            Assert.That(response2, Is.Not.Null);
-            Assert.That(response1, Is.Not.SameAs(response2));
-            Assert.That(response1.Is(response2), Is.True);
-
-        }
-
-        [Test]
         public void JsonSerializationTest()
         {
             var response1 = new WitResponseAuthorization
@@ -131,22 +110,5 @@ namespace OutWit.Communication.Tests.Responses
             Assert.That(response1.Is(response2), Is.True);
         }
 
-        [Test]
-        public void ProtoBufSerializationTest()
-        {
-            var response1 = new WitResponseAuthorization
-            {
-                IsAuthorized = true,
-                Message = "2"
-            };
-
-            var json = response1.ToProtoBytes();
-            Assert.That(json, Is.Not.Null);
-
-            var response2 = json.FromProtoBytes<WitResponseAuthorization>();
-            Assert.That(response2, Is.Not.Null);
-            Assert.That(response1, Is.Not.SameAs(response2));
-            Assert.That(response1.Is(response2), Is.True);
-        }
     }
 }

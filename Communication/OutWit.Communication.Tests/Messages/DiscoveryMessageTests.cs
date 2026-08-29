@@ -1,8 +1,6 @@
 ﻿using System;
 using OutWit.Common.Json;
 using OutWit.Common.MemoryPack;
-using OutWit.Common.MessagePack;
-using OutWit.Common.ProtoBuf;
 using OutWit.Common.Utils;
 using OutWit.Communication.Utils;
 using OutWit.Communication.Messages;
@@ -136,33 +134,6 @@ namespace OutWit.Communication.Tests.Messages
         }
 
         [Test]
-        public void MessagePackSerializationTest()
-        {
-            var message1 = new DiscoveryMessage
-            {
-                ServiceId = Guid.Parse(GUID),
-                Timestamp = new DateTimeOffset(2001, 2, 3, 4, 5, 6, TimeSpan.Zero),
-                Type = DiscoveryMessageType.Heartbeat,
-                ServiceName = "7",
-                ServiceDescription = "8",
-                Transport = "9",
-                Data = new Dictionary<string, string>
-                {
-                    { "10" , "11" }
-                }
-            };
-
-            var bytes = message1.ToMessagePackBytes();
-            Assert.That(bytes, Is.Not.Null);
-
-            var message2 = bytes.FromMessagePackBytes<DiscoveryMessage>();
-            Assert.That(message2, Is.Not.Null);
-            Assert.That(message1, Is.Not.SameAs(message2));
-            Assert.That(message1.Is(message2), Is.True);
-
-        }
-
-        [Test]
         public void JsonSerializationTest()
         {
             var message1 = new DiscoveryMessage
@@ -214,30 +185,5 @@ namespace OutWit.Communication.Tests.Messages
             Assert.That(message1.Is(message2), Is.True);
         }
 
-        [Test]
-        public void ProtoBufSerializationTest()
-        {
-            var message1 = new DiscoveryMessage
-            {
-                ServiceId = Guid.Parse(GUID),
-                Timestamp = new DateTimeOffset(2001, 2, 3, 4, 5, 6, TimeSpan.Zero),
-                Type = DiscoveryMessageType.Heartbeat,
-                ServiceName = "7",
-                ServiceDescription = "8",
-                Transport = "9",
-                Data = new Dictionary<string, string>
-                {
-                    { "10" , "11" }
-                }
-            };
-
-            var json = message1.ToProtoBytes();
-            Assert.That(json, Is.Not.Null);
-
-            var message2 = json.FromProtoBytes<DiscoveryMessage>();
-            Assert.That(message2, Is.Not.Null);
-            Assert.That(message1, Is.Not.SameAs(message2));
-            Assert.That(message1.Is(message2), Is.True);
-        }
     }
 }

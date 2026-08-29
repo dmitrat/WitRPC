@@ -3,8 +3,6 @@ using OutWit.Common.Collections;
 using OutWit.Common.Json;
 using OutWit.Common.MemoryPack;
 using OutWit.Communication.Model;
-using OutWit.Common.MessagePack;
-using OutWit.Common.ProtoBuf;
 using OutWit.Common.Utils;
 using OutWit.Communication.Utils;
 using OutWit.Communication.Requests;
@@ -152,33 +150,6 @@ namespace OutWit.Communication.Tests.Requests
         }
 
         [Test]
-        public void MessagePackSerializationTest()
-        {
-            var request1 = new WitRequest
-            {
-                Token = "0",
-                MethodName = "1",
-                Parameters = new byte[][] { new byte[] { 2, 2 }, new byte[] { 3, 3, 3 } },
-                ParameterTypes = new[] { typeof(int), typeof(string) },
-                ParameterTypesByName = new[] { (ParameterType)typeof(int), (ParameterType)typeof(string) },
-                GenericArguments = new[] { typeof(double), typeof(string) },
-                GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) },
-                InvocationId = INVOCATION_ID,
-                ContractId = 7,
-                MethodId = 8
-            };
-
-            var bytes = request1.ToMessagePackBytes();
-            Assert.That(bytes, Is.Not.Null);
-
-            var request2 = bytes.FromMessagePackBytes<WitRequest>();
-            Assert.That(request2, Is.Not.Null);
-            Assert.That(request1, Is.Not.SameAs(request2));
-            Assert.That(request1.Is(request2), Is.True);
-
-        }
-
-        [Test]
         public void JsonSerializationTest()
         {
             var request1 = new WitRequest
@@ -230,30 +201,5 @@ namespace OutWit.Communication.Tests.Requests
             Assert.That(request1.Is(request2), Is.True);
         }
 
-        [Test]
-        public void ProtoBufSerializationTest()
-        {
-            var request1 = new WitRequest
-            {
-                Token = "0",
-                MethodName = "1",
-                Parameters = new byte[][] { new byte[] { 2, 2 }, new byte[] { 3, 3, 3 } },
-                ParameterTypes = new[] { typeof(int), typeof(string) },
-                ParameterTypesByName = new[] { (ParameterType)typeof(int), (ParameterType)typeof(string) },
-                GenericArguments = new[] { typeof(double), typeof(string) },
-                GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) },
-                InvocationId = INVOCATION_ID,
-                ContractId = 7,
-                MethodId = 8
-            };
-
-            var json = request1.ToProtoBytes();
-            Assert.That(json, Is.Not.Null);
-
-            var request2 = json.FromProtoBytes<WitRequest>();
-            Assert.That(request2, Is.Not.Null);
-            Assert.That(request1, Is.Not.SameAs(request2));
-            Assert.That(request1.Is(request2), Is.True);
-        }
     }
 }

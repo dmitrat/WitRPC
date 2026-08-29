@@ -1,7 +1,5 @@
 ﻿using OutWit.Common.Json;
 using OutWit.Common.MemoryPack;
-using OutWit.Common.MessagePack;
-using OutWit.Common.ProtoBuf;
 using OutWit.Communication.Utils;
 using OutWit.Communication.Messages;
 using OutWit.Common.Utils;
@@ -86,26 +84,6 @@ namespace OutWit.Communication.Tests.Messages
         }
 
         [Test]
-        public void MessagePackSerializationTest()
-        {
-            var message1 = new WitMessage
-            {
-                Id = Guid.Parse(GUID),
-                Type = WitMessageType.Request,
-                Data = new byte[] { 1, 2, 3 }
-            };
-
-            var bytes = message1.ToMessagePackBytes();
-            Assert.That(bytes, Is.Not.Null);
-
-            var message2 = bytes.FromMessagePackBytes<WitMessage>();
-            Assert.That(message2, Is.Not.Null);
-            Assert.That(message1, Is.Not.SameAs(message2));
-            Assert.That(message1.Is(message2), Is.True);
-
-        }
-
-        [Test]
         public void JsonSerializationTest()
         {
             var message1 = new WitMessage
@@ -143,23 +121,5 @@ namespace OutWit.Communication.Tests.Messages
             Assert.That(message1.Is(message2), Is.True);
         }
 
-        [Test]
-        public void ProtoBufSerializationTest()
-        {
-            var message1 = new WitMessage
-            {
-                Id = Guid.Parse(GUID),
-                Type = WitMessageType.Request,
-                Data = new byte[] { 1, 2, 3 }
-            };
-
-            var json = message1.ToProtoBytes();
-            Assert.That(json, Is.Not.Null);
-
-            var message2 = json.FromProtoBytes<WitMessage>();
-            Assert.That(message2, Is.Not.Null);
-            Assert.That(message1, Is.Not.SameAs(message2));
-            Assert.That(message1.Is(message2), Is.True);
-        }
     }
 }

@@ -5,7 +5,7 @@
 
 WitRPC is a modern API for client-server communication designed to simplify development and provide a robust, extensible framework. It offers a seamless way to handle real-time and event-driven interactions with minimal setup, acting as a powerful alternative to traditional frameworks like WCF and SignalR.
 
-> Current version (2026-08-29): **3.0.0 — every package**. Protocol 3 is a coordinated major: a 3.0 client needs a 3.0 server (the server refuses older clients with a readable version message). See [CHANGELOG.md](CHANGELOG.md) for what changed and the migration notes.
+> Current version (2026-08-29): **3.1.0 — every package**. Protocol 3 is a coordinated major: a 3.0 client needs a 3.0 server (the server refuses older clients with a readable version message). See [CHANGELOG.md](CHANGELOG.md) for what changed and the migration notes.
 
 ## Features
 
@@ -22,11 +22,9 @@ WitRPC is a modern API for client-server communication designed to simplify deve
   - Cross-platform BouncyCastle encryption (works in Blazor WebAssembly)
   - Token-based authorization
   - Protocol version handshake — a mismatched client is refused with a readable reason
-- **Serialization**:
-  - JSON (default)
-  - MessagePack
-  - MemoryPack
-  - ProtoBuf
+- **Serialization** (for your payloads; the envelope is always MemoryPack):
+  - JSON (default) and MemoryPack — in the core
+  - MessagePack, protobuf-net, Google.Protobuf — opt-in plugin packages (since 3.1.0), so SignalR-style, protobuf-net.Grpc and proto-first gRPC models move over unchanged and nobody else carries those dependencies
 - **Resilience**:
   - Auto-reconnection with configurable retry strategies
   - Retry policies for failed calls — retries apply to client-local failures (`Timeout`, `TransportError`) and only to methods declared idempotent; a stable `InvocationId` plus server-side de-duplication means a retried call never executes twice
@@ -71,6 +69,13 @@ WitRPC is a modern API for client-server communication designed to simplify deve
 | `OutWit.Communication.Client.Encryption.BouncyCastle` | Cross-platform encryption (Blazor WASM) | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Client.Encryption.BouncyCastle.svg)](https://www.nuget.org/packages/OutWit.Communication.Client.Encryption.BouncyCastle/) |
 | `OutWit.Communication.Client.Blazor` | Blazor WebAssembly channel factory (WebSocket + Web Crypto API encryption) | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Client.Blazor.svg)](https://www.nuget.org/packages/OutWit.Communication.Client.Blazor/) |
 | `OutWit.Communication.Server.Encryption.BouncyCastle` | Cross-platform encryption | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Server.Encryption.BouncyCastle.svg)](https://www.nuget.org/packages/OutWit.Communication.Server.Encryption.BouncyCastle/) |
+
+### Serializer Plugins (client + server)
+| Package | Description | NuGet |
+|---------|-------------|-------|
+| `OutWit.Communication.Serializers.MessagePack` | MessagePack-CSharp payloads (SignalR-style models) | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Serializers.MessagePack.svg)](https://www.nuget.org/packages/OutWit.Communication.Serializers.MessagePack/) |
+| `OutWit.Communication.Serializers.ProtoBuf` | protobuf-net payloads (code-first, protobuf-net.Grpc models) | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Serializers.ProtoBuf.svg)](https://www.nuget.org/packages/OutWit.Communication.Serializers.ProtoBuf/) |
+| `OutWit.Communication.Serializers.GoogleProtobuf` | Google.Protobuf payloads (proto-first gRPC, protoc-generated models) | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Serializers.GoogleProtobuf.svg)](https://www.nuget.org/packages/OutWit.Communication.Serializers.GoogleProtobuf/) |
 
 ### InterProcess
 | Package | Description | NuGet |

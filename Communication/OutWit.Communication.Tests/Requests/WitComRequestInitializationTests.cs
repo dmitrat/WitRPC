@@ -1,8 +1,6 @@
 ﻿using System;
 using OutWit.Common.Json;
 using OutWit.Common.MemoryPack;
-using OutWit.Common.MessagePack;
-using OutWit.Common.ProtoBuf;
 using OutWit.Common.Utils;
 using OutWit.Communication.Utils;
 using OutWit.Communication.Requests;
@@ -76,25 +74,6 @@ namespace OutWit.Communication.Tests.Requests
         }
 
         [Test]
-        public void MessagePackSerializationTest()
-        {
-            var request1 = new WitRequestInitialization
-            {
-                PublicKey = new byte[] { 1, 2, 3 },
-                ProtocolVersion = 3
-            };
-
-            var bytes = request1.ToMessagePackBytes();
-            Assert.That(bytes, Is.Not.Null);
-
-            var request2 = bytes.FromMessagePackBytes<WitRequestInitialization>();
-            Assert.That(request2, Is.Not.Null);
-            Assert.That(request1, Is.Not.SameAs(request2));
-            Assert.That(request1.Is(request2), Is.True);
-
-        }
-
-        [Test]
         public void JsonSerializationTest()
         {
             var request1 = new WitRequestInitialization
@@ -130,22 +109,5 @@ namespace OutWit.Communication.Tests.Requests
             Assert.That(request1.Is(request2), Is.True);
         }
 
-        [Test]
-        public void ProtoBufSerializationTest()
-        {
-            var request1 = new WitRequestInitialization
-            {
-                PublicKey = new byte[] { 1, 2, 3 },
-                ProtocolVersion = 3
-            };
-
-            var json = request1.ToProtoBytes();
-            Assert.That(json, Is.Not.Null);
-
-            var request2 = json.FromProtoBytes<WitRequestInitialization>();
-            Assert.That(request2, Is.Not.Null);
-            Assert.That(request1, Is.Not.SameAs(request2));
-            Assert.That(request1.Is(request2), Is.True);
-        }
     }
 }

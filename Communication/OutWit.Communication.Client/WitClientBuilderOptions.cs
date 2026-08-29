@@ -13,7 +13,7 @@ using OutWit.Communication.Serializers;
 
 namespace OutWit.Communication.Client
 {
-    public class WitClientBuilderOptions
+    public class WitClientBuilderOptions : ISerializationOptions
     {
         #region Constructors
 

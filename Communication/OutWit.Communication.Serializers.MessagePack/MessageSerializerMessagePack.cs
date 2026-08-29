@@ -1,34 +1,36 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
 using OutWit.Communication.Interfaces;
-using OutWit.Common.ProtoBuf;
+using OutWit.Common.MessagePack;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace OutWit.Communication.Serializers
+namespace OutWit.Communication.Serializers.MessagePack
 {
-    public class MessageSerializerProtoBuf : IMessageSerializer
+    public class MessageSerializerMessagePack : IMessageSerializer
     {
         #region IMessageSerializer
 
         public byte[] Serialize(object message, Type type, ILogger? logger = null)
         {
-            return message.ToProtoBytes(type, logger: logger) ?? Array.Empty<byte>();
+            return message.ToMessagePackBytes(type, logger: logger) ?? Array.Empty<byte>();
         }
 
         public T? Deserialize<T>(byte[] bytes, ILogger? logger = null) where T: class
         {
-            return bytes.FromProtoBytes<T>(logger: logger);
+            return bytes.FromMessagePackBytes<T>(logger: logger);
         }
 
         public object? Deserialize(byte[] bytes, Type type, ILogger? logger = null)
         {
             return bytes.Length == 0
                 ? null
-                : bytes.FromProtoBytes(type, logger: logger);
+                : bytes.FromMessagePackBytes(type, logger: logger);
         }
 
         public byte[] Serialize<T>(T message, ILogger? logger = null) where T : class
         {
-            return message.ToProtoBytes(logger: logger) ?? Array.Empty<byte>();
+            return message.ToMessagePackBytes(logger: logger) ?? Array.Empty<byte>();
         }
 
         #endregion

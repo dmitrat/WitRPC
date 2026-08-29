@@ -4,8 +4,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OutWit.Common.Json;
 using OutWit.Common.MemoryPack;
-using OutWit.Common.MessagePack;
-using OutWit.Common.ProtoBuf;
 using OutWit.Common.Proxy.Interfaces;
 using OutWit.Communication.Client.Authorization;
 using OutWit.Communication.Client.Discovery;
@@ -168,37 +166,6 @@ namespace OutWit.Communication.Client
 
         #endregion
 
-        #region MessagePack
-
-        public static WitClientBuilderOptions WithMessagePack(this WitClientBuilderOptions me)
-        {
-            me.ParametersSerializer = new MessageSerializerMessagePack();
-            return me;
-        }
-
-
-        public static WitClientBuilderOptions WithMessagePack(this WitClientBuilderOptions me, Action<MessagePackOptions> options)
-        {
-            MessagePackUtils.Register(options);
-
-            return me.WithMessagePack();
-        }
-
-        public static DiscoveryClientOptions WithMessagePack(this DiscoveryClientOptions me)
-        {
-            me.Serializer = new MessageSerializerMessagePack();
-            return me;
-        }
-
-        public static DiscoveryClientOptions WithMessagePack(this DiscoveryClientOptions me, Action<MessagePackOptions> options)
-        {
-            MessagePackUtils.Register(options);
-
-            return me.WithMessagePack();
-        }
-
-        #endregion
-
         #region MemoryPack
 
         public static WitClientBuilderOptions WithMemoryPack(this WitClientBuilderOptions me)
@@ -223,36 +190,6 @@ namespace OutWit.Communication.Client
         {
             MemoryPackUtils.Register(options);
             return me.WithMemoryPack();
-        }
-
-        #endregion
-
-        #region ProtoBuf
-
-        public static WitClientBuilderOptions WithProtoBuf(this WitClientBuilderOptions me)
-        {
-            me.ParametersSerializer = new MessageSerializerProtoBuf();
-            return me;
-        }
-
-        public static WitClientBuilderOptions WithProtoBuf(this WitClientBuilderOptions me, Action<ProtoBufOptions> options)
-        {
-            ProtoBufUtils.Register(options);
-
-            return me.WithProtoBuf();
-        }
-
-        public static DiscoveryClientOptions WithProtoBuf(this DiscoveryClientOptions me)
-        {
-            me.Serializer = new MessageSerializerProtoBuf();
-            return me;
-        }
-
-        public static DiscoveryClientOptions WithProtoBuf(this DiscoveryClientOptions me, Action<ProtoBufOptions> options)
-        {
-            ProtoBufUtils.Register(options);
-
-            return me.WithProtoBuf();
         }
 
         #endregion

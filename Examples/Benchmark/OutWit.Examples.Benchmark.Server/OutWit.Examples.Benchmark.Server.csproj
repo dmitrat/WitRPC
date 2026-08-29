@@ -27,6 +27,8 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Communication\OutWit.Communication.Server.MMF\OutWit.Communication.Server.MMF.csproj" />
+		<ProjectReference Include="..\..\..\Communication\OutWit.Communication.Serializers.MessagePack\OutWit.Communication.Serializers.MessagePack.csproj" />
+		<ProjectReference Include="..\..\..\Communication\OutWit.Communication.Serializers.ProtoBuf\OutWit.Communication.Serializers.ProtoBuf.csproj" />
 		<ProjectReference Include="..\..\..\Communication\OutWit.Communication.Server.Pipes\OutWit.Communication.Server.Pipes.csproj" />
 		<ProjectReference Include="..\..\..\Communication\OutWit.Communication.Server.Tcp\OutWit.Communication.Server.Tcp.csproj" />
 		<ProjectReference Include="..\..\..\Communication\OutWit.Communication.Server.WebSocket\OutWit.Communication.Server.WebSocket.csproj" />

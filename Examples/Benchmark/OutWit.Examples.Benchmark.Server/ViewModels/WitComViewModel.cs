@@ -9,6 +9,8 @@ using OutWit.Common.MVVM.Commands;
 using OutWit.Common.MVVM.ViewModels;
 using OutWit.Common.Random;
 using OutWit.Common.Utils;
+using OutWit.Communication.Serializers.MessagePack;
+using OutWit.Communication.Serializers.ProtoBuf;
 using OutWit.Communication.Server;
 using OutWit.Communication.Server.MMF.Utils;
 using OutWit.Communication.Server.Pipes.Utils;

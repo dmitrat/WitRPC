@@ -30,6 +30,9 @@
     <Project Path="Communication/OutWit.Communication.Server.Rest/OutWit.Communication.Server.Rest.csproj" />
     <Project Path="Communication/OutWit.Communication.Server.Tcp/OutWit.Communication.Server.Tcp.csproj" />
     <Project Path="Communication/OutWit.Communication.Server.WebSocket/OutWit.Communication.Server.WebSocket.csproj" />
+    <Project Path="Communication/OutWit.Communication.Serializers.GoogleProtobuf/OutWit.Communication.Serializers.GoogleProtobuf.csproj" />
+    <Project Path="Communication/OutWit.Communication.Serializers.MessagePack/OutWit.Communication.Serializers.MessagePack.csproj" />
+    <Project Path="Communication/OutWit.Communication.Serializers.ProtoBuf/OutWit.Communication.Serializers.ProtoBuf.csproj" />
     <Project Path="Communication/OutWit.Communication.Server/OutWit.Communication.Server.csproj" />
     <Project Path="Communication/OutWit.Communication.Tests/OutWit.Communication.Tests.csproj" />
     <Project Path="Communication/OutWit.Communication/OutWit.Communication.csproj" />

@@ -34,6 +34,10 @@ on:
           # Server Extensions
           - OutWit.Communication.Server.DependencyInjection
           - OutWit.Communication.Server.Encryption.BouncyCastle
+          # Serializer plugins (client + server)
+          - OutWit.Communication.Serializers.MessagePack
+          - OutWit.Communication.Serializers.ProtoBuf
+          - OutWit.Communication.Serializers.GoogleProtobuf
           # InterProcess
           - OutWit.InterProcess
           - OutWit.InterProcess.Host

@@ -2,11 +2,9 @@
 using System.Linq;
 using System.Runtime.Serialization;
 using MemoryPack;
-using MessagePack;
 using OutWit.Common.Abstract;
 using OutWit.Common.Collections;
 using OutWit.Common.Values;
-using ProtoBuf;
 
 namespace OutWit.Communication.Messages
 {
@@ -17,10 +15,8 @@ namespace OutWit.Communication.Messages
     /// readable refusal. Never add members here; protocol evolution happens in
     /// the payload models, which are version-tolerant.
     /// </summary>
-    [MessagePackObject]
     [DataContract]
     [MemoryPackable]
-    [ProtoContract]
     public partial class WitMessage: ModelBase
     {
         #region Functions
@@ -59,18 +55,12 @@ namespace OutWit.Communication.Messages
         #region Properties
 
         [DataMember]
-        [Key(0)]
-        [ProtoMember(1)]
         public Guid Id { get; set; }
 
         [DataMember]
-        [Key(1)]
-        [ProtoMember(2)]
         public WitMessageType Type { get; set; }
 
         [DataMember]
-        [Key(2)]
-        [ProtoMember(3)]
         public byte[]? Data { get; set; }
 
         #endregion
