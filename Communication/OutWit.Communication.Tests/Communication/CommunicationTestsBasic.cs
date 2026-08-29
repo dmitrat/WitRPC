@@ -445,7 +445,9 @@ namespace OutWit.Communication.Tests.Communication
 
             await client2.Disconnect();
 
-            Assert.That(await client4.ConnectAsync(TimeSpan.FromSeconds(1), CancellationToken.None), Is.True);
+            // Same as the single-slot case: the freed slot shows up when the
+            // server notices client2 leaving, not necessarily within a second.
+            Assert.That(await ConnectWithinAsync(client4, TimeSpan.FromSeconds(10)), Is.True);
             Assert.That(client4.IsInitialized, Is.True);
             Assert.That(client4.IsAuthorized, Is.True);
         }
