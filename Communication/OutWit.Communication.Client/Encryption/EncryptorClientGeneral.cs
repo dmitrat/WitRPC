@@ -1,11 +1,18 @@
-﻿using System;
+using System;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Utils;
 
 namespace OutWit.Communication.Client.Encryption
 {
+    /// <summary>
+    /// The protocol-3 client encryptor: offers an RSA public key, receives the
+    /// server's master key and salt through it, derives one AES-256-GCM key per
+    /// direction, and moves every message as an authenticated, counter-framed
+    /// payload (<see cref="AeadCipher"/>).
+    /// </summary>
     public class EncryptorClientGeneral : IEncryptorClient
     {
         #region Constants
@@ -14,12 +21,19 @@ namespace OutWit.Communication.Client.Encryption
 
         #endregion
 
+        #region Fields
+
+        private AeadCipher? m_send;
+
+        private AeadCipher? m_receive;
+
+        #endregion
+
         #region Constructors
 
         public EncryptorClientGeneral()
         {
             using var rsa = RSA.Create();
-
             rsa.KeySize = KEY_SIZE;
 
             PrivateKey = rsa.ExportParameters(true);
@@ -28,7 +42,7 @@ namespace OutWit.Communication.Client.Encryption
 
         #endregion
 
-        #region IEncryptor
+        #region IEncryptorClient
 
         public byte[] GetPublicKey()
         {
@@ -40,22 +54,26 @@ namespace OutWit.Communication.Client.Encryption
             return PrivateKey.ToBytes();
         }
 
-        public async Task<byte[]> DecryptRsa(byte[] data)
+        public Task<byte[]> DecryptRsa(byte[] data)
         {
-            return data.DecryptRsa(PrivateKey);
+            return Task.FromResult(data.DecryptRsa(PrivateKey));
         }
 
         public bool ResetAes(byte[] symmetricKey, byte[] vector)
         {
             try
             {
-                Aes = Aes.Create();
-                Aes.Key = symmetricKey;
-                Aes.IV = vector;
+                m_send?.Dispose();
+                m_receive?.Dispose();
+
+                var (clientToServer, serverToClient) = AeadCipher.DeriveKeys(symmetricKey, vector);
+
+                m_send = new AeadCipher(clientToServer, AeadCipher.DIRECTION_CLIENT_TO_SERVER);
+                m_receive = new AeadCipher(serverToClient, AeadCipher.DIRECTION_SERVER_TO_CLIENT);
 
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }
@@ -65,16 +83,20 @@ namespace OutWit.Communication.Client.Encryption
 
         #region IEncryptor
 
-        public async Task<byte[]> Encrypt(byte[] data)
+        public Task<byte[]> Encrypt(byte[] data)
         {
-            using ICryptoTransform encryptor = Aes!.CreateEncryptor();
-            return encryptor.TransformFinalBlock(data, 0, data.Length);
+            if (m_send == null)
+                throw new WitExceptionEncryption("Encryptor is not initialized; the handshake has not completed");
+
+            return Task.FromResult(m_send.Seal(data));
         }
 
-        public async Task<byte[]> Decrypt(byte[] data)
+        public Task<byte[]> Decrypt(byte[] data)
         {
-            using ICryptoTransform decryptor = Aes!.CreateDecryptor();
-            return decryptor.TransformFinalBlock(data, 0, data.Length);
+            if (m_receive == null)
+                throw new WitExceptionEncryption("Encryptor is not initialized; the handshake has not completed");
+
+            return Task.FromResult(m_receive.Open(data));
         }
 
         #endregion
@@ -83,7 +105,8 @@ namespace OutWit.Communication.Client.Encryption
 
         public void Dispose()
         {
-            Aes?.Dispose();
+            m_send?.Dispose();
+            m_receive?.Dispose();
         }
 
         #endregion
@@ -93,8 +116,6 @@ namespace OutWit.Communication.Client.Encryption
         private RSAParameters PublicKey { get; }
 
         private RSAParameters PrivateKey { get; }
-
-        private Aes? Aes { get; set; }
 
         #endregion
     }

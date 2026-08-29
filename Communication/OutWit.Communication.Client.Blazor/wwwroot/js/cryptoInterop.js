@@ -1,4 +1,4 @@
-// WitRPC Crypto Interop for Blazor WebAssembly
+﻿// WitRPC Crypto Interop for Blazor WebAssembly
 // Provides RSA key generation and AES encryption using Web Crypto API.
 //
 // Stateless by design: generateKeys RETURNS the freshly generated keypair (both JWKs) instead of
@@ -111,6 +111,40 @@ window.cryptoInterop = {
             key,
             encryptedBytes
         );
+
+        return this._uint8ToBase64(new Uint8Array(decrypted));
+    },
+
+    // Protocol 3: AES-GCM. The caller owns the nonce (a counter) and the
+    // associated data; WebCrypto appends the 16-byte tag to the ciphertext.
+    async encryptAesGcm(base64Key, base64Nonce, base64Aad, base64Data) {
+        const keyBytes = Uint8Array.from(atob(base64Key), c => c.charCodeAt(0));
+        const nonceBytes = Uint8Array.from(atob(base64Nonce), c => c.charCodeAt(0));
+        const aadBytes = Uint8Array.from(atob(base64Aad), c => c.charCodeAt(0));
+        const dataBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+
+        const key = await window.crypto.subtle.importKey(
+            "raw", keyBytes, { name: "AES-GCM" }, false, ["encrypt"]);
+
+        const encrypted = await window.crypto.subtle.encrypt(
+            { name: "AES-GCM", iv: nonceBytes, additionalData: aadBytes, tagLength: 128 },
+            key, dataBytes);
+
+        return this._uint8ToBase64(new Uint8Array(encrypted));
+    },
+
+    async decryptAesGcm(base64Key, base64Nonce, base64Aad, base64Data) {
+        const keyBytes = Uint8Array.from(atob(base64Key), c => c.charCodeAt(0));
+        const nonceBytes = Uint8Array.from(atob(base64Nonce), c => c.charCodeAt(0));
+        const aadBytes = Uint8Array.from(atob(base64Aad), c => c.charCodeAt(0));
+        const dataBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+
+        const key = await window.crypto.subtle.importKey(
+            "raw", keyBytes, { name: "AES-GCM" }, false, ["decrypt"]);
+
+        const decrypted = await window.crypto.subtle.decrypt(
+            { name: "AES-GCM", iv: nonceBytes, additionalData: aadBytes, tagLength: 128 },
+            key, dataBytes);
 
         return this._uint8ToBase64(new Uint8Array(decrypted));
     }

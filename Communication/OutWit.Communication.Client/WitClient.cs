@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Threading.Channels;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -40,6 +41,13 @@ namespace OutWit.Communication.Client
         /// Raised when all reconnection attempts have failed.
         /// </summary>
         public event ReconnectionFailedEventHandler ReconnectionFailed = delegate { };
+
+        #endregion
+
+        #region Fields
+
+        private readonly Channel<byte[]> m_inbound = Channel.CreateUnbounded<byte[]>(
+            new UnboundedChannelOptions { SingleReader = true });
 
         #endregion
 
@@ -85,6 +93,8 @@ namespace OutWit.Communication.Client
             
             InitDefaults();
             InitEvents();
+
+            _ = Task.Run(ProcessInboundAsync);
         }
 
         #endregion
@@ -160,7 +170,7 @@ namespace OutWit.Communication.Client
             return IsInitialized;
         }
 
-        private async Task<bool> ProcessAuthorization()
+        private async Task<bool> ProcessAuthorization(TimeSpan? timeout = null)
         {
             if (IsAuthorized)
                 return true;
@@ -180,7 +190,7 @@ namespace OutWit.Communication.Client
             WitMessage? responseMessage;
             try
             {
-                responseMessage = await SendMessageAsync(requestMessage);
+                responseMessage = await SendMessageAsync(requestMessage, timeout);
             }
             catch (Exception e)
             {
@@ -232,7 +242,7 @@ namespace OutWit.Communication.Client
             if (!await ProcessInitialization(timeout))
                 return false;
 
-            if (!await ProcessAuthorization())
+            if (!await ProcessAuthorization(timeout))
                 return false;
 
             ConnectionState = ReconnectionState.Connected;
@@ -355,15 +365,16 @@ namespace OutWit.Communication.Client
 
             try
             {
-                var encryptedMessage = await Encrypt(message);
-                byte[] data = MessageSerializer.Serialize(encryptedMessage);
-
-                // Only the physical write is serialised — the transports do not
-                // support concurrent sends. The waits above and below do not hold
-                // the lock, so requests still overlap on the wire's turnaround.
+                // Sealing and sending stay under one lock: the AEAD counter
+                // demands that messages hit the wire in the order they were
+                // sealed, so encrypt-then-send must be atomic per message. The
+                // response wait below is outside the lock -- requests still
+                // overlap on the wire's turnaround.
                 await SendLock.WaitAsync();
                 try
                 {
+                    var encryptedMessage = await Encrypt(message);
+                    byte[] data = MessageSerializer.Serialize(encryptedMessage);
                     await Transport.SendBytesAsync(data);
                 }
                 finally
@@ -456,7 +467,7 @@ namespace OutWit.Communication.Client
                     
                     if (await Transport.ConnectAsync(timeout, token) &&
                         await ProcessInitialization(timeout) &&
-                        await ProcessAuthorization())
+                        await ProcessAuthorization(timeout))
                     {
                         ConnectionState = ReconnectionState.Connected;
                         Logger?.LogInformation($"Reconnection successful after {attempt} attempts");
@@ -511,7 +522,14 @@ namespace OutWit.Communication.Client
             var decryptedMessage = await Decrypt(message);
 
             if (message.Type == WitMessageType.Callback)
-                CallbackReceived(decryptedMessage.Data.GetRequest(MessageSerializer));
+            {
+                var callbackRequest = decryptedMessage.Data.GetRequest(MessageSerializer);
+
+                // Decryption stayed on the loop (ordered); the user's handlers
+                // run off it, so an event handler that calls back into this
+                // client cannot deadlock against its own inbound processing.
+                _ = Task.Run(() => CallbackReceived(callbackRequest));
+            }
 
             else if (PendingRequests.TryGetValue(decryptedMessage.Id, out var pending))
                 pending.TrySetResult(decryptedMessage);
@@ -520,29 +538,45 @@ namespace OutWit.Communication.Client
                 Logger?.LogWarning("Dropping a response with no waiting request: {MessageId}", decryptedMessage.Id);
         }
 
-        private async void OnDataReceived(Guid sender, byte[] data)
+        private void OnDataReceived(Guid sender, byte[] data)
+        {
+            if (data == null || data.Length == 0)
+            {
+                Logger?.LogWarning("Ignoring empty incoming payload from transport {TransportId}", sender);
+                return;
+            }
+
+            // Inbound frames are processed by one loop, in arrival order: the
+            // AEAD counter demands it, and it is what keeps a response from
+            // being decrypted before the callback sent just ahead of it.
+            m_inbound.Writer.TryWrite(data);
+        }
+
+        private async Task ProcessInboundAsync()
+        {
+            while (await m_inbound.Reader.WaitToReadAsync().ConfigureAwait(false))
+            {
+                while (m_inbound.Reader.TryRead(out byte[]? data))
+                    await ProcessInboundFrameAsync(data);
+            }
+        }
+
+        private async Task ProcessInboundFrameAsync(byte[] data)
         {
             try
             {
-                if (data == null || data.Length == 0)
-                {
-                    Logger?.LogWarning("Ignoring empty incoming payload from transport {TransportId}", sender);
-                    return;
-                }
-
                 var message = MessageSerializer.Deserialize<WitMessage>(data);
                 if (message == null)
                 {
-                    Logger?.LogWarning("Ignoring incoming payload that could not be deserialized into a message from transport {TransportId}", sender);
+                    Logger?.LogWarning("Ignoring incoming payload that could not be deserialized into a message");
                     return;
                 }
-
 
                 await OnMessageReceived(message);
             }
             catch (Exception e)
             {
-                Logger?.LogWarning(e, "Failed to process incoming payload from transport {TransportId}", sender);
+                Logger?.LogWarning(e, "Failed to process incoming payload");
             }
         }
 
@@ -580,6 +614,8 @@ namespace OutWit.Communication.Client
         {
             ReconnectionCts?.Cancel();
             ReconnectionCts?.Dispose();
+
+            m_inbound.Writer.TryComplete();
 
             foreach (var pending in PendingRequests.Values)
                 pending.TrySetException(new WitExceptionTransport("The client was disposed before a response arrived"));

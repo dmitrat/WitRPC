@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text;
 using System.Threading.Tasks;
 using OutWit.Communication.Client.Encryption.BouncyCastle;
@@ -43,18 +43,17 @@ namespace OutWit.Communication.Tests.Encryption
         [Test]
         public async Task ClientEncryptorEncryptsAndDecrypts()
         {
+            // Protocol 3 keys are directional, so an encryptor cannot decrypt
+            // its own output; a client's message opens on the server side.
+            using var server = new EncryptorServerBouncyCastle();
             using var encryptor = new EncryptorClientBouncyCastle();
 
-            var key = new byte[32];
-            var iv = new byte[16];
-            new Random().NextBytes(key);
-            new Random().NextBytes(iv);
-            encryptor.ResetAes(key, iv);
+            encryptor.ResetAes(server.GetSymmetricKey(), server.GetVector());
 
             var originalData = Encoding.UTF8.GetBytes("Hello, BouncyCastle!");
 
             var encrypted = await encryptor.Encrypt(originalData);
-            var decrypted = await encryptor.Decrypt(encrypted);
+            var decrypted = await server.Decrypt(encrypted);
 
             Assert.That(decrypted, Is.EqualTo(originalData));
         }
@@ -97,12 +96,17 @@ namespace OutWit.Communication.Tests.Encryption
         [Test]
         public async Task ServerEncryptorEncryptsAndDecrypts()
         {
+            // Directional keys: the server's output opens on a client that
+            // completed the handshake, never on the server itself.
             using var encryptor = new EncryptorServerBouncyCastle();
+            using var client = new EncryptorClientBouncyCastle();
+
+            client.ResetAes(encryptor.GetSymmetricKey(), encryptor.GetVector());
 
             var originalData = Encoding.UTF8.GetBytes("Hello from server!");
 
             var encrypted = await encryptor.Encrypt(originalData);
-            var decrypted = await encryptor.Decrypt(encrypted);
+            var decrypted = await client.Decrypt(encrypted);
 
             Assert.That(decrypted, Is.EqualTo(originalData));
         }

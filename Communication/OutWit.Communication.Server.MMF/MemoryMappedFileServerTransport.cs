@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO.MemoryMappedFiles;
 using System.Threading;
 using System.Threading.Tasks;
@@ -308,7 +308,10 @@ namespace OutWit.Communication.Server.MMF
                             }
 
                             byte[] data = result.Data ?? Array.Empty<byte>();
-                            _ = Task.Run(() => Callback(Id, data));
+                            // Frames must reach the subscriber in read order -- the AEAD
+                    // counter (and event ordering in general) depends on it. The
+                    // subscriber only enqueues, so the read loop is not held up.
+                    Callback(Id, data);
                             continue;
 
                         case MmfReceiveKind.Stopped:

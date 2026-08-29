@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -8,7 +8,9 @@ using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
+using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
+using OutWit.Communication.Utils;
 
 namespace OutWit.Communication.Client.Encryption.BouncyCastle
 {
@@ -93,8 +95,14 @@ namespace OutWit.Communication.Client.Encryption.BouncyCastle
         {
             try
             {
-                AesKey = symmetricKey;
-                AesIv = vector;
+                m_send?.Dispose();
+                m_receive?.Dispose();
+
+                var (clientToServer, serverToClient) = AeadCipher.DeriveKeys(symmetricKey, vector);
+
+                m_send = new AeadCipher(clientToServer, AeadCipher.DIRECTION_CLIENT_TO_SERVER);
+                m_receive = new AeadCipher(serverToClient, AeadCipher.DIRECTION_SERVER_TO_CLIENT);
+
                 return true;
             }
             catch (Exception)
@@ -109,20 +117,18 @@ namespace OutWit.Communication.Client.Encryption.BouncyCastle
 
         public Task<byte[]> Encrypt(byte[] data)
         {
-            var cipher = CipherUtilities.GetCipher("AES/CBC/PKCS7Padding");
-            cipher.Init(true, new ParametersWithIV(new KeyParameter(AesKey), AesIv));
-            
-            var encrypted = cipher.DoFinal(data);
-            return Task.FromResult(encrypted);
+            if (m_send == null)
+                throw new WitExceptionEncryption("Encryptor is not initialized; the handshake has not completed");
+
+            return Task.FromResult(m_send.Seal(data));
         }
 
         public Task<byte[]> Decrypt(byte[] data)
         {
-            var cipher = CipherUtilities.GetCipher("AES/CBC/PKCS7Padding");
-            cipher.Init(false, new ParametersWithIV(new KeyParameter(AesKey), AesIv));
-            
-            var decrypted = cipher.DoFinal(data);
-            return Task.FromResult(decrypted);
+            if (m_receive == null)
+                throw new WitExceptionEncryption("Encryptor is not initialized; the handshake has not completed");
+
+            return Task.FromResult(m_receive.Open(data));
         }
 
         #endregion
@@ -131,7 +137,8 @@ namespace OutWit.Communication.Client.Encryption.BouncyCastle
 
         public void Dispose()
         {
-            // BouncyCastle doesn't require explicit disposal
+            m_send?.Dispose();
+            m_receive?.Dispose();
         }
 
         #endregion
@@ -141,6 +148,10 @@ namespace OutWit.Communication.Client.Encryption.BouncyCastle
         private RsaKeyParameters PublicKey { get; set; } = null!;
 
         private RsaPrivateCrtKeyParameters PrivateKey { get; set; } = null!;
+
+        private AeadCipher? m_send;
+
+        private AeadCipher? m_receive;
 
         private byte[] AesKey { get; set; } = null!;
 

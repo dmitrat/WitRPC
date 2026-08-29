@@ -108,7 +108,10 @@ namespace OutWit.Communication.Client.Tcp
                     if (dataBuffer == null)
                         throw new WitExceptionTransport($"Server disconnected");
 
-                    _ = Task.Run(() => Callback(Id, dataBuffer));
+                    // Frames must reach the subscriber in read order -- the AEAD
+                    // counter (and event ordering in general) depends on it. The
+                    // subscriber only enqueues, so the read loop is not held up.
+                    Callback(Id, dataBuffer);
                 }
             }
             catch (Exception)

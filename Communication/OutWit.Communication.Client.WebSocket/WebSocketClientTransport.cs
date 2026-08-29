@@ -158,7 +158,10 @@ namespace OutWit.Communication.Client.WebSocket
                     if (data.Length == 0)
                         continue;
 
-                    _ = Task.Run(() => Callback(Id, data));
+                    // Frames must reach the subscriber in read order -- the AEAD
+                    // counter (and event ordering in general) depends on it. The
+                    // subscriber only enqueues, so the read loop is not held up.
+                    Callback(Id, data);
                 }
             }
             catch (Exception)

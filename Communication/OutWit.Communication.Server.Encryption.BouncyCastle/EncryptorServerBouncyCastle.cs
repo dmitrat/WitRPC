@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -9,7 +9,9 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
+using OutWit.Communication.Utils;
 
 namespace OutWit.Communication.Server.Encryption.BouncyCastle
 {
@@ -49,13 +51,21 @@ namespace OutWit.Communication.Server.Encryption.BouncyCastle
 
         public void Reset()
         {
+            m_send?.Dispose();
+            m_receive?.Dispose();
+
             var random = new SecureRandom();
-            
+
             AesKey = new byte[AES_KEY_SIZE];
             random.NextBytes(AesKey);
-            
+
             AesIv = new byte[AES_IV_SIZE];
             random.NextBytes(AesIv);
+
+            var (clientToServer, serverToClient) = AeadCipher.DeriveKeys(AesKey, AesIv);
+
+            m_send = new AeadCipher(serverToClient, AeadCipher.DIRECTION_SERVER_TO_CLIENT);
+            m_receive = new AeadCipher(clientToServer, AeadCipher.DIRECTION_CLIENT_TO_SERVER);
         }
 
         public Task<byte[]> EncryptForClient(byte[] data, byte[] clientPublicKey)
@@ -93,27 +103,18 @@ namespace OutWit.Communication.Server.Encryption.BouncyCastle
 
         public Task<byte[]> Encrypt(byte[] data)
         {
-            var cipher = CipherUtilities.GetCipher("AES/CBC/PKCS7Padding");
-            cipher.Init(true, new ParametersWithIV(new KeyParameter(AesKey), AesIv));
+            if (m_send == null)
+                throw new WitExceptionEncryption("Encryptor is not initialized");
 
-            var encrypted = cipher.DoFinal(data);
-            return Task.FromResult(encrypted);
+            return Task.FromResult(m_send.Seal(data));
         }
 
         public Task<byte[]> Decrypt(byte[] data)
         {
-            try
-            {
-                var cipher = CipherUtilities.GetCipher("AES/CBC/PKCS7Padding");
-                cipher.Init(false, new ParametersWithIV(new KeyParameter(AesKey), AesIv));
+            if (m_receive == null)
+                throw new WitExceptionEncryption("Encryptor is not initialized");
 
-                var decrypted = cipher.DoFinal(data);
-                return Task.FromResult(decrypted);
-            }
-            catch (Exception)
-            {
-                return Task.FromResult(Array.Empty<byte>());
-            }
+            return Task.FromResult(m_receive.Open(data));
         }
 
         #endregion
@@ -122,12 +123,17 @@ namespace OutWit.Communication.Server.Encryption.BouncyCastle
 
         public void Dispose()
         {
-            // BouncyCastle doesn't require explicit disposal
+            m_send?.Dispose();
+            m_receive?.Dispose();
         }
 
         #endregion
 
         #region Properties
+
+        private AeadCipher? m_send;
+
+        private AeadCipher? m_receive;
 
         private byte[] AesKey { get; set; } = null!;
 
