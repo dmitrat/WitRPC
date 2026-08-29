@@ -379,7 +379,82 @@ protocol version check. These are features, not hardening.
     boundary as shared source — two assemblies, two different .NET types — and
     dispatches via Stage 4's contract-scoped method ids, proving the
     assembly-independent routing on a live boundary.
-- [ ] Stage 7 — release
+- [x] Stage 7 — release prepared (commit on `v3`; publishing itself is a
+  workflow run + the consumer wave, below).
+  - **Versions**: every packable project is 3.0.0 — including `Client.Blazor`
+    (was 1.0.9) and `InterProcess.*` (were 2.3.x); one family, one number.
+  - **CHANGELOG**: a full 3.0.0 section — breaking changes, additions, fixes,
+    the known WebSocket-restart defect — dated 2026-08-29.
+  - **READMEs corrected** (the three the plan named, plus what a read-through
+    caught): encryption is now described as authenticated AES-256-GCM used as
+    defence in depth under TLS — the "end-to-end encryption" claim is gone
+    everywhere (core, server, both BouncyCastle packages, Blazor, InterProcess);
+    MMF is stated one-to-one by design with the `Local\` namespace and
+    both-ends-3.0 requirements; the REST contract is written down in the
+    Server.Rest README (envelope, base64-wrapped-JSON parameters, GET rule,
+    status mapping, limits) with the client README pointing at it; retry
+    semantics (idempotent-only, no InternalServerError retry) documented in
+    client + Blazor READMEs; the root README banner now says 3.0.0; the
+    InterProcess.Host README's fictional `WitProcessHost.Launch<T>` example is
+    replaced with the real `HostAgent`/`HostManager` API, including the 3.0
+    factory constructor.
+  - **Warnings as errors**: the whole CI filter builds Release with
+    `TreatWarningsAsErrors` — 30 own-code warnings fixed across the libraries
+    and tests (unused catch variables, fire-and-forget `Task.Run`, nullability,
+    two event declarations on `TcpServerTransport` shadowing the base class's,
+    `SYSLIB0057`, NUnit analyzer findings). Generated-proxy warnings
+    (CS0067/CS8669) are suppressed in the test project only, named as upstream.
+  - **Test-infra hardening** (the bind-flake fix): transport tests now take
+    OS-assigned free ports (bind port 0, cache per test name) instead of
+    hash-derived ranges — a port can no longer land in a Windows excluded-port
+    block (the 10013 story); kernel-object channel names carry the process id
+    and multi-TFM test runs are serialized (`TestTfmsInParallel=false`) — the
+    net8/net10 test hosts used to race each other for the same MMF/pipe names,
+    which is exactly what a both-TFMs run reproduced.
+  - **NativeAOT smoke does a real round-trip** (`Scripts/aot-smoke.ps1`, used
+    by CI): publish the AOT client (closure guard: no Castle), run it bare
+    (publish gate), then run it against a live JIT server — an **encrypted**
+    Echo + AddAsync round-trip through the generated proxy, with the contract
+    shared as linked source (two assemblies, id-based dispatch). The round-trip
+    immediately caught **three** real AOT defects, each invisible to the old
+    publish-only smoke: (1) the encryption handshake serialized `RSAParameters`
+    through reflection-based System.Text.Json, which NativeAOT refuses —
+    `RsaUtils` now writes/reads the same JWK-style JSON by hand (wire-identical,
+    JWK aliases accepted); (2) MemoryPack found wire-model formatters through a
+    reflection lookup that trimming removes — `MemoryPackWireFormatters` now
+    registers every wire model explicitly in a module initializer, statically
+    reachable, no reflection; (3) the generated proxy's type-name literals used
+    reference-facade assembly names that NativeAOT cannot resolve, fixed
+    upstream — pins raised to `OutWit.Common.Proxy` 1.2.11 and
+    `OutWit.Common.Proxy.Generator` 2.2.2 (both published). Diagnostics
+    improved along the way: the client logs handshake byte counts at Debug and
+    passes its logger into handshake deserialization, so a swallowed
+    serializer exception is named instead of degrading to a silent `false`.
+  - **CI gate** (`.github/workflows/ci.yml`): restore, Release build with
+    own-code warnings as errors on every TFM (via `WitRPC.CI.slnf` — libraries
+    and tests, no Examples), all three test projects on every TFM they target
+    with `--blame-hang`, the AOT smoke — and `publish.yml` now calls this
+    workflow and refuses to push unless every job is green. The known
+    WebSocket-restart hang test stays excluded, documented here under "Known
+    defects".
+  - Solution files: the five packages missing from `OutWit.sln` added; the new
+    `AotSmoke.Server` and `InterProcess.Tests.Agent` registered in both
+    `.sln` and `.slnx`.
+
+### The consumer wave (after packages are published)
+
+Publishing 3.0.0 is a `publish.yml` run per package (now gated on CI). Then:
+
+- **WitCloud** (the coordinated wave): pins `Client` 2.4.0, `Client.Blazor`
+  1.0.9, `Client.DynamicProxy` 2.4.0, `Client.WebSocket` 2.4.0,
+  `Server.WebSocket` 2.4.0, `Server.DependencyInjection` 2.3.10 → all to
+  3.0.0 in one commit; client and server sides must move together (protocol 3).
+  Review retry usage (`MarkIdempotent` for anything that relied on default
+  retries) and service-method thread-safety (`MaxConcurrentRequests`).
+- **WitAnalytics / WitForms / WitLicense** float on `2.3.*`/`1.0.*` — floating
+  ranges do not cross a major, so they stay on 2.x untouched until each repo
+  migrates deliberately.
+- **Common** pins 2.3.x/1.0.2 exactly — same story, migrates when chosen.
 
 ### Robustness fixes (found while validating, folded into the branch)
 
@@ -411,10 +486,11 @@ protocol version check. These are features, not hardening.
   **Fixed in the Stage 4 first half**: `OnServerDisconnected` and `Dispose` both
   complete pending requests with a transport exception, surfaced as
   `TransportError`.
-- **Tcp bind flakiness (`AccessDenied`/10013) — pre-existing, reproduces on `main`.**
-  Intermittent `TcpListener.Start()` bind failures across the Tcp test cases; a
-  test-infra port-selection issue, not a library defect. Belongs to Stage 7's
-  serialised-integration-test hardening.
+- ~~Tcp bind flakiness (`AccessDenied`/10013) — pre-existing, reproduces on `main`.~~
+  **Fixed in Stage 7's test-infra hardening**: ports are OS-assigned (bind port
+  0) instead of drawn from fixed ranges, so they cannot land in a Windows
+  excluded-port block; channel names carry the process id and multi-TFM test
+  runs are serialized, so parallel test hosts cannot collide either.
 
 ### Stage 1 notes (for whoever picks up Stage 2+)
 
