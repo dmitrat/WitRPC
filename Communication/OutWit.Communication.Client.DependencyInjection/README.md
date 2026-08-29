@@ -184,6 +184,8 @@ services.AddWitRpcRestClient<IOrderService>("orders-api", ctx =>
 {
     ctx.WithUrl("http://localhost:5000/api/orders/");
     ctx.WithAccessTokenProvider<MyTokenProvider>();   // from the container
+    ctx.WithHttpClient("orders-http");                 // services.AddHttpClient("orders-http"): handlers, resilience, headers
+    ctx.WithLogger("WitRPC.Rest");
     ctx.WithTimeout(TimeSpan.FromSeconds(30));
 });
 

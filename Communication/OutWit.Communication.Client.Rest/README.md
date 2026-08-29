@@ -32,7 +32,6 @@ The REST client is stateless (every call is an independent HTTP request, nothing
 
 ```csharp
 using OutWit.Communication.Client.Rest;
-using OutWit.Communication.Interceptors;
 
 var client = WitClientRestBuilder.Build(options =>
 {
@@ -44,16 +43,27 @@ var client = WitClientRestBuilder.Build(options =>
 
 // Source-generated proxy: [ProxyTarget("ExampleServiceProxy")] on the interface
 // plus the OutWit.Common.Proxy.Generator package — no extra runtime dependency:
-IExampleService service = new ExampleServiceProxy(new RequestInterceptor(client, true));
+IExampleService service = client.GetService<IExampleService>(interceptor => new ExampleServiceProxy(interceptor));
 ```
 
-Runtime-generated proxies work as well — add the opt-in [OutWit.Communication.Client.DynamicProxy](https://www.nuget.org/packages/OutWit.Communication.Client.DynamicProxy/) package (since 2.4.0) and create the proxy through Castle:
+Runtime-generated proxies work as well — add the opt-in [OutWit.Communication.Client.DynamicProxy](https://www.nuget.org/packages/OutWit.Communication.Client.DynamicProxy/) package (since 2.4.0; its `GetService<T>()` accepts a REST client since 3.1.1):
 
 ```csharp
-using Castle.DynamicProxy;
+IExampleService service = client.GetService<IExampleService>();
+```
 
-IExampleService service = new ProxyGenerator()
-    .CreateInterfaceProxyWithoutTarget<IExampleService>(new RequestInterceptorDynamic(client, true));
+Every option has an open form that takes your own implementation, next to the convenience ones (since 3.2.2):
+
+```csharp
+var client = WitClientRestBuilder.Build(options =>
+{
+    options.WithUrl("http://localhost:5000/api/example/");
+    options.WithAccessToken(() => tokenCache.Current);               // fetched on every call; an async form exists too
+    options.WithAccessTokenProvider(new MyTokenProvider());           // any IAccessTokenProvider
+    options.WithHttpMessageHandler(new SocketsHttpHandler { /* proxy, certificates, ... */ });
+    options.WithHttpClient(existingHttpClient);                       // or a client you already own
+    options.WithLogger(logger);                                       // token, timeout and transport failures
+});
 ```
 
 In this example, the client sends HTTP requests to `http://localhost:5000/api/example/`. Each method call on `service` becomes a `POST {base}/{MethodName}` whose body is a plain **JSON array of the arguments** (`["hello", 42]`) -- the same readable shape any curl or JavaScript caller would send, so a WitRPC client and a hand-written HTTP client are interchangeable on the wire. When `RestClientTransportOptions.Mode` allows it (`PostOnly` is the default), a call goes out as `GET {base}/{MethodName}?param1=...` instead. The full contract, with request and response examples, is documented in the **OutWit.Communication.Server.Rest** package README.
@@ -69,6 +79,8 @@ services.AddWitRpcRestClient<IExampleService>("api", ctx =>
 {
     ctx.WithUrl("http://localhost:5000/api/example/");
     ctx.WithAccessTokenProvider<MyTokenProvider>();   // resolved from the container
+    ctx.WithHttpClient("example-api");                 // services.AddHttpClient("example-api"): handlers, resilience, headers
+    ctx.WithLogger("WitRPC.Rest");
 });
 
 // later: IExampleService is an injectable proxy; IWitClientRestFactory gives the raw WitClientRest

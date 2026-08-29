@@ -285,10 +285,19 @@ services.AddWitRpcRestServer("orders-api", ctx =>
     ctx.WithService<IOrderService>();
 });
 
+// Several contracts in one host, each resolved from the container:
+services.AddWitRpcRestServerWithServices("orders-api", ctx => ctx.WithUrl("http://localhost:5000/api/"), composite =>
+{
+    composite.AddService<IOrderService, OrderService>();
+    composite.AddService<IPricingService>();             // already registered
+});
+
 // Resolve it explicitly instead of auto-starting:
 var server = provider.GetRequiredService<IWitServerRestFactory>().GetServer("orders-api");
 server.StartWaitingForConnection();
 ```
+
+Every interface-typed option resolves from the container the same way: `WithAccessTokenValidator<T>()`, `WithLogger<T>()` / `WithLogger(category)`, `WithService<T>()`, `WithRequestProcessor<T>(contracts)` on the REST context; `WithEncryptor<T>()`, `WithRequestProcessor<T>()` and `WithTransport<T>()` on the persistent one (since 3.2.1).
 
 The REST contract (plain JSON in, plain JSON out) is documented in the `OutWit.Communication.Server.Rest` package README.
 

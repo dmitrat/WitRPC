@@ -43,6 +43,21 @@ namespace OutWit.Communication.Client
             return create(new RequestInterceptor(me, strongAssemblyMatch, typeof(TService)));
         }
 
+        #region Transport
+
+        /// <summary>
+        /// Uses a custom transport: any <see cref="ITransportClient"/>, the same
+        /// way the transport packages plug in their own (<c>WithWebSocket</c>,
+        /// <c>WithTcp</c>, <c>WithNamedPipe</c>, <c>WithMemoryMappedFile</c>).
+        /// </summary>
+        public static WitClientBuilderOptions WithTransport(this WitClientBuilderOptions me, ITransportClient transport)
+        {
+            me.Transport = transport;
+            return me;
+        }
+
+        #endregion
+
         #region Authorization
 
         public static WitClientBuilderOptions WithAccessTokenProvider(this WitClientBuilderOptions me, IAccessTokenProvider provider)

@@ -111,5 +111,39 @@ namespace OutWit.Communication.Server.DependencyInjection
         }
 
         #endregion
+
+        #region Processor
+
+        /// <summary>
+        /// Uses the <typeparamref name="TProcessor"/> registered in the container as the request processor.
+        /// </summary>
+        public static WitServerBuilderContext WithRequestProcessor<TProcessor>(this WitServerBuilderContext context)
+            where TProcessor : IRequestProcessor
+        {
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
+            context.RequestProcessor = context.ServiceProvider.GetRequiredService<TProcessor>();
+            return context;
+        }
+
+        #endregion
+
+        #region Transport
+
+        /// <summary>
+        /// Uses the <typeparamref name="TFactory"/> registered in the container as the transport.
+        /// </summary>
+        public static WitServerBuilderContext WithTransport<TFactory>(this WitServerBuilderContext context)
+            where TFactory : ITransportServerFactory
+        {
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
+            context.TransportFactory = context.ServiceProvider.GetRequiredService<TFactory>();
+            return context;
+        }
+
+        #endregion
     }
 }

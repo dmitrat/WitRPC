@@ -1,8 +1,10 @@
 using System;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using OutWit.Communication.Server.DependencyInjection.Interfaces;
+using OutWit.Communication.Server.Rest;
 
 namespace OutWit.Communication.Server.DependencyInjection
 {
@@ -97,6 +99,48 @@ namespace OutWit.Communication.Server.DependencyInjection
             where TImplementation : class, TService
         {
             services.AddWitRpcRestServer<TService, TImplementation>(name, configure);
+
+            if (autoStart)
+                RegisterHostedService(services, name);
+
+            return services;
+        }
+
+
+        /// <summary>
+        /// Registers a named REST server exposing several service contracts, each
+        /// resolved from the container -- the REST twin of <c>AddWitRpcServerWithServices</c>.
+        /// </summary>
+        public static IServiceCollection AddWitRpcRestServerWithServices(this IServiceCollection services, string name,
+            Action<WitServerRestBuilderContext> configure, Action<CompositeServiceRegistration> configureServices)
+        {
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+            if (configure == null)
+                throw new ArgumentNullException(nameof(configure));
+            if (configureServices == null)
+                throw new ArgumentNullException(nameof(configureServices));
+
+            var registration = new CompositeServiceRegistration(services);
+            configureServices(registration);
+
+            return services.AddWitRpcRestServer(name, context =>
+            {
+                configure(context);
+                WitServerRestBuilder.WithRequestProcessor(context, registration.CreateProcessor(context.ServiceProvider), registration.ServiceTypes.ToArray());
+            });
+        }
+
+        /// <summary>
+        /// Registers a named REST server exposing several service contracts,
+        /// started with the host when <paramref name="autoStart"/> is set.
+        /// </summary>
+        public static IServiceCollection AddWitRpcRestServerWithServices(this IServiceCollection services, string name,
+            Action<WitServerRestBuilderContext> configure, Action<CompositeServiceRegistration> configureServices, bool autoStart)
+        {
+            services.AddWitRpcRestServerWithServices(name, configure, configureServices);
 
             if (autoStart)
                 RegisterHostedService(services, name);

@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Model;
@@ -51,7 +52,7 @@ namespace OutWit.Communication.Client.Rest
 
         #region Constructors
 
-        public WitClientRest(RestClientTransportOptions options, IAccessTokenProvider tokenProvider)
+        public WitClientRest(RestClientTransportOptions options, IAccessTokenProvider tokenProvider, ILogger? logger = null, HttpClient? httpClient = null)
         {
             if (string.IsNullOrEmpty(options.Host?.Connection))
                 throw new WitException("Url cannot be empty");
@@ -59,6 +60,8 @@ namespace OutWit.Communication.Client.Rest
             Options = options;
             ParametersSerializer = new MessageSerializerJson();
             TokenProvider = tokenProvider;
+            Logger = logger;
+            Http = httpClient ?? s_http;
         }
 
         #endregion
@@ -79,6 +82,7 @@ namespace OutWit.Communication.Client.Rest
             }
             catch (Exception e)
             {
+                Logger?.LogError(e, "REST call {Method}: failed to obtain the access token", request.MethodName);
                 return WitResponse.TransportError("Failed to obtain the access token", e);
             }
 
@@ -87,22 +91,27 @@ namespace OutWit.Communication.Client.Rest
 
             try
             {
-                using var httpResponse = await s_http
+                using var httpResponse = await Http
                     .SendAsync(httpRequest, HttpCompletionOption.ResponseContentRead, timeout?.Token ?? CancellationToken.None)
                     .ConfigureAwait(false);
 
                 byte[] body = await httpResponse.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
 
-                return httpResponse.IsSuccessStatusCode
-                    ? WitResponse.Success(body)
-                    : ToFault(httpResponse.StatusCode, body);
+                if (httpResponse.IsSuccessStatusCode)
+                    return WitResponse.Success(body);
+
+                Logger?.LogWarning("REST call {Method} to {Host} answered HTTP {Status}", request.MethodName, Options.Host, (int)httpResponse.StatusCode);
+                return ToFault(httpResponse.StatusCode, body);
             }
-            catch (OperationCanceledException) when (timeout is { IsCancellationRequested: true })
+            catch (OperationCanceledException)
             {
+                // The per-call timeout or the HttpClient's own: a timeout either way.
+                Logger?.LogWarning("REST call {Method} to {Host} timed out", request.MethodName, Options.Host);
                 return WitResponse.Timeout("REST request timed out");
             }
             catch (Exception e)
             {
+                Logger?.LogError(e, "REST call {Method} to {Host} failed", request.MethodName, Options.Host);
                 return WitResponse.TransportError("REST request failed", e);
             }
         }
@@ -260,6 +269,10 @@ namespace OutWit.Communication.Client.Rest
         public IMessageSerializer ParametersSerializer { get; }
 
         public IAccessTokenProvider TokenProvider { get; }
+
+        public ILogger? Logger { get; }
+
+        private HttpClient Http { get; }
 
         #endregion
     }

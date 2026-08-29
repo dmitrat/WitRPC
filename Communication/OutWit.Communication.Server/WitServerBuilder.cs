@@ -46,6 +46,21 @@ namespace OutWit.Communication.Server
                 options.HandshakeTimeout);
         }
 
+        #region Transport
+
+        /// <summary>
+        /// Uses a custom transport: any <see cref="ITransportServerFactory"/>, the
+        /// same way the transport packages plug in their own (<c>WithWebSocket</c>,
+        /// <c>WithTcp</c>, <c>WithNamedPipe</c>, <c>WithMemoryMappedFile</c>).
+        /// </summary>
+        public static WitServerBuilderOptions WithTransport(this WitServerBuilderOptions me, ITransportServerFactory transportFactory)
+        {
+            me.TransportFactory = transportFactory;
+            return me;
+        }
+
+        #endregion
+
         #region Processor
 
         public static WitServerBuilderOptions WithRequestProcessor(this WitServerBuilderOptions me, IRequestProcessor requestProcessor)
@@ -206,6 +221,13 @@ namespace OutWit.Communication.Server
         public static WitServerBuilderOptions WithDescription(this WitServerBuilderOptions me, string description)
         {
             me.Description = description;
+            return me;
+        }
+
+        /// <summary>Uses a custom discovery server: any <see cref="IDiscoveryServer"/>.</summary>
+        public static WitServerBuilderOptions WithDiscovery(this WitServerBuilderOptions me, IDiscoveryServer discoveryServer)
+        {
+            me.DiscoveryServer = discoveryServer;
             return me;
         }
 

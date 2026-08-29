@@ -144,6 +144,43 @@ namespace OutWit.Communication.Tests.DependencyInjection
             Assert.That(() => service.RequestData("nope"), Throws.Exception.With.Message.Contains("Token"));
         }
 
+
+        [Test]
+        public void NamedHttpClientAndLoggerComeFromTheContainerTest()
+        {
+            var url = NextUrl();
+            var handler = new MockHttpHandlerCounting();
+
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddHttpClient("rest-http").AddHttpMessageHandler(() => handler);
+            services.AddWitRpcRestServer("server", ctx =>
+            {
+                ctx.WithUrl(url);
+                ctx.WithoutAuthorization();
+                ctx.WithService<IService>(new MockService());
+            });
+            services.AddWitRpcRestClient<IService>("client", ctx =>
+            {
+                ctx.WithUrl(url);
+                ctx.WithoutAuthorization();
+                ctx.WithHttpClient("rest-http");
+                ctx.WithLogger("WitRPC.Rest");
+                ctx.WithTimeout(TimeSpan.FromSeconds(10));
+            }, strongAssemblyMatch: false);
+
+            using var provider = services.BuildServiceProvider();
+            using var server = provider.GetRequiredService<IWitServerRestFactory>().GetServer("server");
+            server.StartWaitingForConnection();
+
+            var service = provider.GetRequiredService<IService>();
+            var client = provider.GetRequiredService<IWitClientRestFactory>().GetClient("client");
+
+            Assert.That(service.RequestData("through factory"), Is.EqualTo("through factory"));
+            Assert.That(handler.Requests, Is.EqualTo(1));
+            Assert.That(client.Logger, Is.Not.Null);
+        }
+
         #endregion
     }
 }

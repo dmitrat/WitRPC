@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using OutWit.Communication.Processors;
 
 namespace OutWit.Communication.Server.DependencyInjection
 {
@@ -73,6 +75,29 @@ namespace OutWit.Communication.Server.DependencyInjection
             m_services.TryAddSingleton(implementationFactory);
             m_serviceTypes.Add(typeof(TService));
             return this;
+        }
+
+        #endregion
+
+        #region Tools
+
+        /// <summary>
+        /// Resolves every registered service from <paramref name="serviceProvider"/>
+        /// into one composite processor.
+        /// </summary>
+        internal CompositeRequestProcessor CreateProcessor(IServiceProvider serviceProvider)
+        {
+            var processor = new CompositeRequestProcessor();
+            var register = typeof(CompositeRequestProcessor)
+                .GetMethods()
+                .Single(m => m.Name == nameof(CompositeRequestProcessor.Register)
+                             && m.IsGenericMethodDefinition
+                             && m.GetGenericArguments().Length == 1);
+
+            foreach (var serviceType in m_serviceTypes)
+                register.MakeGenericMethod(serviceType).Invoke(processor, new[] { serviceProvider.GetRequiredService(serviceType) });
+
+            return processor;
         }
 
         #endregion

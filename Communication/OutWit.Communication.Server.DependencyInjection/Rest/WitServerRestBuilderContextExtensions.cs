@@ -69,5 +69,23 @@ namespace OutWit.Communication.Server.DependencyInjection
         }
 
         #endregion
+
+        #region Processor
+
+        /// <summary>
+        /// Uses the <typeparamref name="TProcessor"/> registered in the container;
+        /// the contracts are what the REST layer binds readable calls against.
+        /// </summary>
+        public static WitServerRestBuilderContext WithRequestProcessor<TProcessor>(this WitServerRestBuilderContext context, params Type[] contracts)
+            where TProcessor : IRequestProcessor
+        {
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
+            WitServerRestBuilder.WithRequestProcessor(context, context.ServiceProvider.GetRequiredService<TProcessor>(), contracts);
+            return context;
+        }
+
+        #endregion
     }
 }

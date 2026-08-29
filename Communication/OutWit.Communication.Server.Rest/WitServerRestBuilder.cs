@@ -101,6 +101,22 @@ namespace OutWit.Communication.Server.Rest
 
         #endregion
 
+        #region Composite Services
+
+        /// <summary>
+        /// Starts composing several service contracts into this one REST host;
+        /// finish with <c>.Build()</c>.
+        /// </summary>
+        /// <param name="me">The REST server options.</param>
+        /// <param name="isStrongAssemblyMatch">Whether to use strong assembly matching for method resolution.</param>
+        /// <returns>A composite service builder for chaining.</returns>
+        public static CompositeServiceBuilderRest WithServices(this WitServerRestBuilderOptions me, bool isStrongAssemblyMatch = true)
+        {
+            return new CompositeServiceBuilderRest(me, isStrongAssemblyMatch);
+        }
+
+        #endregion
+
         #region Authorization
 
         public static WitServerRestBuilderOptions WithAccessTokenValidator(this WitServerRestBuilderOptions me, IAccessTokenValidator validator)

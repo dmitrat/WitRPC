@@ -174,20 +174,8 @@ namespace OutWit.Communication.Server.DependencyInjection
                 {
                     configure(ctx);
 
-                    var processor = new CompositeRequestProcessor();
-                    foreach (var serviceType in registration.ServiceTypes)
-                    {
-                        var service = ctx.ServiceProvider.GetRequiredService(serviceType);
-                        var registerMethod = typeof(CompositeRequestProcessor)
-                            .GetMethods()
-                            .Single(m => m.Name == nameof(CompositeRequestProcessor.Register)
-                                         && m.IsGenericMethodDefinition
-                                         && m.GetGenericArguments().Length == 1)
-                            .MakeGenericMethod(serviceType);
-                        registerMethod.Invoke(processor, new[] { service });
-                    }
 
-                    ctx.WithRequestProcessor(processor);
+                    ctx.WithRequestProcessor(registration.CreateProcessor(ctx.ServiceProvider));
                 });
             });
 

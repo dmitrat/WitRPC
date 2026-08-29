@@ -46,6 +46,8 @@ namespace OutWit.Communication.Client
 
         #region Fields
 
+        private bool m_isDisposed;
+
         private readonly Channel<byte[]> m_inbound = Channel.CreateUnbounded<byte[]>(
             new UnboundedChannelOptions { SingleReader = true });
 
@@ -619,6 +621,11 @@ namespace OutWit.Communication.Client
 
         public void Dispose()
         {
+            if (m_isDisposed)
+                return;
+
+            m_isDisposed = true;
+
             ReconnectionCts?.Cancel();
             ReconnectionCts?.Dispose();
 

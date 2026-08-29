@@ -42,6 +42,21 @@ var server = WitServerRestBuilder.Build(options =>
 server.StartWaitingForConnection();
 ```
 
+Several contracts can share one host -- the persistent server's `WithServices()` has its REST twin (since 3.2.2):
+
+```csharp
+var server = WitServerRestBuilder.Build(options =>
+{
+    options.WithUrl("http://localhost:5000/api/");
+    options.WithServices()
+        .AddService<IOrderService>(new OrderService())
+        .AddService<IPricingService, PricingService>(new PricingService())
+        .Build();
+});
+```
+
+Every option has an open form that takes your own implementation: `WithRequestProcessor(processor, contracts)`, `WithAccessTokenValidator(validator)`, `WithLogger(logger)`, `WithOptions(transportOptions)`.
+
 Or through dependency injection (`OutWit.Communication.Server.DependencyInjection`, since 3.2.0) -- registered by name, built on first use, started with the host when `autoStart` is set:
 
 ```csharp
@@ -54,6 +69,13 @@ services.AddWitRpcRestServer<IExampleService, ExampleService>("api", ctx =>
 
 // or expose a service already registered in the container:
 services.AddWitRpcRestServer("api", ctx => { ctx.WithUrl("..."); ctx.WithService<IExampleService>(); });
+
+// or several contracts, each resolved from the container:
+services.AddWitRpcRestServerWithServices("api", ctx => ctx.WithUrl("..."), composite =>
+{
+    composite.AddService<IOrderService, OrderService>();
+    composite.AddService<IPricingService>();          // already registered
+});
 ```
 
 In this configuration, the server listens for HTTP requests at the base URL `http://localhost:5000/api/example/`. This transport is WitRPC's **compatibility layer**: the caller on the other side does not need to be WitRPC at all -- curl, a browser, a Python script. The contract (since 3.2.0) is plain JSON both ways:

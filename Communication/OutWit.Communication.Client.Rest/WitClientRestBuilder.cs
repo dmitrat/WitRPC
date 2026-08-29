@@ -1,6 +1,11 @@
 using System;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using OutWit.Common.Proxy.Interfaces;
 using OutWit.Communication.Client.Authorization;
 using OutWit.Communication.Exceptions;
+using OutWit.Communication.Interceptors;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Model;
 
@@ -34,7 +39,19 @@ namespace OutWit.Communication.Client.Rest
                 Host = options.Host,
                 Mode = options.Mode,
                 Timeout = options.Timeout
-            }, options.TokenProvider);
+            }, options.TokenProvider, options.Logger, options.HttpClient);
+        }
+
+        /// <summary>
+        /// Creates a source-generated proxy over the client (the NativeAOT-friendly
+        /// path): <c>client.GetService&lt;IExampleService&gt;(i =&gt; new ExampleServiceProxy(i))</c>.
+        /// The runtime-generated form, <c>client.GetService&lt;IExampleService&gt;()</c>,
+        /// comes with the opt-in OutWit.Communication.Client.DynamicProxy package.
+        /// </summary>
+        public static TService GetService<TService>(this WitClientRest me, Func<IProxyInterceptor, TService> create, bool strongAssemblyMatch = true)
+            where TService : class
+        {
+            return create(new RequestInterceptor(me, strongAssemblyMatch, typeof(TService)));
         }
 
         #region Transport
@@ -85,6 +102,24 @@ namespace OutWit.Communication.Client.Rest
             return me;
         }
 
+        /// <summary>
+        /// A token fetched on every call -- for tokens that expire and refresh.
+        /// </summary>
+        public static WitClientRestBuilderOptions WithAccessToken(this WitClientRestBuilderOptions me, Func<Task<string>> getTokenAsync)
+        {
+            me.TokenProvider = new AccessTokenProviderCallback(getTokenAsync);
+            return me;
+        }
+
+        /// <summary>
+        /// A token fetched on every call -- for tokens that expire and refresh.
+        /// </summary>
+        public static WitClientRestBuilderOptions WithAccessToken(this WitClientRestBuilderOptions me, Func<string> getToken)
+        {
+            me.TokenProvider = new AccessTokenProviderCallback(getToken);
+            return me;
+        }
+
         public static WitClientRestBuilderOptions WithoutAuthorization(this WitClientRestBuilderOptions me)
         {
             me.TokenProvider = new AccessTokenProviderPlain();
@@ -99,6 +134,41 @@ namespace OutWit.Communication.Client.Rest
         public static WitClientRestBuilderOptions WithTimeout(this WitClientRestBuilderOptions me, TimeSpan timeout)
         {
             me.Timeout = timeout;
+            return me;
+        }
+
+        #endregion
+
+        #region Logger
+
+        public static WitClientRestBuilderOptions WithLogger(this WitClientRestBuilderOptions me, ILogger logger)
+        {
+            me.Logger = logger;
+            return me;
+        }
+
+        #endregion
+
+        #region Http
+
+        /// <summary>
+        /// Sends every call through this <see cref="HttpClient"/> -- the place for a
+        /// proxy, client certificates, default headers or a test handler. Its own
+        /// timeout is honoured and reported as a timeout, like <see cref="WithTimeout"/>.
+        /// </summary>
+        public static WitClientRestBuilderOptions WithHttpClient(this WitClientRestBuilderOptions me, HttpClient httpClient)
+        {
+            me.HttpClient = httpClient;
+            return me;
+        }
+
+        /// <summary>
+        /// Sends every call through a client built on this handler chain. The
+        /// client's own timeout is disabled; <see cref="WithTimeout"/> bounds each call.
+        /// </summary>
+        public static WitClientRestBuilderOptions WithHttpMessageHandler(this WitClientRestBuilderOptions me, HttpMessageHandler handler)
+        {
+            me.HttpClient = new HttpClient(handler) { Timeout = System.Threading.Timeout.InfiniteTimeSpan };
             return me;
         }
 

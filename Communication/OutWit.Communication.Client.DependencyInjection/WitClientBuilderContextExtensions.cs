@@ -89,5 +89,22 @@ namespace OutWit.Communication.Client.DependencyInjection
         }
 
         #endregion
+
+        #region Transport
+
+        /// <summary>
+        /// Uses the <typeparamref name="TTransport"/> registered in the container as the transport.
+        /// </summary>
+        public static WitClientBuilderContext WithTransport<TTransport>(this WitClientBuilderContext context)
+            where TTransport : ITransportClient
+        {
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+
+            context.Transport = context.ServiceProvider.GetRequiredService<TTransport>();
+            return context;
+        }
+
+        #endregion
     }
 }

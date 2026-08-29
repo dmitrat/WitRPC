@@ -10,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
 using OutWit.Communication.Server.DependencyInjection;
 using OutWit.Communication.Server.DependencyInjection.Interfaces;
+using OutWit.Communication.Processors;
 using OutWit.Communication.Server.Rest;
 using OutWit.Communication.Tests.Mock;
 using OutWit.Communication.Tests.Mock.Interfaces;
@@ -172,6 +173,62 @@ namespace OutWit.Communication.Tests.DependencyInjection
             {
                 await hosted.StopAsync(CancellationToken.None);
             }
+        }
+
+
+        [Test]
+        public async Task CompositeRegistrationAnswersEveryContractTest()
+        {
+            var url = NextUrl();
+
+            var services = new ServiceCollection();
+            services.AddWitRpcRestServerWithServices("rest",
+                ctx =>
+                {
+                    ctx.WithUrl(url);
+                    ctx.WithoutAuthorization();
+                },
+                composite =>
+                {
+                    composite.AddService<IService>(_ => new MockService());
+                    composite.AddService<IEchoService, MockEchoService>();
+                });
+
+            using var provider = services.BuildServiceProvider();
+            using var server = provider.GetRequiredService<IWitServerRestFactory>().GetServer("rest");
+            server.StartWaitingForConnection();
+
+            var (status1, body1) = await PostAsync(url, "RequestData", "[\"composite\"]");
+            var (status2, body2) = await PostAsync(url, "SumNumbers", "{\"a\":2,\"b\":3}");
+
+            Assert.That(status1, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(JsonSerializer.Deserialize<string>(body1), Is.EqualTo("composite"));
+            Assert.That(status2, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(JsonSerializer.Deserialize<int>(body2), Is.EqualTo(5));
+        }
+
+        [Test]
+        public async Task RequestProcessorResolvedFromContainerTest()
+        {
+            var url = NextUrl();
+
+            var services = new ServiceCollection();
+            services.AddSingleton(new RequestProcessor<IService>(new MockService()));
+            services.AddWitRpcRestServer("rest", ctx =>
+            {
+                ctx.WithUrl(url);
+                ctx.WithoutAuthorization();
+                ctx.WithRequestProcessor<RequestProcessor<IService>>(typeof(IService));
+            });
+
+            using var provider = services.BuildServiceProvider();
+            using var server = provider.GetRequiredService<IWitServerRestFactory>().GetServer("rest");
+            server.StartWaitingForConnection();
+
+            var (status, body) = await PostAsync(url, "RequestData", "{\"message\":\"from processor\"}");
+
+            Assert.That(status, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(JsonSerializer.Deserialize<string>(body), Is.EqualTo("from processor"));
         }
 
         #endregion

@@ -1,4 +1,6 @@
 using System;
+using System.Net.Http;
+using Microsoft.Extensions.Logging;
 using OutWit.Communication.Client.Authorization;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Model;
@@ -30,6 +32,16 @@ namespace OutWit.Communication.Client.Rest
         public TimeSpan? Timeout { get; set; }
 
         public IAccessTokenProvider TokenProvider { get; set; }
+
+        /// <summary>Where failures are logged; <c>null</c> logs nothing.</summary>
+        public ILogger? Logger { get; set; }
+
+        /// <summary>
+        /// The <see cref="HttpClient"/> every call goes through -- the place for a
+        /// proxy, client certificates, default headers or a test handler.
+        /// <c>null</c> uses one shared, pooled client.
+        /// </summary>
+        public HttpClient? HttpClient { get; set; }
 
         #endregion
     }

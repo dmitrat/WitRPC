@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Note**: Since 2.3.1, package versions diverge per package family. Each section below lists the package versions it produced (verified against csproj `<Version>` values).
 
+## [Open extension points: Server / Client / Client.DynamicProxy 3.1.1, Server.Rest / Client.Rest 3.2.2, Server.DependencyInjection / Client.DependencyInjection 3.2.1] - 2026-08-29
+
+### Added
+
+- Every builder option now has an open form that takes an implementation, next to the convenience presets: `WithTransport(ITransportServerFactory)` / `WithTransport(ITransportClient)` and `WithDiscovery(IDiscoveryServer)` on the persistent builders; `WithLogger(ILogger)`, `WithHttpClient(HttpClient)`, `WithHttpMessageHandler(HttpMessageHandler)` and the token callbacks `WithAccessToken(Func<string>)` / `WithAccessToken(Func<Task<string>>)` on the REST client.
+- `WitServerRestBuilder.WithServices()` -- several contracts in one REST host (`CompositeServiceBuilderRest`) -- and `AddWitRpcRestServerWithServices(...)` for the same through the container.
+- Proxies straight off the REST client: `client.GetService<T>(interceptor => new TProxy(interceptor))` (source-generated) and, with Client.DynamicProxy, `client.GetService<T>()` -- the runtime overload now accepts any `IClient`.
+- The DI contexts resolve every interface-typed option from the container: `WithRequestProcessor<TProcessor>()` and `WithTransport<TFactory>()` (server), `WithTransport<TTransport>()` (client), `WithRequestProcessor<TProcessor>(contracts)` (REST server), `WithLogger<TLogger>()` / `WithLogger(category)` / `WithHttpClient(name)` through `IHttpClientFactory` (REST client; Client.DependencyInjection now references Microsoft.Extensions.Http).
+
+### Changed
+
+- `WitClient.Dispose()` is idempotent: a client the DI factory owns and the caller has already disposed no longer throws `ObjectDisposedException` when the host shuts down.
+- The REST client logs token, timeout and transport failures when a logger is set, and reports an HTTP-level cancellation (a supplied `HttpClient`'s own timeout) as `Timeout` rather than `TransportError`.
+
 ## [REST via DI: Client.DependencyInjection / Server.DependencyInjection 3.2.0, Client.Rest / Server.Rest 3.2.1] - 2026-08-29
 
 ### Added

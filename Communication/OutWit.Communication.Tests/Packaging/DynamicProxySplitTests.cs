@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using OutWit.Communication.Client;
+using OutWit.Communication.Interfaces;
 using OutWit.Communication.Interceptors;
 using OutWit.Communication.Messages;
 using OutWit.Communication.Server;
@@ -72,12 +73,15 @@ namespace OutWit.Communication.Tests.Packaging
             Assert.That(typeof(WitClientDynamicProxyExtensions).Namespace,
                 Is.EqualTo("OutWit.Communication.Client"));
 
-            var extension = typeof(WitClientDynamicProxyExtensions)
-                .GetMethod("GetService", BindingFlags.Public | BindingFlags.Static);
+            // One overload for the persistent client, one for any IClient (the
+            // stateless REST client in particular, since 3.1.1).
+            var receivers = typeof(WitClientDynamicProxyExtensions)
+                .GetMethods(BindingFlags.Public | BindingFlags.Static)
+                .Where(method => method.Name == "GetService")
+                .Select(method => method.GetParameters().First().ParameterType)
+                .ToArray();
 
-            Assert.That(extension, Is.Not.Null);
-            Assert.That(extension!.GetParameters().First().ParameterType,
-                Is.EqualTo(typeof(WitClient)));
+            Assert.That(receivers, Is.EquivalentTo(new[] { typeof(WitClient), typeof(IClient) }));
         }
     }
 }
