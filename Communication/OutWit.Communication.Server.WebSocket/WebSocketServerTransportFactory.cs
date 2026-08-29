@@ -53,9 +53,13 @@ namespace OutWit.Communication.Server.WebSocket
                 if (Listener != null)
                     throw new InvalidOperationException("WebSocket listener is already running");
 
+                var host = Options.Host;
+                if (host == null)
+                    throw new InvalidOperationException("WebSocket host is not configured");
+
                 var cancellationTokenSource = new CancellationTokenSource();
                 var listener = new HttpListener();
-                listener.Prefixes.Add(Options.Host.BuildConnection());
+                listener.Prefixes.Add(host.BuildConnection());
 
                 try
                 {
@@ -63,7 +67,7 @@ namespace OutWit.Communication.Server.WebSocket
                 }
                 catch (Exception ex)
                 {
-                    logger?.LogError(ex, "SERVER: Failed to start listener for {Prefix}", Options.Host.BuildConnection());
+                    logger?.LogError(ex, "SERVER: Failed to start listener for {Prefix}", host.BuildConnection());
                     listener.Close();
                     cancellationTokenSource.Dispose();
                     throw;
@@ -73,7 +77,7 @@ namespace OutWit.Communication.Server.WebSocket
                 Listener = listener;
                 AcceptLoopTask = Task.Run(() => AcceptLoopAsync(listener, cancellationTokenSource.Token, logger));
 
-                logger?.LogInformation("SERVER: Listener started successfully for {Prefix}", Options.Host.BuildConnection());
+                logger?.LogInformation("SERVER: Listener started successfully for {Prefix}", host.BuildConnection());
             }
         }
 

@@ -213,7 +213,7 @@ namespace OutWit.Communication.Processors
             }
         }
 
-        private async Task<WitResponse> ProcessAsync(object service, MethodInfo method, object?[] parameters)
+        private async Task<WitResponse> ProcessAsync(object service, MethodInfo method, object?[]? parameters)
         {
             try
             {
@@ -231,7 +231,7 @@ namespace OutWit.Communication.Processors
             }
         }
 
-        private async Task<WitResponse> ProcessGenericAsync(object service, MethodInfo method, object?[] parameters)
+        private async Task<WitResponse> ProcessGenericAsync(object service, MethodInfo method, object?[]? parameters)
         {
             try
             {

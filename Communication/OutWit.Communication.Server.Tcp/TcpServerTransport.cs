@@ -6,14 +6,6 @@ namespace OutWit.Communication.Server.Tcp
 {
     public class TcpServerTransport : TcpServerTransportBase<TcpServerTransportOptions>
     {
-        #region Events
-
-        public event TransportDataEventHandler Callback = delegate { };
-
-        public event TransportEventHandler Disconnected = delegate { };
-
-        #endregion
-
         #region Constructors
 
         public TcpServerTransport(TcpClient? client, TcpServerTransportOptions options)

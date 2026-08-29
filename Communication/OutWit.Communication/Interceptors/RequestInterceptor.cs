@@ -140,7 +140,7 @@ namespace OutWit.Communication.Interceptors
                 
                 return Client.ParametersSerializer.Deserialize(response.Data, returnType);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 throw response.CreateFaultException();
             }

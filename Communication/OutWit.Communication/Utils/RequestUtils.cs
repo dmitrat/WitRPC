@@ -150,7 +150,7 @@ namespace OutWit.Communication.Utils
 
                 return request;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return null;
             }
@@ -192,7 +192,7 @@ namespace OutWit.Communication.Utils
 
                 return null;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return null;
             }

@@ -33,7 +33,7 @@ namespace OutWit.InterProcess.Agent
                 process = Process.GetProcessById(Parameters.ParentProcessId);
                 process.EnableRaisingEvents = true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Shutdown(0);
             }

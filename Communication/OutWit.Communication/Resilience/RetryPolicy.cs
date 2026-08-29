@@ -115,7 +115,9 @@ namespace OutWit.Communication.Resilience
                 }
             }
 
-            return lastResponse ?? WitResponse.InternalServerError("Retry exhausted", lastException);
+            return lastResponse ?? (lastException == null
+                ? WitResponse.InternalServerError("Retry exhausted")
+                : WitResponse.InternalServerError("Retry exhausted", lastException));
         }
 
         #endregion

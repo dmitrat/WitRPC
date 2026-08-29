@@ -49,6 +49,9 @@ namespace OutWit.Communication.Server.Tcp
                 if (Listener != null)
                     throw new InvalidOperationException("TCP listener is already running");
 
+                if (Options.Port == null)
+                    throw new InvalidOperationException("TCP port is not configured");
+
                 var cancellationTokenSource = new CancellationTokenSource();
                 var listener = new TcpListener(IPAddress.Any, Options.Port.Value);
                 listener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);

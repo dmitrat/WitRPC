@@ -17,7 +17,8 @@ namespace OutWit.Communication.Tests.Mock.Model
 
         private ComplexNumber()
         {
-            
+            A = default!;
+            B = default!;
         }
 
         [MemoryPackConstructor]
@@ -34,8 +35,8 @@ namespace OutWit.Communication.Tests.Mock.Model
             if (!(modelBase is ComplexNumber<T1, T2> request))
                 return false;
 
-            return A.Equals(request.A) &&
-                   B.Equals(request.B);
+            return Equals(A, request.A) &&
+                   Equals(B, request.B);
         }
 
         public override ModelBase Clone()

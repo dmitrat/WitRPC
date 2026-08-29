@@ -56,7 +56,7 @@ namespace OutWit.Communication.Interceptors
 
         private Task<T> CastTask<T>(Task<object?> task)
         {
-            return task.ContinueWith(x => (T)x.Result);
+            return task.ContinueWith(x => (T)x.Result!);
         }
 
         #endregion

@@ -52,11 +52,11 @@ namespace OutWit.Communication.Server.Tcp
 
                 IsListening = true;
 
-                Task.Run(ListenForIncomingData);
+                _ = Task.Run(ListenForIncomingData);
 
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }
@@ -76,7 +76,7 @@ namespace OutWit.Communication.Server.Tcp
                 await Stream.WriteAsync(data);
 
             }
-            catch (IOException e)
+            catch (IOException)
             {
                 Dispose();
             }

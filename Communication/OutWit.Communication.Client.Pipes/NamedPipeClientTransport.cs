@@ -63,11 +63,11 @@ namespace OutWit.Communication.Client.Pipes
 
                 IsListening = true;
 
-                Task.Run(ListenForIncomingData);
+                _ = Task.Run(ListenForIncomingData);
 
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }
@@ -91,7 +91,7 @@ namespace OutWit.Communication.Client.Pipes
                 await Stream.WriteAsync(data);
                 await Stream.FlushAsync();
             }
-            catch (IOException e)
+            catch (IOException)
             {
                 Dispose();
             }

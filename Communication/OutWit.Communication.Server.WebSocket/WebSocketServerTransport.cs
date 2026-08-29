@@ -47,11 +47,11 @@ namespace OutWit.Communication.Server.WebSocket
 
                 IsListening = true;
 
-                Task.Run(ListenForIncomingData);
+                _ = Task.Run(ListenForIncomingData);
 
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }
@@ -83,7 +83,7 @@ namespace OutWit.Communication.Server.WebSocket
                     offset += size;
                 }
             }
-            catch (IOException e)
+            catch (IOException)
             {
                 Dispose();
             }

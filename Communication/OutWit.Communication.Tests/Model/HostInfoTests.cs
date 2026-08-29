@@ -482,7 +482,7 @@ namespace OutWit.Communication.Tests.Model
             var info2 = info1.Clone() as HostInfo;
             ClassicAssert.NotNull(info2);
 
-            ClassicAssert.AreNotSame(info1, info2);
+            Assert.That(info2, Is.Not.SameAs(info1));
 
             Assert.That(info2.Host, Is.EqualTo("host"));
             Assert.That(info2.Port, Is.EqualTo(2));
@@ -510,7 +510,7 @@ namespace OutWit.Communication.Tests.Model
             var info2 = bytes.FromMessagePackBytes<HostInfo>();
             ClassicAssert.NotNull(info2);
 
-            ClassicAssert.AreNotSame(info1, info2);
+            Assert.That(info2, Is.Not.SameAs(info1));
             ClassicAssert.True(info1.Is(info2));
 
 
@@ -528,7 +528,7 @@ namespace OutWit.Communication.Tests.Model
             info2 = bytes.FromMessagePackBytes<HostInfo>();
             ClassicAssert.NotNull(info2);
 
-            ClassicAssert.AreNotSame(info1, info2);
+            Assert.That(info2, Is.Not.SameAs(info1));
             ClassicAssert.True(info1.Is(info2));
         }
 
@@ -551,7 +551,7 @@ namespace OutWit.Communication.Tests.Model
             var info2 = bytes.FromJsonBytes<HostInfo>();
             ClassicAssert.NotNull(info2);
 
-            ClassicAssert.AreNotSame(info1, info2);
+            Assert.That(info2, Is.Not.SameAs(info1));
             ClassicAssert.True(info1.Is(info2));
         }
 
@@ -574,7 +574,7 @@ namespace OutWit.Communication.Tests.Model
             var info2 = bytes.FromMemoryPackBytes<HostInfo>();
             ClassicAssert.NotNull(info2);
 
-            ClassicAssert.AreNotSame(info1, info2);
+            Assert.That(info2, Is.Not.SameAs(info1));
             ClassicAssert.True(info1.Is(info2));
         }
 
@@ -597,7 +597,7 @@ namespace OutWit.Communication.Tests.Model
             var info2 = bytes.FromProtoBytes<HostInfo>();
             ClassicAssert.NotNull(info2);
 
-            ClassicAssert.AreNotSame(info1, info2);
+            Assert.That(info2, Is.Not.SameAs(info1));
             ClassicAssert.True(info1.Is(info2));
         }
     }
