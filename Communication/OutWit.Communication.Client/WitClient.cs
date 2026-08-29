@@ -10,6 +10,7 @@ using OutWit.Communication.Client.Reconnection;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Messages;
+using OutWit.Communication.Model;
 using OutWit.Communication.Requests;
 using OutWit.Communication.Resilience;
 using OutWit.Communication.Responses;
@@ -114,17 +115,34 @@ namespace OutWit.Communication.Client
                 Type = WitMessageType.Initialization,
                 Data = MessageSerializer.Serialize(new WitRequestInitialization
                 {
-                    PublicKey = Encryptor.GetPublicKey()
+                    PublicKey = Encryptor.GetPublicKey(),
+                    ProtocolVersion = WitProtocol.VERSION
                 })
             };
 
-            WitMessage? responseMessage = await SendMessageAsync(requestMessage, timeout);
+            WitMessage? responseMessage;
+            try
+            {
+                responseMessage = await SendMessageAsync(requestMessage, timeout);
+            }
+            catch (Exception e)
+            {
+                Logger?.LogError(e, "Initialization request failed");
+                return false;
+            }
+
             if (responseMessage == null || responseMessage.Data == null)
                 return false;
 
             byte[] dataDecrypted = await Encryptor.DecryptRsa(responseMessage.Data);
             WitResponseInitialization? response =
                 MessageSerializer.Deserialize<WitResponseInitialization>(dataDecrypted);
+
+            if (response?.ErrorMessage != null)
+            {
+                Logger?.LogError("Server refused initialization: {Reason}", response.ErrorMessage);
+                return false;
+            }
 
             if (response == null || response.SymmetricKey == null || response.Vector == null)
             {
@@ -159,7 +177,17 @@ namespace OutWit.Communication.Client
                 })
             };
 
-            WitMessage? responseMessage = await SendMessageAsync(requestMessage);
+            WitMessage? responseMessage;
+            try
+            {
+                responseMessage = await SendMessageAsync(requestMessage);
+            }
+            catch (Exception e)
+            {
+                Logger?.LogError(e, "Authorization request failed");
+                return false;
+            }
+
             if (responseMessage == null || responseMessage.Data == null)
             {
                 Logger?.LogError("Failed to authorize");
@@ -253,7 +281,12 @@ namespace OutWit.Communication.Client
                 return WitResponse.BadRequest($"Empty request");
             }
 
-            return await RetryPolicy.ExecuteAsync(async () =>
+            // One id for the logical call: every retry attempt below carries it,
+            // so the server can recognise a duplicate and answer from its cache.
+            if (request.InvocationId == Guid.Empty)
+                request.InvocationId = Guid.NewGuid();
+
+            async Task<WitResponse> SendOnceAsync()
             {
                 request.Token = await TokenProvider.GetToken();
 
@@ -270,10 +303,15 @@ namespace OutWit.Communication.Client
                 {
                     messageResponse = await SendMessageAsync(messageRequest);
                 }
+                catch (TimeoutException)
+                {
+                    Logger?.LogError("Request {MessageId} timed out", messageRequest.Id);
+                    return WitResponse.Timeout("No response arrived within the configured timeout");
+                }
                 catch (Exception e)
                 {
                     Logger?.LogError(e, "Failed to receive response");
-                    return WitResponse.InternalServerError("Failed to receive response", e);
+                    return WitResponse.TransportError("Failed to receive response", e);
                 }
 
                 try
@@ -283,9 +321,20 @@ namespace OutWit.Communication.Client
                 catch (Exception e)
                 {
                     Logger?.LogError(e, "Failed to parse response");
-                    return WitResponse.InternalServerError("Failed to parse response", e);
+                    return WitResponse.TransportError("Failed to parse response", e);
                 }
-            });
+            }
+
+            // Retry re-executes the method, so it is reserved for methods the
+            // consumer has declared idempotent (or an explicit retry-everything
+            // opt-in). Anything else gets exactly one attempt.
+            if (RetryOptions.Enabled &&
+                (RetryOptions.RetryAllMethods || RetryOptions.IdempotentMethods.Contains(request.MethodName)))
+            {
+                return await RetryPolicy.ExecuteAsync(SendOnceAsync);
+            }
+
+            return await SendOnceAsync();
         }
 
         private async Task<WitMessage?> SendMessageAsync(WitMessage message, TimeSpan? timeout = null)
@@ -327,15 +376,6 @@ namespace OutWit.Communication.Client
                     return await pending.Task.WaitAsync(timeout.Value);
 
                 return await pending.Task;
-            }
-            catch (TimeoutException)
-            {
-                Logger?.LogError("Response timeout for message {MessageId}", message.Id);
-                return null;
-            }
-            catch (Exception)
-            {
-                return null;
             }
             finally
             {
@@ -509,6 +549,12 @@ namespace OutWit.Communication.Client
         private async void OnServerDisconnected(Guid sender)
         {
             var wasConnected = ConnectionState == ReconnectionState.Connected;
+
+            // The responses to anything still in flight died with the connection;
+            // fail those calls now rather than letting them wait forever.
+            foreach (var pending in PendingRequests.Values)
+                pending.TrySetException(new WitExceptionTransport("Connection was lost before a response arrived"));
+            PendingRequests.Clear();
             
             IsInitialized = false;
             IsAuthorized = false;
@@ -536,7 +582,7 @@ namespace OutWit.Communication.Client
             ReconnectionCts?.Dispose();
 
             foreach (var pending in PendingRequests.Values)
-                pending.TrySetResult(null);
+                pending.TrySetException(new WitExceptionTransport("The client was disposed before a response arrived"));
             PendingRequests.Clear();
 
             SendLock?.Dispose();

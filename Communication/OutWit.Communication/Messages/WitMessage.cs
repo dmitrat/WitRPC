@@ -10,6 +10,13 @@ using ProtoBuf;
 
 namespace OutWit.Communication.Messages
 {
+    /// <summary>
+    /// The transport envelope: an id, a kind, and an opaque payload. Its binary
+    /// layout is FROZEN -- it is deliberately not version-tolerant, so that any
+    /// build can at least read the envelope of any other and answer with a
+    /// readable refusal. Never add members here; protocol evolution happens in
+    /// the payload models, which are version-tolerant.
+    /// </summary>
     [MessagePackObject]
     [DataContract]
     [MemoryPackable]

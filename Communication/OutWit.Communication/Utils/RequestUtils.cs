@@ -17,13 +17,13 @@ namespace OutWit.Communication.Utils
         public static WitResponse GetResponse(this byte[]? me, IMessageSerializer serializer)
         {
             if (me == null)
-                return WitResponse.InternalServerError("Server return empty response");
+                return WitResponse.TransportError("Server returned an empty response");
 
             try
             {
                 var response = serializer.Deserialize<WitResponse>(me);
                 if (response == null)
-                    return WitResponse.InternalServerError("Failed to deserialize response");
+                    return WitResponse.TransportError("Failed to deserialize response");
 
                 return response;
             }
@@ -41,6 +41,7 @@ namespace OutWit.Communication.Utils
 
             return new WitRequest
             {
+                InvocationId = Guid.NewGuid(),
                 MethodName = me,
                 Parameters = parameters.Select((parameter, index) => 
                     parameter == null 
@@ -58,6 +59,7 @@ namespace OutWit.Communication.Utils
         {
             return new WitRequest
             {
+                InvocationId = Guid.NewGuid(),
                 MethodName = me,
                 Parameters = parameters.Select(parameter => 
                     serializer.Serialize(parameter, parameter.GetType(), logger)).ToArray()

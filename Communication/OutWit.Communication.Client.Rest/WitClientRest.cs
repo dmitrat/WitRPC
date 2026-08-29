@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -70,7 +70,7 @@ namespace OutWit.Communication.Client.Rest
             }
             catch (Exception e)
             {
-                return WitResponse.InternalServerError("Failed to obtain the access token", e);
+                return WitResponse.TransportError("Failed to obtain the access token", e);
             }
 
             using var httpRequest = BuildRequest(request);
@@ -85,18 +85,18 @@ namespace OutWit.Communication.Client.Rest
                 byte[] body = await httpResponse.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
 
                 if (body.Length == 0)
-                    return WitResponse.InternalServerError($"Server returned an empty body (HTTP {(int)httpResponse.StatusCode})");
+                    return WitResponse.TransportError($"Server returned an empty body (HTTP {(int)httpResponse.StatusCode})");
 
                 return MessageSerializer.Deserialize<WitResponse>(body)
-                       ?? WitResponse.InternalServerError("Failed to deserialize the response");
+                       ?? WitResponse.TransportError("Failed to deserialize the response");
             }
             catch (OperationCanceledException) when (timeout is { IsCancellationRequested: true })
             {
-                return WitResponse.InternalServerError("REST request timed out");
+                return WitResponse.Timeout("REST request timed out");
             }
             catch (Exception e)
             {
-                return WitResponse.InternalServerError("REST request failed", e);
+                return WitResponse.TransportError("REST request failed", e);
             }
         }
 

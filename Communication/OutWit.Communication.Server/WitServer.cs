@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,6 +7,7 @@ using OutWit.Common.Utils;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Messages;
+using OutWit.Communication.Model;
 using OutWit.Communication.Requests;
 using OutWit.Communication.Responses;
 using OutWit.Communication.Server.Connections;
@@ -107,15 +108,58 @@ namespace OutWit.Communication.Server
 
         #region Handshake
 
-        private WitMessage ProcessInitialization(ConnectionInfo connection, WitMessage message)
+        private WitMessage ProcessInitialization(ConnectionInfo connection, WitMessage message, out bool refused)
         {
+            refused = false;
+
             if (message.Data == null)
                 return message.With(x => x.Data = null);
 
-            WitRequestInitialization? request =
-                MessageSerializer.Deserialize<WitRequestInitialization>(message.Data);
+            WitRequestInitialization? request;
+            try
+            {
+                request = MessageSerializer.Deserialize<WitRequestInitialization>(message.Data);
+            }
+            catch (Exception)
+            {
+                request = null;
+            }
 
-            if(request == null || request.PublicKey == null)
+            if (request == null)
+            {
+                // An unreadable initialization payload is, in practice, a pre-3.0
+                // client whose layout this build no longer parses. Refuse in the
+                // open so a newer client would at least see why; an old one fails
+                // fast instead of hanging on a silent close.
+                Logger?.LogWarning(
+                    "Unreadable initialization from client {ClientId}: most likely a pre-protocol-{Version} client; refusing",
+                    connection.Id, WitProtocol.VERSION);
+
+                refused = true;
+                return message.With(x => x.Data = MessageSerializer.Serialize(
+                    RefuseInitialization($"Cannot read the initialization request; the server speaks protocol {WitProtocol.VERSION}")));
+            }
+
+            if (request.ProtocolVersion != WitProtocol.VERSION)
+            {
+                Logger?.LogWarning(
+                    "Protocol mismatch for client {ClientId}: client speaks {ClientVersion}, server speaks {ServerVersion}; refusing",
+                    connection.Id, request.ProtocolVersion, WitProtocol.VERSION);
+
+                refused = true;
+
+                var refusal = MessageSerializer.Serialize(
+                    RefuseInitialization($"Protocol mismatch: client {request.ProtocolVersion}, server {WitProtocol.VERSION}"));
+
+                // Encrypted for the client when it offered a key, so the same
+                // decrypt path every accepted handshake uses can read the reason.
+                if (request.PublicKey != null)
+                    refusal = connection.Encryptor.EncryptForClient(refusal, request.PublicKey).GetAwaiter().GetResult();
+
+                return message.With(x => x.Data = refusal);
+            }
+
+            if (request.PublicKey == null)
                 return message.With(x => x.Data = null);
 
             try
@@ -123,7 +167,8 @@ namespace OutWit.Communication.Server
                 var response = new WitResponseInitialization
                 {
                     SymmetricKey = connection.Encryptor.GetSymmetricKey(),
-                    Vector = connection.Encryptor.GetVector()
+                    Vector = connection.Encryptor.GetVector(),
+                    ProtocolVersion = WitProtocol.VERSION
                 };
 
                 byte[] responseBytes = connection.Encryptor
@@ -139,6 +184,15 @@ namespace OutWit.Communication.Server
                 Logger?.LogError(e, $"Error during initialization");
                 return message.With(x => x.Data = null);
             }
+        }
+
+        private static WitResponseInitialization RefuseInitialization(string reason)
+        {
+            return new WitResponseInitialization
+            {
+                ProtocolVersion = WitProtocol.VERSION,
+                ErrorMessage = reason
+            };
         }
 
         private WitMessage ProcessAuthorization(ConnectionInfo connection, WitMessage message)
@@ -179,9 +233,18 @@ namespace OutWit.Communication.Server
 
         #region Processing
 
-        private async Task<WitMessage> ProcessMessage(WitMessage message)
+        private async Task<WitMessage> ProcessMessage(ConnectionInfo connection, WitMessage message)
         {
             var request = message.Data.GetRequest(MessageSerializer);
+
+            if (request != null && request.InvocationId != Guid.Empty &&
+                connection.TryGetCachedResponse(request.InvocationId, out byte[]? cachedResponse))
+            {
+                // A retry of an invocation this connection already executed:
+                // answer with the recorded result instead of running it again.
+                Logger?.LogDebug("Answering duplicate invocation {InvocationId} from cache", request.InvocationId);
+                return message.With(x => x.Data = cachedResponse);
+            }
 
             WitResponse? response;
             if (request == null)
@@ -218,7 +281,12 @@ namespace OutWit.Communication.Server
                 }
             }
 
-            return message.With(x => x.Data = MessageSerializer.Serialize(response!));
+            byte[] responseBytes = MessageSerializer.Serialize(response!);
+
+            if (request != null && request.InvocationId != Guid.Empty)
+                connection.CacheResponse(request.InvocationId, responseBytes);
+
+            return message.With(x => x.Data = responseBytes);
         }
 
         private async Task<WitMessage> Encrypt(ConnectionInfo connection, WitMessage message)
@@ -351,7 +419,15 @@ namespace OutWit.Communication.Server
                         return false;
                     }
 
-                    await SendMessageAsync(connection, ProcessInitialization(connection, decrypted));
+                    var initReply = ProcessInitialization(connection, decrypted, out bool refusedInit);
+                    await SendMessageAsync(connection, initReply);
+
+                    if (refusedInit)
+                    {
+                        CloseConnection(connection);
+                        return false;
+                    }
+
                     return true;
 
                 case WitMessageType.Authorization:
@@ -382,7 +458,7 @@ namespace OutWit.Communication.Server
                     }
 
                     var tag = connection.Id.ToString().Substring(0, 4);
-                    var responseMessage = await ProcessMessage(decrypted);
+                    var responseMessage = await ProcessMessage(connection, decrypted);
                     await SendMessageAsync(connection, responseMessage);
                     return true;
 

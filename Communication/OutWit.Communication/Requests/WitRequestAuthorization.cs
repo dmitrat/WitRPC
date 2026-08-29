@@ -10,7 +10,7 @@ namespace OutWit.Communication.Requests
 {
     [MessagePackObject]
     [DataContract]
-    [MemoryPackable]
+    [MemoryPackable(GenerateType.VersionTolerant)]
     [ProtoContract]
     public partial class WitRequestAuthorization : ModelBase
     {
@@ -33,6 +33,8 @@ namespace OutWit.Communication.Requests
         #region Properties
 
         [Key(0)]
+
+        [MemoryPackOrder(0)]
         [DataMember]
         [ProtoMember(1)]
         public string? Token { get; set; }

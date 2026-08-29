@@ -10,7 +10,7 @@ namespace OutWit.Communication.Responses
 {
     [MessagePackObject]
     [DataContract]
-    [MemoryPackable]
+    [MemoryPackable(GenerateType.VersionTolerant)]
     [ProtoContract]
     public partial class WitResponseAuthorization : ModelBase
     {
@@ -47,11 +47,15 @@ namespace OutWit.Communication.Responses
         #region Properties
 
         [Key(0)]
+
+        [MemoryPackOrder(0)]
         [DataMember]
         [ProtoMember(1)]
         public bool IsAuthorized { get; set; }
 
         [Key(1)]
+
+        [MemoryPackOrder(1)]
         [DataMember]
         [ProtoMember(2)]
         public string? Message { get; set; }

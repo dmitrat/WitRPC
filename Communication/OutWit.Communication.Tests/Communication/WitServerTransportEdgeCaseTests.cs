@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Messages;
@@ -96,6 +96,88 @@ namespace OutWit.Communication.Tests.Communication
         }
 
         [Test]
+        public void DuplicateInvocationIsAnsweredFromCacheTest()
+        {
+            using var context = CreateContext();
+
+            context.Transport.RaiseDataReceived(CreateInitializationFrame(context.MessageSerializer));
+            context.Transport.RaiseDataReceived(CreateAuthorizationFrame(context.MessageSerializer));
+            Assert.That(WaitUntil(() => context.Transport.SentData.Count == 2), Is.True);
+
+            var invocationId = Guid.NewGuid();
+
+            context.Transport.RaiseDataReceived(CreateRequestFrame(context.MessageSerializer, "FirstAttempt", invocationId));
+            Assert.That(WaitUntil(() => context.Transport.SentData.Count == 3), Is.True);
+            Assert.That(context.RequestProcessor.ProcessCallCount, Is.EqualTo(1));
+
+            // The retry of the same invocation is answered from the cache: a
+            // response comes back, but the method does not run a second time.
+            context.Transport.RaiseDataReceived(CreateRequestFrame(context.MessageSerializer, "FirstAttempt", invocationId));
+            Assert.That(WaitUntil(() => context.Transport.SentData.Count == 4), Is.True);
+            Assert.That(context.RequestProcessor.ProcessCallCount, Is.EqualTo(1));
+
+            // Both replies carry the same payload.
+            var sent = context.Transport.SentData.ToArray();
+            var first = context.MessageSerializer.Deserialize<WitMessage>(sent[2]);
+            var second = context.MessageSerializer.Deserialize<WitMessage>(sent[3]);
+            Assert.That(second!.Data, Is.EqualTo(first!.Data));
+        }
+
+        [Test]
+        public void InitializationWithWrongProtocolVersionIsRefusedTest()
+        {
+            using var context = CreateContext();
+
+            context.Transport.RaiseDataReceived(CreateFrame(
+                context.MessageSerializer,
+                WitMessageType.Initialization,
+                new WitRequestInitialization
+                {
+                    PublicKey = new byte[] { 1, 2, 3 },
+                    ProtocolVersion = WitProtocol.VERSION - 1
+                }));
+
+            Assert.That(WaitUntil(() => context.Transport.SentData.Count == 1), Is.True);
+
+            var reply = context.MessageSerializer.Deserialize<WitMessage>(context.Transport.SentData.First());
+            var response = context.MessageSerializer.Deserialize<WitResponseInitialization>(reply!.Data!);
+
+            Assert.That(response!.ErrorMessage, Does.Contain("Protocol mismatch"));
+            Assert.That(response.ProtocolVersion, Is.EqualTo(WitProtocol.VERSION));
+
+            // The refused connection is closed: a later frame gets no reply and
+            // never reaches the processor.
+            context.Transport.RaiseDataReceived(CreateRequestFrame(context.MessageSerializer, "AfterRefusal"));
+            Thread.Sleep(200);
+
+            Assert.That(context.Transport.SentData.Count, Is.EqualTo(1));
+            Assert.That(context.RequestProcessor.ProcessCallCount, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void UnreadableInitializationIsRefusedTest()
+        {
+            using var context = CreateContext();
+
+            // A payload no 3.0 serializer produced -- what a pre-3.0 client's
+            // initialization looks like to this build.
+            context.Transport.RaiseDataReceived(context.MessageSerializer.Serialize(new WitMessage
+            {
+                Id = Guid.NewGuid(),
+                Type = WitMessageType.Initialization,
+                Data = new byte[] { 0xDE, 0xAD, 0xBE, 0xEF }
+            }));
+
+            Assert.That(WaitUntil(() => context.Transport.SentData.Count == 1), Is.True);
+
+            var reply = context.MessageSerializer.Deserialize<WitMessage>(context.Transport.SentData.First());
+            var response = context.MessageSerializer.Deserialize<WitResponseInitialization>(reply!.Data!);
+
+            Assert.That(response!.ErrorMessage, Does.Contain("Cannot read"));
+            Assert.That(response.ProtocolVersion, Is.EqualTo(WitProtocol.VERSION));
+        }
+
+        [Test]
         public void ServerDisposeStopsAndDisposesTransportFactoryTest()
         {
             using var context = CreateContext();
@@ -154,11 +236,12 @@ namespace OutWit.Communication.Tests.Communication
                 WitMessageType.Initialization,
                 new WitRequestInitialization
                 {
-                    PublicKey = new byte[] { 1, 2, 3 }
+                    PublicKey = new byte[] { 1, 2, 3 },
+                    ProtocolVersion = WitProtocol.VERSION
                 });
         }
 
-        private static byte[] CreateRequestFrame(IMessageSerializer messageSerializer, string methodName)
+        private static byte[] CreateRequestFrame(IMessageSerializer messageSerializer, string methodName, Guid invocationId = default)
         {
             return CreateFrame(
                 messageSerializer,
@@ -166,7 +249,8 @@ namespace OutWit.Communication.Tests.Communication
                 new WitRequest
                 {
                     Token = string.Empty,
-                    MethodName = methodName
+                    MethodName = methodName,
+                    InvocationId = invocationId
                 });
         }
 

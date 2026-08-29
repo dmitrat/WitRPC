@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using OutWit.Common.Abstract;
 using OutWit.Common.Values;
@@ -30,11 +30,18 @@ namespace OutWit.Communication.Resilience
             MaxDelay = DEFAULT_MAX_DELAY;
             BackoffMultiplier = DEFAULT_BACKOFF_MULTIPLIER;
             BackoffType = BackoffType.Exponential;
+            // Client-local outcomes only: a timeout or a transport failure can
+            // succeed on a second attempt. A server fault (InternalServerError)
+            // means the service itself failed -- re-running business logic is a
+            // decision the consumer must make explicitly, never a default.
             RetryableStatuses = new HashSet<CommunicationStatus>
             {
-                CommunicationStatus.InternalServerError
+                CommunicationStatus.Timeout,
+                CommunicationStatus.TransportError
             };
             RetryableExceptionTypes = new HashSet<Type>();
+            IdempotentMethods = new HashSet<string>();
+            RetryAllMethods = false;
         }
 
         #endregion
@@ -115,6 +122,17 @@ namespace OutWit.Communication.Resilience
             return this;
         }
 
+        /// <summary>
+        /// Declares methods safe to re-execute. Retry applies only to declared
+        /// methods unless <see cref="RetryAllMethods"/> opts everything in.
+        /// </summary>
+        public RetryOptions MarkIdempotent(params string[] methodNames)
+        {
+            foreach (var methodName in methodNames)
+                IdempotentMethods.Add(methodName);
+            return this;
+        }
+
         #endregion
 
         #region ModelBase
@@ -144,6 +162,8 @@ namespace OutWit.Communication.Resilience
                 BackoffType = BackoffType,
                 RetryableStatuses = new HashSet<CommunicationStatus>(RetryableStatuses),
                 RetryableExceptionTypes = new HashSet<Type>(RetryableExceptionTypes),
+                IdempotentMethods = new HashSet<string>(IdempotentMethods),
+                RetryAllMethods = RetryAllMethods,
                 OnRetry = OnRetry
             };
         }
@@ -156,6 +176,18 @@ namespace OutWit.Communication.Resilience
         /// Gets or sets whether retry is enabled.
         /// </summary>
         public bool Enabled { get; set; }
+
+        /// <summary>
+        /// Methods declared safe to re-execute. Retry is restricted to these:
+        /// a command that is not idempotent must not silently run twice.
+        /// </summary>
+        public HashSet<string> IdempotentMethods { get; set; }
+
+        /// <summary>
+        /// Opts every method into retry regardless of idempotency declarations.
+        /// An explicit, deliberate switch -- off by default.
+        /// </summary>
+        public bool RetryAllMethods { get; set; }
 
         /// <summary>
         /// Gets or sets the maximum number of retry attempts.

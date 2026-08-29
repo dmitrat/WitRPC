@@ -12,7 +12,7 @@ namespace OutWit.Communication.Model
 {
     [MessagePackObject]
     [DataContract]
-    [MemoryPackable]
+    [MemoryPackable(GenerateType.VersionTolerant)]
     [ProtoContract]
     public partial class ParameterType : ModelBase
     {
@@ -94,11 +94,15 @@ namespace OutWit.Communication.Model
         #region Properties
 
         [Key(0)]
+
+        [MemoryPackOrder(0)]
         [DataMember]
         [ProtoMember(1)]
         public string? Type { get; private set; }
 
         [Key(1)]
+
+        [MemoryPackOrder(1)]
         [DataMember]
         [ProtoMember(2)]
         public string? Assembly { get; private set; }

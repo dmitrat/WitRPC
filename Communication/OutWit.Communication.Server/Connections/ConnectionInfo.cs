@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using OutWit.Communication.Interfaces;
@@ -13,7 +14,21 @@ namespace OutWit.Communication.Server.Connections
     /// </summary>
     public class ConnectionInfo : IDisposable
     {
+        #region Constants
+
+        private const int INVOCATION_CACHE_CAPACITY = 64;
+
+        private const int INVOCATION_CACHE_MAX_ENTRY_BYTES = 256 * 1024;
+
+        #endregion
+
         #region Fields
+
+        private readonly object m_invocationCacheLock = new();
+
+        private readonly Dictionary<Guid, byte[]> m_invocationCache = new();
+
+        private readonly Queue<Guid> m_invocationCacheOrder = new();
 
         private readonly IEncryptorServerFactory m_encryptorFactory;
 
@@ -61,6 +76,48 @@ namespace OutWit.Communication.Server.Connections
         /// Stops accepting more inbound frames and lets the processing loop drain
         /// and exit. Idempotent.
         /// </summary>
+        /// <summary>
+        /// Returns the cached response for an invocation already executed on
+        /// this connection, if it is still within the bounded window.
+        /// </summary>
+        public bool TryGetCachedResponse(Guid invocationId, out byte[]? response)
+        {
+            lock (m_invocationCacheLock)
+            {
+                if (m_invocationCache.TryGetValue(invocationId, out var cached))
+                {
+                    response = cached;
+                    return true;
+                }
+            }
+
+            response = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Remembers a response for de-duplication. The window is bounded both
+        /// in entries and per-entry size; a response too large to cache simply
+        /// is not -- retry is restricted to idempotent methods, so re-executing
+        /// a duplicate is safe, just wasteful.
+        /// </summary>
+        public void CacheResponse(Guid invocationId, byte[] response)
+        {
+            if (response.Length > INVOCATION_CACHE_MAX_ENTRY_BYTES)
+                return;
+
+            lock (m_invocationCacheLock)
+            {
+                if (!m_invocationCache.TryAdd(invocationId, response))
+                    return;
+
+                m_invocationCacheOrder.Enqueue(invocationId);
+
+                while (m_invocationCache.Count > INVOCATION_CACHE_CAPACITY)
+                    m_invocationCache.Remove(m_invocationCacheOrder.Dequeue());
+            }
+        }
+
         public void CompleteInbound()
         {
             Inbound.Writer.TryComplete();

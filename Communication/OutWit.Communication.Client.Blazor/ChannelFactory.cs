@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
@@ -168,10 +168,14 @@ namespace OutWit.Communication.Client.Blazor
                 r.BackoffMultiplier = retry.BackoffMultiplier;
                 r.BackoffType = BackoffType.Exponential;
 
-                r.RetryOnStatus(CommunicationStatus.InternalServerError);
+                r.RetryOnStatus(CommunicationStatus.Timeout);
+                r.RetryOnStatus(CommunicationStatus.TransportError);
 
                 r.RetryOn<TimeoutException>();
                 r.RetryOn<IOException>();
+
+                r.MarkIdempotent(retry.IdempotentMethods);
+                r.RetryAllMethods = retry.RetryAllMethods;
             });
         }
 

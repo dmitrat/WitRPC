@@ -15,7 +15,7 @@ namespace OutWit.Communication.Responses
 {
     [MessagePackObject]
     [DataContract]
-    [MemoryPackable]
+    [MemoryPackable(GenerateType.VersionTolerant)]
     [ProtoContract]
     public partial class WitResponse : ModelBase
     {
@@ -115,6 +115,21 @@ namespace OutWit.Communication.Responses
             return new WitResponse(CommunicationStatus.InternalServerError, null, errorMessage, innerException.Message);
         }
 
+        public static WitResponse Timeout(string errorMessage)
+        {
+            return new WitResponse(CommunicationStatus.Timeout, null, errorMessage, null);
+        }
+
+        public static WitResponse TransportError(string errorMessage)
+        {
+            return new WitResponse(CommunicationStatus.TransportError, null, errorMessage, null);
+        }
+
+        public static WitResponse TransportError(string errorMessage, Exception innerException)
+        {
+            return new WitResponse(CommunicationStatus.TransportError, null, errorMessage, innerException.Message);
+        }
+
         public static WitResponse UnauthorizedRequest()
         {
             return new WitResponse(CommunicationStatus.Unauthorized, null, null, null);
@@ -135,21 +150,29 @@ namespace OutWit.Communication.Responses
         #region Properties
 
         [Key(0)]
+
+        [MemoryPackOrder(0)]
         [DataMember]
         [ProtoMember(1)]
         public CommunicationStatus Status { get; }
 
         [Key(1)]
+
+        [MemoryPackOrder(1)]
         [DataMember]
         [ProtoMember(2)]
         public byte[]? Data { get; }
 
         [Key(2)]
+
+        [MemoryPackOrder(2)]
         [DataMember]
         [ProtoMember(3)]
         public string? ErrorMessage { get; set; }
 
         [Key(3)]
+
+        [MemoryPackOrder(3)]
         [DataMember]
         [ProtoMember(4)]
         public string? ErrorDetails { get; }

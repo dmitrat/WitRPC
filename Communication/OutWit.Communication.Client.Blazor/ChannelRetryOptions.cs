@@ -1,4 +1,4 @@
-namespace OutWit.Communication.Client.Blazor
+﻿namespace OutWit.Communication.Client.Blazor
 {
     /// <summary>
     /// Configuration for the per-call retry policy.
@@ -29,5 +29,18 @@ namespace OutWit.Communication.Client.Blazor
         /// Default: 2.0 (exponential backoff).
         /// </summary>
         public double BackoffMultiplier { get; set; } = 2.0;
+
+        /// <summary>
+        /// Methods declared safe to re-execute. Retries apply only to these;
+        /// with none declared (and <see cref="RetryAllMethods"/> off) nothing
+        /// is retried -- a command must never silently run twice.
+        /// </summary>
+        public string[] IdempotentMethods { get; set; } = Array.Empty<string>();
+
+        /// <summary>
+        /// Opts every method into retry regardless of declarations. Deliberate
+        /// escape hatch; off by default.
+        /// </summary>
+        public bool RetryAllMethods { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -247,6 +247,8 @@ namespace OutWit.Communication.Server.Rest
                 Model.CommunicationStatus.Ok => HttpStatusCode.OK,
                 Model.CommunicationStatus.BadRequest => HttpStatusCode.BadRequest,
                 Model.CommunicationStatus.Unauthorized => HttpStatusCode.Unauthorized,
+                Model.CommunicationStatus.Timeout => HttpStatusCode.RequestTimeout,
+                Model.CommunicationStatus.TransportError => HttpStatusCode.BadGateway,
                 _ => HttpStatusCode.InternalServerError
             };
         }

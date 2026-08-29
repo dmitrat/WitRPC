@@ -14,7 +14,7 @@ namespace OutWit.Communication.Requests
 {
     [MessagePackObject]
     [DataContract]
-    [MemoryPackable]
+    [MemoryPackable(GenerateType.VersionTolerant)]
     [ProtoContract]
     public partial class WitRequest : ModelBase
     {
@@ -49,7 +49,8 @@ namespace OutWit.Communication.Requests
             if (!(modelBase is WitRequest request))
                 return false;
 
-            return Token.Is(request.Token) &&
+            return InvocationId.Is(request.InvocationId) &&
+                   Token.Is(request.Token) &&
                    MethodName.Is(request.MethodName) &&
                    Parameters.SelectMany(x=>x).Is(request.Parameters.SelectMany(x=>x)) &&
                    ParameterTypes.Is(request.ParameterTypes) &&
@@ -62,6 +63,7 @@ namespace OutWit.Communication.Requests
         {
             return new WitRequest
             {
+                InvocationId = InvocationId,
                 Token = Token,
                 MethodName = MethodName,
                 Parameters = Parameters,
@@ -77,39 +79,64 @@ namespace OutWit.Communication.Requests
         #region Properties
 
         [Key(0)]
+
+        [MemoryPackOrder(0)]
         [DataMember]
         [ProtoMember(1)]
         public string Token { get; set; }
 
         [Key(1)]
+
+        [MemoryPackOrder(1)]
         [DataMember]
         [ProtoMember(2)]
         public string MethodName { get; set; }
 
         [Key(2)]
+
+        [MemoryPackOrder(2)]
         [DataMember]
         [ProtoMember(3)]
         public byte[][] Parameters { get; set; }
 
         [Key(3)]
+
+        [MemoryPackOrder(3)]
         [DataMember]
         [ProtoMember(4)]
         public Type[] ParameterTypes { get; set; }
 
         [Key(4)]
+
+        [MemoryPackOrder(4)]
         [DataMember]
         [ProtoMember(5)]
         public ParameterType[] ParameterTypesByName { get; set; }
 
         [Key(5)]
+
+        [MemoryPackOrder(5)]
         [DataMember]
         [ProtoMember(6)]
         public Type[] GenericArguments { get; set; }
 
         [Key(6)]
+
+        [MemoryPackOrder(6)]
         [DataMember]
         [ProtoMember(7)]
         public ParameterType[] GenericArgumentsByName { get; set; }
+
+        /// <summary>
+        /// Identifies the logical invocation. Stays the same across retry
+        /// attempts of one call, which is what lets the server answer a
+        /// duplicate from its cache instead of executing the method again.
+        /// </summary>
+        [Key(7)]
+        [MemoryPackOrder(7)]
+        [DataMember]
+        [ProtoMember(8)]
+        public Guid InvocationId { get; set; }
 
         #endregion
     }

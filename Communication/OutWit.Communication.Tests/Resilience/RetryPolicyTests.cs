@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using OutWit.Communication.Model;
 using OutWit.Communication.Resilience;
 using OutWit.Communication.Responses;
@@ -105,6 +105,22 @@ namespace OutWit.Communication.Tests.Resilience
 
             Assert.That(options.ShouldRetry(new InvalidOperationException()), Is.True);
             Assert.That(options.ShouldRetry(new ArgumentException()), Is.False);
+        }
+
+        [Test]
+        public void RetryOptionsDefaultsRetryClientLocalStatusesOnlyTest()
+        {
+            var options = new RetryOptions { Enabled = true };
+
+            // Client-local outcomes are retryable out of the box...
+            Assert.That(options.ShouldRetry(CommunicationStatus.Timeout), Is.True);
+            Assert.That(options.ShouldRetry(CommunicationStatus.TransportError), Is.True);
+
+            // ...but a server fault is not: re-running failed business logic is
+            // an explicit opt-in, never a default.
+            Assert.That(options.ShouldRetry(CommunicationStatus.InternalServerError), Is.False);
+            Assert.That(options.ShouldRetry(CommunicationStatus.BadRequest), Is.False);
+            Assert.That(options.ShouldRetry(CommunicationStatus.Unauthorized), Is.False);
         }
 
         [Test]
@@ -285,7 +301,7 @@ namespace OutWit.Communication.Tests.Resilience
                 MaxRetries = 3,
                 InitialDelay = TimeSpan.FromMilliseconds(10)
             };
-            // Only retry on InternalServerError by default
+            // Timeout/TransportError are the only retryable statuses by default
             
             var policy = new RetryPolicy(options);
             var attempts = 0;
