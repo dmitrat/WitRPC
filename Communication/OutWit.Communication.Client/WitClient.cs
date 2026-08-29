@@ -145,8 +145,13 @@ namespace OutWit.Communication.Client
                 return false;
 
             byte[] dataDecrypted = await Encryptor.DecryptRsa(responseMessage.Data);
+
+            Logger?.LogDebug(
+                "Initialization response: {EncryptedLength} bytes on the wire, {PlainLength} bytes decrypted",
+                responseMessage.Data.Length, dataDecrypted.Length);
+
             WitResponseInitialization? response =
-                MessageSerializer.Deserialize<WitResponseInitialization>(dataDecrypted);
+                MessageSerializer.Deserialize<WitResponseInitialization>(dataDecrypted, Logger);
 
             if (response?.ErrorMessage != null)
             {
@@ -156,7 +161,9 @@ namespace OutWit.Communication.Client
 
             if (response == null || response.SymmetricKey == null || response.Vector == null)
             {
-                Logger?.LogError("Failed to initialize");
+                Logger?.LogError(
+                    "Failed to initialize: response parsed: {HasResponse}, key present: {HasKey}, vector present: {HasVector}",
+                    response != null, response?.SymmetricKey != null, response?.Vector != null);
                 return false;
             }
 

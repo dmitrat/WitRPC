@@ -50,8 +50,11 @@
 		<PackageVersion Include="OutWit.Common.MemoryPack" Version="1.1.6" />
 		<PackageVersion Include="OutWit.Common.MessagePack" Version="1.2.5" />
 		<PackageVersion Include="OutWit.Common.ProtoBuf" Version="1.1.4" />
-		<PackageVersion Include="OutWit.Common.Proxy" Version="1.2.10" />
-		<PackageVersion Include="OutWit.Common.Proxy.Generator" Version="2.1.0" />
+		<!-- 1.2.11 / 2.2.x carry the NativeAOT fix: core-library type-name
+		     literals without the reference facade, so proxy parameter types
+		     resolve under NativeAOT too. -->
+		<PackageVersion Include="OutWit.Common.Proxy" Version="1.2.11" />
+		<PackageVersion Include="OutWit.Common.Proxy.Generator" Version="2.2.2" />
 		<PackageVersion Include="OutWit.Common.Reflection" Version="1.2.1" />
 		<PackageVersion Include="OutWit.Common.Rest" Version="1.2.2" />
 		<PackageVersion Include="System.ServiceModel.Http" Version="10.0.652802" />

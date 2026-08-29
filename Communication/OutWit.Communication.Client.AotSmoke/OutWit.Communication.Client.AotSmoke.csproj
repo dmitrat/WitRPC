@@ -17,7 +17,9 @@
       dependency graph is not yet - MemoryPack's non-source-gen fallback paths and
       OutWit.Common(.Json/.MemoryPack) reflection helpers emit IL2xxx/IL3050.
       Until those are annotated upstream, the hard gates are: the publish succeeds,
-      the closure guard below passes, and the produced binary runs.
+      the closure guard below passes, and the produced binary completes a real
+      encrypted round-trip against a live server (Scripts/aot-smoke.ps1) - which
+      is what actually proves the warnings on the wire path are benign.
       TODO: flip TreatWarningsAsErrors back to true once OutWit.Common.* and
       MemoryPack are AOT-annotation-clean.
     -->
