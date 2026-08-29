@@ -31,7 +31,12 @@ namespace OutWit.InterProcess.Host.Utils
                 }
             };
 
-            return !process.Start() ? null : process;
+            if (process.Start())
+                return process;
+
+            // A process object that never started still holds a handle.
+            process.Dispose();
+            return null;
         }
     }
 }

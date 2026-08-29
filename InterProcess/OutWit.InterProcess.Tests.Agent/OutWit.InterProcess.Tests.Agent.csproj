@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net10.0-windows;net8.0-windows</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OutWit.InterProcess\OutWit.InterProcess.csproj" />
+    <ProjectReference Include="..\..\Communication\OutWit.Communication.Server\OutWit.Communication.Server.csproj" />
+    <ProjectReference Include="..\..\Communication\OutWit.Communication.Server.Pipes\OutWit.Communication.Server.Pipes.csproj" />
+  </ItemGroup>
+
+</Project>

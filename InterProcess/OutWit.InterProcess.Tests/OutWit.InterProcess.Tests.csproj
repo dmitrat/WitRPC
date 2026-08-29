@@ -26,6 +26,17 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\OutWit.InterProcess.Agent\OutWit.InterProcess.Agent.csproj" />
+	  <ProjectReference Include="..\OutWit.InterProcess.Host\OutWit.InterProcess.Host.csproj" />
+	  <ProjectReference Include="..\..\Communication\OutWit.Communication.Client.Pipes\OutWit.Communication.Client.Pipes.csproj" />
+	  <!-- Build-order only: the tests spawn the agent's executable, they do not link it. -->
+	  <ProjectReference Include="..\OutWit.InterProcess.Tests.Agent\OutWit.InterProcess.Tests.Agent.csproj" ReferenceOutputAssembly="false" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <!-- The contract crosses the process boundary as shared source: two assemblies,
+	       one stable contract identity (dispatch is by contract-scoped method ids). -->
+	  <Compile Include="..\OutWit.InterProcess.Tests.Agent\ITestAgentService.cs" Link="Integration\ITestAgentService.cs" />
+	  <Compile Include="..\OutWit.InterProcess.Tests.Agent\TestAgentMarker.cs" Link="Integration\TestAgentMarker.cs" />
 	</ItemGroup>
 
   <ItemGroup>
