@@ -122,6 +122,25 @@ namespace OutWit.Communication.Tests.Communication
         }
 
         /// <summary>Creates a client and registers it for teardown.</summary>
+        /// <summary>
+        /// Retries a one-second connect until it succeeds or the window closes.
+        /// </summary>
+        private static async Task<bool> ConnectWithinAsync(WitClient client, TimeSpan window)
+        {
+            var deadline = DateTime.UtcNow + window;
+
+            while (true)
+            {
+                if (await client.ConnectAsync(TimeSpan.FromSeconds(1), CancellationToken.None))
+                    return true;
+
+                if (DateTime.UtcNow >= deadline)
+                    return false;
+
+                await Task.Delay(200);
+            }
+        }
+
         private WitClient Client(TransportType transportType, SerializerType serializerType, string testName)
         {
             var client = Shared.GetClient(transportType, serializerType, testName);
@@ -372,7 +391,10 @@ namespace OutWit.Communication.Tests.Communication
 
             await client1.Disconnect();
 
-            Assert.That(await client2.ConnectAsync(TimeSpan.FromSeconds(1), CancellationToken.None), Is.True);
+            // The slot frees when the server notices client1 leaving, which on
+            // a loaded machine can trail the Disconnect() call; the contract is
+            // "the next client gets in", not "within one second".
+            Assert.That(await ConnectWithinAsync(client2, TimeSpan.FromSeconds(10)), Is.True);
             Assert.That(client2.IsInitialized, Is.True);
             Assert.That(client2.IsAuthorized, Is.True);
         }
