@@ -115,16 +115,35 @@ namespace OutWit.Communication.Responses
             return new WitResponse(CommunicationStatus.InternalServerError, null, errorMessage, innerException.Message);
         }
 
+        /// <summary>
+        /// A client-local timeout: the server may or may not have executed the
+        /// call. Retryable by default, unlike a server fault.
+        /// </summary>
+        /// <param name="errorMessage">What the caller was waiting for.</param>
+        /// <returns>A response with <see cref="CommunicationStatus.Timeout"/>.</returns>
         public static WitResponse Timeout(string errorMessage)
         {
             return new WitResponse(CommunicationStatus.Timeout, null, errorMessage, null);
         }
 
+        /// <summary>
+        /// A client-local transport failure: the request never completed against
+        /// the connection. Retryable by default.
+        /// </summary>
+        /// <param name="errorMessage">What failed.</param>
+        /// <returns>A response with <see cref="CommunicationStatus.TransportError"/>.</returns>
         public static WitResponse TransportError(string errorMessage)
         {
             return new WitResponse(CommunicationStatus.TransportError, null, errorMessage, null);
         }
 
+        /// <summary>
+        /// A client-local transport failure carrying the underlying exception's
+        /// message as details.
+        /// </summary>
+        /// <param name="errorMessage">What failed.</param>
+        /// <param name="innerException">The failure behind it.</param>
+        /// <returns>A response with <see cref="CommunicationStatus.TransportError"/>.</returns>
         public static WitResponse TransportError(string errorMessage, Exception innerException)
         {
             return new WitResponse(CommunicationStatus.TransportError, null, errorMessage, innerException.Message);

@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using OutWit.Communication.Client;
 using OutWit.Communication.Client.Authorization;
 using OutWit.Communication.Client.Encryption;
@@ -86,11 +86,30 @@ namespace OutWit.Communication.Tests.Communication
             Assert.That(transport.SentFrames.Count, Is.EqualTo(2));
         }
 
+        [Test]
+        public async Task DisconnectFaultsInFlightRequestTest()
+        {
+            var transport = new SilentTransport();
+
+            // No client timeout: without the disconnect faulting the in-flight
+            // request, this call would wait forever.
+            using var client = CreateClient(transport, _ => { }, timeout: System.Threading.Timeout.InfiniteTimeSpan);
+
+            var task = client.SendRequest(new WitRequest { MethodName = "DoWork" });
+
+            Assert.That(SpinWait.SpinUntil(() => transport.SentFrames.Count == 1, TimeSpan.FromSeconds(5)), Is.True);
+
+            transport.RaiseDisconnected();
+
+            var response = await task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.That(response.Status, Is.EqualTo(CommunicationStatus.TransportError));
+        }
+
         #endregion
 
         #region Helpers
 
-        private static WitClient CreateClient(SilentTransport transport, Action<RetryOptions> configureRetry)
+        private static WitClient CreateClient(SilentTransport transport, Action<RetryOptions> configureRetry, TimeSpan? timeout = null)
         {
             var retryOptions = new RetryOptions();
             configureRetry(retryOptions);
@@ -104,7 +123,7 @@ namespace OutWit.Communication.Tests.Communication
                 new ReconnectionOptions(),
                 retryOptions,
                 logger: null,
-                timeout: TimeSpan.FromMilliseconds(150));
+                timeout: timeout ?? TimeSpan.FromMilliseconds(150));
         }
 
         /// <summary>A transport that records every send and never answers.</summary>
@@ -139,6 +158,11 @@ namespace OutWit.Communication.Tests.Communication
             {
                 SentFrames.Enqueue(data);
                 return Task.CompletedTask;
+            }
+
+            public void RaiseDisconnected()
+            {
+                Disconnected(Id);
             }
 
             public void Dispose()

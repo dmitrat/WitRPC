@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Buffers.Binary;
 using System.Security.Cryptography;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Model;
 
-namespace OutWit.Communication.Utils
+namespace OutWit.Communication.Encryption
 {
     /// <summary>
     /// One direction of the protocol-3 message channel: AES-256-GCM under a key
@@ -59,6 +59,10 @@ namespace OutWit.Communication.Utils
 
         #region Constructors
 
+        /// <summary>
+        /// Binds one directional key to its direction; the direction and the
+        /// protocol version become the associated data of every frame.
+        /// </summary>
         public AeadCipher(byte[] key, byte direction)
         {
             if (key.Length != KEY_SIZE)

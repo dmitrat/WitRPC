@@ -14,6 +14,8 @@ namespace OutWit.Communication.Tests.Requests
     [TestFixture]
     public class WitRequestTests
     {
+        private static readonly Guid INVOCATION_ID = Guid.Parse("5f3c9d2e-1a4b-4c6d-8e9f-0a1b2c3d4e5f");
+
         [Test]
         public void ConstructorTest()
         {
@@ -25,6 +27,9 @@ namespace OutWit.Communication.Tests.Requests
             Assert.That(request.ParameterTypesByName, Is.Empty);
             Assert.That(request.GenericArguments, Is.Empty);
             Assert.That(request.GenericArgumentsByName, Is.Empty);
+            Assert.That(request.InvocationId, Is.EqualTo(Guid.Empty));
+            Assert.That(request.ContractId, Is.EqualTo(0));
+            Assert.That(request.MethodId, Is.EqualTo(0));
 
             request = new WitRequest
             {
@@ -34,7 +39,10 @@ namespace OutWit.Communication.Tests.Requests
                 ParameterTypes = new[] { typeof(int), typeof(string) },
                 ParameterTypesByName = new[] { (ParameterType)typeof(int), (ParameterType)typeof(string) },
                 GenericArguments = new[] { typeof(double), typeof(string) },
-                GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) }
+                GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) },
+                InvocationId = INVOCATION_ID,
+                ContractId = 7,
+                MethodId = 8
             };
 
             Assert.That(request.Token, Is.EqualTo("0"));
@@ -44,6 +52,9 @@ namespace OutWit.Communication.Tests.Requests
             Assert.That(request.ParameterTypesByName.Is((ParameterType)typeof(int), (ParameterType)typeof(string)), Is.EqualTo(true));
             Assert.That(request.GenericArguments.Is(typeof(double), typeof(string)), Is.EqualTo(true));
             Assert.That(request.GenericArgumentsByName.Is((ParameterType)typeof(double), (ParameterType)typeof(string)), Is.EqualTo(true));
+            Assert.That(request.InvocationId, Is.EqualTo(INVOCATION_ID));
+            Assert.That(request.ContractId, Is.EqualTo(7));
+            Assert.That(request.MethodId, Is.EqualTo(8));
         }
 
         [Test]
@@ -57,7 +68,10 @@ namespace OutWit.Communication.Tests.Requests
                 ParameterTypes = new[] { typeof(int), typeof(string) },
                 ParameterTypesByName = new[] { (ParameterType)typeof(int), (ParameterType)typeof(string) },
                 GenericArguments = new[] { typeof(double), typeof(string) },
-                GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) }
+                GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) },
+                InvocationId = INVOCATION_ID,
+                ContractId = 7,
+                MethodId = 8
             };
 
             Assert.That(request.Is(request.Clone()), Is.True);
@@ -69,6 +83,9 @@ namespace OutWit.Communication.Tests.Requests
             Assert.That(request.Is(request.With(x => x.ParameterTypesByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) })), Is.False);
             Assert.That(request.Is(request.With(x => x.GenericArguments = new[] { typeof(int), typeof(string) })), Is.False);
             Assert.That(request.Is(request.With(x => x.GenericArgumentsByName = new[] { (ParameterType)typeof(int), (ParameterType)typeof(string) })), Is.False);
+            Assert.That(request.Is(request.With(x => x.InvocationId = Guid.NewGuid())), Is.False);
+            Assert.That(request.Is(request.With(x => x.ContractId = 70)), Is.False);
+            Assert.That(request.Is(request.With(x => x.MethodId = 80)), Is.False);
         }
 
         [Test]
@@ -82,7 +99,10 @@ namespace OutWit.Communication.Tests.Requests
                 ParameterTypes = new[] { typeof(int), typeof(string) },
                 ParameterTypesByName = new[] { (ParameterType)typeof(int), (ParameterType)typeof(string) },
                 GenericArguments = new[] { typeof(double), typeof(string) },
-                GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) }
+                GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) },
+                InvocationId = INVOCATION_ID,
+                ContractId = 7,
+                MethodId = 8
             };
             var request2 = request1.Clone() as WitRequest;
 
@@ -96,6 +116,9 @@ namespace OutWit.Communication.Tests.Requests
             Assert.That(request2.ParameterTypesByName.Is((ParameterType)typeof(int), (ParameterType)typeof(string)), Is.EqualTo(true));
             Assert.That(request2.GenericArguments.Is(typeof(double), typeof(string)), Is.EqualTo(true));
             Assert.That(request2.GenericArgumentsByName.Is((ParameterType)typeof(double), (ParameterType)typeof(string)), Is.EqualTo(true));
+            Assert.That(request2.InvocationId, Is.EqualTo(INVOCATION_ID));
+            Assert.That(request2.ContractId, Is.EqualTo(7));
+            Assert.That(request2.MethodId, Is.EqualTo(8));
         }
 
         [Test]
@@ -109,7 +132,10 @@ namespace OutWit.Communication.Tests.Requests
                 ParameterTypes = new[] { typeof(int), typeof(string) },
                 ParameterTypesByName = new[] { (ParameterType)typeof(int), (ParameterType)typeof(string) },
                 GenericArguments = new[] { typeof(double), typeof(string) },
-                GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) }
+                GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) },
+                InvocationId = INVOCATION_ID,
+                ContractId = 7,
+                MethodId = 8
             };
             var request2 = request1.JsonClone() as WitRequest;
 
@@ -136,7 +162,10 @@ namespace OutWit.Communication.Tests.Requests
                 ParameterTypes = new[] { typeof(int), typeof(string) },
                 ParameterTypesByName = new[] { (ParameterType)typeof(int), (ParameterType)typeof(string) },
                 GenericArguments = new[] { typeof(double), typeof(string) },
-                GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) }
+                GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) },
+                InvocationId = INVOCATION_ID,
+                ContractId = 7,
+                MethodId = 8
             };
 
             var bytes = request1.ToMessagePackBytes();
@@ -160,7 +189,10 @@ namespace OutWit.Communication.Tests.Requests
                 ParameterTypes = new[] { typeof(int), typeof(string) },
                 ParameterTypesByName = new[] { (ParameterType)typeof(int), (ParameterType)typeof(string) },
                 GenericArguments = new[] { typeof(double), typeof(string) },
-                GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) }
+                GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) },
+                InvocationId = INVOCATION_ID,
+                ContractId = 7,
+                MethodId = 8
             };
 
             var json = request1.ToJsonString();
@@ -183,7 +215,10 @@ namespace OutWit.Communication.Tests.Requests
                 ParameterTypes = new[] { typeof(int), typeof(string) },
                 ParameterTypesByName = new[] { (ParameterType)typeof(int), (ParameterType)typeof(string) },
                 GenericArguments = new[] { typeof(double), typeof(string) },
-                GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) }
+                GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) },
+                InvocationId = INVOCATION_ID,
+                ContractId = 7,
+                MethodId = 8
             };
 
             var json = request1.ToMemoryPackBytes();
@@ -206,7 +241,10 @@ namespace OutWit.Communication.Tests.Requests
                 ParameterTypes = new[] { typeof(int), typeof(string) },
                 ParameterTypesByName = new[] { (ParameterType)typeof(int), (ParameterType)typeof(string) },
                 GenericArguments = new[] { typeof(double), typeof(string) },
-                GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) }
+                GenericArgumentsByName = new[] { (ParameterType)typeof(double), (ParameterType)typeof(string) },
+                InvocationId = INVOCATION_ID,
+                ContractId = 7,
+                MethodId = 8
             };
 
             var json = request1.ToProtoBytes();

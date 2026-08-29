@@ -19,15 +19,21 @@ namespace OutWit.Communication.Tests.Responses
             var response = new WitResponseInitialization();
             Assert.That(response.SymmetricKey, Is.Null);
             Assert.That(response.Vector, Is.Null);
+            Assert.That(response.ProtocolVersion, Is.EqualTo(0));
+            Assert.That(response.ErrorMessage, Is.Null);
 
             response = new WitResponseInitialization
             {
                 SymmetricKey = new byte[] { 1, 2, 3 },
-                Vector = new byte[] { 4, 5 }
+                Vector = new byte[] { 4, 5 },
+                ProtocolVersion = 3,
+                ErrorMessage = "refused"
             };
 
             Assert.That(response.SymmetricKey, Is.EqualTo(new byte[] { 1, 2, 3 }));
             Assert.That(response.Vector, Is.EqualTo(new byte[] { 4, 5 }));
+            Assert.That(response.ProtocolVersion, Is.EqualTo(3));
+            Assert.That(response.ErrorMessage, Is.EqualTo("refused"));
         }
 
         [Test]
@@ -36,12 +42,16 @@ namespace OutWit.Communication.Tests.Responses
             var response = new WitResponseInitialization
             {
                 SymmetricKey = new byte[] { 1, 2, 3 },
-                Vector = new byte[] { 4, 5 }
+                Vector = new byte[] { 4, 5 },
+                ProtocolVersion = 3,
+                ErrorMessage = "refused"
             };
 
             Assert.That(response.Is(response.Clone()), Is.True);
             Assert.That(response.Is(response.With(x => x.SymmetricKey = new byte[] { 3, 4 })), Is.False);
             Assert.That(response.Is(response.With(x => x.Vector = new byte[] { 5, 6 })), Is.False);
+            Assert.That(response.Is(response.With(x => x.ProtocolVersion = 2)), Is.False);
+            Assert.That(response.Is(response.With(x => x.ErrorMessage = "other")), Is.False);
         }
 
         [Test]
@@ -50,7 +60,9 @@ namespace OutWit.Communication.Tests.Responses
             var response1 = new WitResponseInitialization
             {
                 SymmetricKey = new byte[] { 1, 2, 3 },
-                Vector = new byte[] { 4, 5 }
+                Vector = new byte[] { 4, 5 },
+                ProtocolVersion = 3,
+                ErrorMessage = "refused"
             };
             var response2 = response1.Clone() as WitResponseInitialization;
 
@@ -67,7 +79,9 @@ namespace OutWit.Communication.Tests.Responses
             var response1 = new WitResponseInitialization
             {
                 SymmetricKey = new byte[] { 1, 2, 3 },
-                Vector = new byte[] { 4, 5 }
+                Vector = new byte[] { 4, 5 },
+                ProtocolVersion = 3,
+                ErrorMessage = "refused"
             };
             var response2 = response1.JsonClone() as WitResponseInitialization;
 
@@ -83,7 +97,9 @@ namespace OutWit.Communication.Tests.Responses
             var response1 = new WitResponseInitialization
             {
                 SymmetricKey = new byte[] { 1, 2, 3 },
-                Vector = new byte[] { 4, 5 }
+                Vector = new byte[] { 4, 5 },
+                ProtocolVersion = 3,
+                ErrorMessage = "refused"
             };
 
             var bytes = response1.ToMessagePackBytes();
@@ -102,7 +118,9 @@ namespace OutWit.Communication.Tests.Responses
             var response1 = new WitResponseInitialization
             {
                 SymmetricKey = new byte[] { 1, 2, 3 },
-                Vector = new byte[] { 4, 5 }
+                Vector = new byte[] { 4, 5 },
+                ProtocolVersion = 3,
+                ErrorMessage = "refused"
             };
 
             var json = response1.ToJsonBytes();
@@ -120,7 +138,9 @@ namespace OutWit.Communication.Tests.Responses
             var response1 = new WitResponseInitialization
             {
                 SymmetricKey = new byte[] { 1, 2, 3 },
-                Vector = new byte[] { 4, 5 }
+                Vector = new byte[] { 4, 5 },
+                ProtocolVersion = 3,
+                ErrorMessage = "refused"
             };
 
             var json = response1.ToMemoryPackBytes();
@@ -138,7 +158,9 @@ namespace OutWit.Communication.Tests.Responses
             var response1 = new WitResponseInitialization
             {
                 SymmetricKey = new byte[] { 1, 2, 3 },
-                Vector = new byte[] { 4, 5 }
+                Vector = new byte[] { 4, 5 },
+                ProtocolVersion = 3,
+                ErrorMessage = "refused"
             };
 
             var json = response1.ToProtoBytes();

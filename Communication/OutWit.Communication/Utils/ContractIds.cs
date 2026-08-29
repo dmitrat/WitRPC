@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -31,11 +31,20 @@ namespace OutWit.Communication.Utils
 
         #region Functions
 
+        /// <summary>Identifies a contract by its stable, assembly-independent name.</summary>
+        /// <param name="contract">The service interface.</param>
+        /// <returns>A deterministic id, identical on every runtime and version.</returns>
         public static long GetContractId(Type contract)
         {
             return Hash(StableName(contract));
         }
 
+        /// <summary>
+        /// Identifies a non-generic method within its contract.
+        /// </summary>
+        /// <param name="contract">The service interface the method belongs to.</param>
+        /// <param name="method">The method to identify.</param>
+        /// <returns>The contract-scoped id, or <see cref="NONE"/> for a generic method.</returns>
         public static long GetMethodId(Type contract, MethodInfo method)
         {
             if (method.IsGenericMethod || method.IsGenericMethodDefinition)
@@ -45,6 +54,14 @@ namespace OutWit.Communication.Utils
                 method.GetParameters().Select(info => info.ParameterType).ToArray());
         }
 
+        /// <summary>
+        /// Identifies a method by its name and declared parameter types — the
+        /// form the client computes from an invocation.
+        /// </summary>
+        /// <param name="contract">The service interface the method belongs to.</param>
+        /// <param name="methodName">The method's name.</param>
+        /// <param name="parameterTypes">The declared parameter types, in order.</param>
+        /// <returns>The contract-scoped id.</returns>
         public static long GetMethodId(Type contract, string methodName, Type[] parameterTypes)
         {
             var builder = new StringBuilder(StableName(contract));

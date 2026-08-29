@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using OutWit.Communication.Exceptions;
+using OutWit.Communication.Encryption;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Utils;
 

@@ -187,7 +187,9 @@ real round-trip, publish blocked on any red job.
 ## Out of scope for 3.0
 
 Multi-client MMF; typed REST endpoints; server streaming
-(`IAsyncEnumerable<T>`); `ValueTask` surface; capability negotiation beyond the
+(`IAsyncEnumerable<T>`); `ValueTask` surface; a sequential dispatcher for user
+event handlers (today two callbacks may invoke handlers out of order relative
+to each other — same as 2.x; decryption and response correlation are ordered); capability negotiation beyond the
 protocol version check. These are features, not hardening.
 
 ## Progress
@@ -278,7 +280,8 @@ protocol version check. These are features, not hardening.
     services no longer cross-deliver. Deviations, deliberate: **EventId** folded
     into ContractId + event name (names are unique within a contract);
     **generic methods** keep the name-based path (`MethodId = 0`) — their closed
-    signatures differ per call; ids are computed at runtime, not by the source
+    signatures differ per call (REST POST carries the ids in its JSON body, so
+    the fast path applies there too; only parameterless GET is name-based); ids are computed at runtime, not by the source
     generator (`IProxyInvocation` exposes no `MethodInfo`; a generator version
     can come with an `OutWit.Common.Proxy` bump without wire changes).
   - **AEAD (`8499544`).** AES-256-GCM per direction: the handshake's

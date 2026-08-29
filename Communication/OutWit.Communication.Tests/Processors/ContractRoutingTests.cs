@@ -1,6 +1,10 @@
+﻿using Castle.DynamicProxy;
+using OutWit.Communication.Interceptors;
+using OutWit.Communication.Interfaces;
 using OutWit.Communication.Model;
 using OutWit.Communication.Processors;
 using OutWit.Communication.Requests;
+using OutWit.Communication.Responses;
 using OutWit.Communication.Serializers;
 using OutWit.Communication.Utils;
 
@@ -125,7 +129,72 @@ namespace OutWit.Communication.Tests.Processors
 
         #endregion
 
+        #region Callback Filtering Tests
+
+        [Test]
+        public void CallbackIsFilteredByContractIdTest()
+        {
+            var client = new FakeClient();
+            var generator = new ProxyGenerator();
+
+            var first = generator.CreateInterfaceProxyWithoutTarget<IFirstEventService>(
+                new RequestInterceptorDynamic(client, false, typeof(IFirstEventService)));
+            var second = generator.CreateInterfaceProxyWithoutTarget<ISecondEventService>(
+                new RequestInterceptorDynamic(client, false, typeof(ISecondEventService)));
+
+            var firstReceived = new List<string>();
+            var secondReceived = new List<string>();
+            first.Changed += value => firstReceived.Add(value);
+            second.Changed += value => secondReceived.Add(value);
+
+            // The colliding event name, stamped for the first contract: only the
+            // first proxy may deliver it.
+            client.RaiseCallback(CallbackRequest("for-first", ContractIds.GetContractId(typeof(IFirstEventService))));
+
+            Assert.That(firstReceived, Is.EqualTo(new[] { "for-first" }));
+            Assert.That(secondReceived, Is.Empty);
+        }
+
+        [Test]
+        public void UnstampedCallbackReachesEveryProxyTest()
+        {
+            var client = new FakeClient();
+            var generator = new ProxyGenerator();
+
+            var first = generator.CreateInterfaceProxyWithoutTarget<IFirstEventService>(
+                new RequestInterceptorDynamic(client, false, typeof(IFirstEventService)));
+            var second = generator.CreateInterfaceProxyWithoutTarget<ISecondEventService>(
+                new RequestInterceptorDynamic(client, false, typeof(ISecondEventService)));
+
+            var firstReceived = new List<string>();
+            var secondReceived = new List<string>();
+            first.Changed += value => firstReceived.Add(value);
+            second.Changed += value => secondReceived.Add(value);
+
+            // A pre-contract-id (or hand-raised) callback carries no contract:
+            // legacy behavior applies and every subscriber sees it.
+            client.RaiseCallback(CallbackRequest("broadcast", ContractIds.NONE));
+
+            Assert.That(firstReceived, Is.EqualTo(new[] { "broadcast" }));
+            Assert.That(secondReceived, Is.EqualTo(new[] { "broadcast" }));
+        }
+
+        #endregion
+
         #region Helpers
+
+        private static WitRequest CallbackRequest(string value, long contractId)
+        {
+            var serializer = new MessageSerializerJson();
+
+            return new WitRequest
+            {
+                MethodName = "Changed",
+                ContractId = contractId,
+                Parameters = new[] { serializer.Serialize(value, typeof(string)) },
+                ParameterTypesByName = new[] { new ParameterType(typeof(string)) }
+            };
+        }
 
         private static WitRequest CancelRequest<TContract>(Guid jobId, MessageSerializerJson serializer)
         {
@@ -154,6 +223,35 @@ namespace OutWit.Communication.Tests.Processors
         public interface IGenericService
         {
             T Echo<T>(T value);
+        }
+
+        public delegate void ChangedEventHandler(string value);
+
+        public interface IFirstEventService
+        {
+            event ChangedEventHandler Changed;
+        }
+
+        public interface ISecondEventService
+        {
+            event ChangedEventHandler Changed;
+        }
+
+        private sealed class FakeClient : IClient
+        {
+            public event ClientEventHandler CallbackReceived = delegate { };
+
+            public IMessageSerializer ParametersSerializer { get; } = new MessageSerializerJson();
+
+            public Task<WitResponse> SendRequest(WitRequest? request)
+            {
+                return Task.FromResult(WitResponse.Success(Array.Empty<byte>()));
+            }
+
+            public void RaiseCallback(WitRequest request)
+            {
+                CallbackReceived(request);
+            }
         }
 
         private sealed class FirstService : IFirstService

@@ -10,7 +10,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
-using OutWit.Communication.Utils;
+using OutWit.Communication.Encryption;
 
 namespace OutWit.Communication.Client.Encryption.BouncyCastle
 {
@@ -25,6 +25,14 @@ namespace OutWit.Communication.Client.Encryption.BouncyCastle
         private const int KEY_SIZE = 2048;
         private const int AES_KEY_SIZE = 256;
         private const int AES_BLOCK_SIZE = 128;
+
+        #endregion
+
+        #region Fields
+
+        private AeadCipher? m_send;
+
+        private AeadCipher? m_receive;
 
         #endregion
 
@@ -149,13 +157,7 @@ namespace OutWit.Communication.Client.Encryption.BouncyCastle
 
         private RsaPrivateCrtKeyParameters PrivateKey { get; set; } = null!;
 
-        private AeadCipher? m_send;
 
-        private AeadCipher? m_receive;
-
-        private byte[] AesKey { get; set; } = null!;
-
-        private byte[] AesIv { get; set; } = null!;
 
         #endregion
     }

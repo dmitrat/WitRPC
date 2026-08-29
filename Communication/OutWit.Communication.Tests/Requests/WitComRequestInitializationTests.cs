@@ -17,13 +17,16 @@ namespace OutWit.Communication.Tests.Requests
         {
             var request = new WitRequestInitialization();
             Assert.That(request.PublicKey, Is.Null);
+            Assert.That(request.ProtocolVersion, Is.EqualTo(0));
 
             request = new WitRequestInitialization
             {
-                PublicKey = new byte[] { 1, 2, 3 }
+                PublicKey = new byte[] { 1, 2, 3 },
+                ProtocolVersion = 3
             };
 
             Assert.That(request.PublicKey, Is.EqualTo(new byte[] { 1, 2, 3 }));
+            Assert.That(request.ProtocolVersion, Is.EqualTo(3));
         }
 
         [Test]
@@ -31,11 +34,13 @@ namespace OutWit.Communication.Tests.Requests
         {
             var request = new WitRequestInitialization
             {
-                PublicKey = new byte[] { 1, 2, 3 }
+                PublicKey = new byte[] { 1, 2, 3 },
+                ProtocolVersion = 3
             };
 
             Assert.That(request.Is(request.Clone()), Is.True);
             Assert.That(request.Is(request.With(x => x.PublicKey = new byte[] { 3, 4 })), Is.False);
+            Assert.That(request.Is(request.With(x => x.ProtocolVersion = 2)), Is.False);
         }
 
         [Test]
@@ -43,7 +48,8 @@ namespace OutWit.Communication.Tests.Requests
         {
             var request1 = new WitRequestInitialization
             {
-                PublicKey = new byte[] { 1, 2, 3 }
+                PublicKey = new byte[] { 1, 2, 3 },
+                ProtocolVersion = 3
             };
             var request2 = request1.Clone() as WitRequestInitialization;
 
@@ -58,7 +64,8 @@ namespace OutWit.Communication.Tests.Requests
         {
             var request1 = new WitRequestInitialization
             {
-                PublicKey = new byte[] { 1, 2, 3 }
+                PublicKey = new byte[] { 1, 2, 3 },
+                ProtocolVersion = 3
             };
             var request2 = request1.JsonClone() as WitRequestInitialization;
 
@@ -73,7 +80,8 @@ namespace OutWit.Communication.Tests.Requests
         {
             var request1 = new WitRequestInitialization
             {
-                PublicKey = new byte[] { 1, 2, 3 }
+                PublicKey = new byte[] { 1, 2, 3 },
+                ProtocolVersion = 3
             };
 
             var bytes = request1.ToMessagePackBytes();
@@ -91,7 +99,8 @@ namespace OutWit.Communication.Tests.Requests
         {
             var request1 = new WitRequestInitialization
             {
-                PublicKey = new byte[] { 1, 2, 3 }
+                PublicKey = new byte[] { 1, 2, 3 },
+                ProtocolVersion = 3
             };
 
             var json = request1.ToJsonBytes();
@@ -108,7 +117,8 @@ namespace OutWit.Communication.Tests.Requests
         {
             var request1 = new WitRequestInitialization
             {
-                PublicKey = new byte[] { 1, 2, 3 }
+                PublicKey = new byte[] { 1, 2, 3 },
+                ProtocolVersion = 3
             };
 
             var json = request1.ToMemoryPackBytes();
@@ -125,7 +135,8 @@ namespace OutWit.Communication.Tests.Requests
         {
             var request1 = new WitRequestInitialization
             {
-                PublicKey = new byte[] { 1, 2, 3 }
+                PublicKey = new byte[] { 1, 2, 3 },
+                ProtocolVersion = 3
             };
 
             var json = request1.ToProtoBytes();

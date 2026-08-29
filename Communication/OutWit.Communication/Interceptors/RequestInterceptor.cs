@@ -71,11 +71,6 @@ namespace OutWit.Communication.Interceptors
             Client.CallbackReceived += OnCallbackReceived;
         }
 
-        private static string MethodKey(string methodName, IEnumerable<Type> parameterTypes)
-        {
-            return methodName + "(" + string.Join(",", parameterTypes.Select(ContractIds.StableName)) + ")";
-        }
-
         #endregion
 
         #region IInterceptor
@@ -187,6 +182,15 @@ namespace OutWit.Communication.Interceptors
                 m_eventDelegates.TryRemove(eventName, out Delegate? value);
             else
                 m_eventDelegates[eventName] = result;
+        }
+
+        #endregion
+
+        #region Tools
+
+        private static string MethodKey(string methodName, IEnumerable<Type> parameterTypes)
+        {
+            return methodName + "(" + string.Join(",", parameterTypes.Select(ContractIds.StableName)) + ")";
         }
 
         #endregion

@@ -1,8 +1,8 @@
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using OutWit.Communication.Client.Encryption;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Server.Encryption;
-using OutWit.Communication.Utils;
+using OutWit.Communication.Encryption;
 
 namespace OutWit.Communication.Tests.Encryption
 {

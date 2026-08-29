@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.Json;
 using OutWit.Communication.Client.Blazor.Extensions;
 using OutWit.Communication.Model;
-using OutWit.Communication.Utils;
+using OutWit.Communication.Encryption;
 
 namespace OutWit.Communication.Client.Blazor.Encryption
 {
@@ -133,7 +133,7 @@ namespace OutWit.Communication.Client.Blazor.Encryption
             if (m_sendKey == null)
                 throw new InvalidOperationException("AES encryption not initialized. Call ResetAes first.");
 
-            ulong counter = m_sendCounter++;
+            ulong counter = m_sendCounter;
 
             var result = await Runtime.InvokeAsync<string>(
                 "cryptoInterop.encryptAesGcm",
@@ -141,6 +141,10 @@ namespace OutWit.Communication.Client.Blazor.Encryption
                 Convert.ToBase64String(Nonce(counter)),
                 SEND_AAD,
                 Convert.ToBase64String(data));
+
+            // The counter is consumed only once the JS call succeeded; a failed
+            // call must not desync the channel (mirrors AeadCipher.Seal).
+            m_sendCounter++;
 
             // WebCrypto returns ciphertext with the tag appended; reframe to the
             // shared [counter:8][tag:16][ciphertext] layout.

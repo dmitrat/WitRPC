@@ -11,7 +11,7 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
-using OutWit.Communication.Utils;
+using OutWit.Communication.Encryption;
 
 namespace OutWit.Communication.Server.Encryption.BouncyCastle
 {
@@ -25,6 +25,14 @@ namespace OutWit.Communication.Server.Encryption.BouncyCastle
 
         private const int AES_KEY_SIZE = 32; // 256 bits
         private const int AES_IV_SIZE = 16;  // 128 bits
+
+        #endregion
+
+        #region Fields
+
+        private AeadCipher? m_send;
+
+        private AeadCipher? m_receive;
 
         #endregion
 
@@ -130,10 +138,6 @@ namespace OutWit.Communication.Server.Encryption.BouncyCastle
         #endregion
 
         #region Properties
-
-        private AeadCipher? m_send;
-
-        private AeadCipher? m_receive;
 
         private byte[] AesKey { get; set; } = null!;
 
