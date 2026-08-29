@@ -1,7 +1,7 @@
 # Ecosystem migration to WitRPC 3.x
 
 Status: **plan, verified against every consumer on 2026-08-29; execution starts
-next session.** WitRPC 3.0.0 and 3.1.0 are on nuget.org (Tcp packages 3.1.1);
+next session.** WitRPC 3.0.0 and 3.1.0 are on nuget.org (Tcp packages 3.1.1, REST packages 3.2.0 with the readable contract restored);
 nothing that talks to production has been redeployed yet.
 
 The one fact that shapes everything: **protocol 3 is not wire-compatible with
