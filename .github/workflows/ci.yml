@@ -15,6 +15,11 @@ jobs:
   build-and-test:
     runs-on: windows-latest
 
+    env:
+      # A slow runner once took longer than vstest's default 90 s to bring
+      # the net8 test host up, and the whole run was reported as aborted.
+      VSTEST_CONNECTION_TIMEOUT: 300
+
     steps:
       - uses: actions/checkout@v4
 
