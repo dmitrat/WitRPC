@@ -58,7 +58,14 @@ permissions:
   id-token: write
 
 jobs:
+  # The publish is blocked on the full CI gate: build with own-code warnings
+  # as errors, every test project on every TFM, and the NativeAOT round-trip
+  # smoke. A red job anywhere means nothing is pushed.
+  ci:
+    uses: ./.github/workflows/ci.yml
+
   publish:
+    needs: ci
     runs-on: windows-latest
     env:
       PROJECT: ${{ github.event.inputs.project }}

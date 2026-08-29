@@ -1,0 +1,36 @@
+{
+  "solution": {
+    "path": "OutWit.slnx",
+    "projects": [
+      "Communication\\OutWit.Communication\\OutWit.Communication.csproj",
+      "Communication\\OutWit.Communication.Client\\OutWit.Communication.Client.csproj",
+      "Communication\\OutWit.Communication.Client.AotSmoke\\OutWit.Communication.Client.AotSmoke.csproj",
+      "Communication\\OutWit.Communication.Client.AotSmoke.Server\\OutWit.Communication.Client.AotSmoke.Server.csproj",
+      "Communication\\OutWit.Communication.Client.Blazor\\OutWit.Communication.Client.Blazor.csproj",
+      "Communication\\OutWit.Communication.Client.Blazor.Tests\\OutWit.Communication.Client.Blazor.Tests.csproj",
+      "Communication\\OutWit.Communication.Client.DependencyInjection\\OutWit.Communication.Client.DependencyInjection.csproj",
+      "Communication\\OutWit.Communication.Client.DynamicProxy\\OutWit.Communication.Client.DynamicProxy.csproj",
+      "Communication\\OutWit.Communication.Client.Encryption.BouncyCastle\\OutWit.Communication.Client.Encryption.BouncyCastle.csproj",
+      "Communication\\OutWit.Communication.Client.HealthChecks\\OutWit.Communication.Client.HealthChecks.csproj",
+      "Communication\\OutWit.Communication.Client.MMF\\OutWit.Communication.Client.MMF.csproj",
+      "Communication\\OutWit.Communication.Client.Pipes\\OutWit.Communication.Client.Pipes.csproj",
+      "Communication\\OutWit.Communication.Client.Rest\\OutWit.Communication.Client.Rest.csproj",
+      "Communication\\OutWit.Communication.Client.Tcp\\OutWit.Communication.Client.Tcp.csproj",
+      "Communication\\OutWit.Communication.Client.WebSocket\\OutWit.Communication.Client.WebSocket.csproj",
+      "Communication\\OutWit.Communication.Server\\OutWit.Communication.Server.csproj",
+      "Communication\\OutWit.Communication.Server.DependencyInjection\\OutWit.Communication.Server.DependencyInjection.csproj",
+      "Communication\\OutWit.Communication.Server.Encryption.BouncyCastle\\OutWit.Communication.Server.Encryption.BouncyCastle.csproj",
+      "Communication\\OutWit.Communication.Server.MMF\\OutWit.Communication.Server.MMF.csproj",
+      "Communication\\OutWit.Communication.Server.Pipes\\OutWit.Communication.Server.Pipes.csproj",
+      "Communication\\OutWit.Communication.Server.Rest\\OutWit.Communication.Server.Rest.csproj",
+      "Communication\\OutWit.Communication.Server.Tcp\\OutWit.Communication.Server.Tcp.csproj",
+      "Communication\\OutWit.Communication.Server.WebSocket\\OutWit.Communication.Server.WebSocket.csproj",
+      "Communication\\OutWit.Communication.Tests\\OutWit.Communication.Tests.csproj",
+      "InterProcess\\OutWit.InterProcess\\OutWit.InterProcess.csproj",
+      "InterProcess\\OutWit.InterProcess.Agent\\OutWit.InterProcess.Agent.csproj",
+      "InterProcess\\OutWit.InterProcess.Host\\OutWit.InterProcess.Host.csproj",
+      "InterProcess\\OutWit.InterProcess.Tests\\OutWit.InterProcess.Tests.csproj",
+      "InterProcess\\OutWit.InterProcess.Tests.Agent\\OutWit.InterProcess.Tests.Agent.csproj"
+    ]
+  }
+}

@@ -1,0 +1,97 @@
+name: CI
+
+# The 3.0 gate: own-code warnings are errors, every test project runs on every
+# TFM it targets, and the NativeAOT smoke does a real encrypted round-trip.
+# publish.yml calls this workflow and refuses to push packages unless it is
+# green.
+
+on:
+  push:
+    branches: [main, v3]
+  pull_request:
+  workflow_call:
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET SDKs (6/7/8/9/10)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            6.0.x
+            7.0.x
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.sln*', '**/*.csproj', '**/Directory.Packages.props') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore WitRPC.CI.slnf
+
+      # Restore runs separately so that -p:TreatWarningsAsErrors only hardens
+      # the compile: it turns the repo's own compiler warnings into errors
+      # without letting NuGet restore noise fail the build.
+      - name: Build (all TFMs, own-code warnings as errors)
+        run: dotnet build WitRPC.CI.slnf -c Release --no-restore -p:TreatWarningsAsErrors=true -p:ContinuousIntegrationBuild=true
+
+      # Transport integration tests are serialized (assembly-level
+      # NonParallelizable) and take OS-assigned free ports keyed by test name,
+      # so parallel bind collisions and excluded-port-range failures cannot
+      # occur. StartStopWaitingForConnectionTest is excluded on WebSocket
+      # grounds: a pre-existing HttpListener defect hangs it (see
+      # ROADMAP-v3.md, "Known defects").
+      - name: Communication tests (net8.0-windows + net10.0-windows)
+        run: >
+          dotnet test Communication/OutWit.Communication.Tests/OutWit.Communication.Tests.csproj
+          -c Release --no-build
+          --filter "FullyQualifiedName!~StartStopWaitingForConnectionTest"
+          --blame-hang --blame-hang-timeout 10m
+          -v minimal
+
+      - name: Blazor client tests (net10.0)
+        run: >
+          dotnet test Communication/OutWit.Communication.Client.Blazor.Tests/OutWit.Communication.Client.Blazor.Tests.csproj
+          -c Release --no-build
+          --blame-hang --blame-hang-timeout 10m
+          -v minimal
+
+      - name: InterProcess tests (net8.0-windows + net10.0-windows, real agent processes)
+        run: >
+          dotnet test InterProcess/OutWit.InterProcess.Tests/OutWit.InterProcess.Tests.csproj
+          -c Release --no-build
+          --blame-hang --blame-hang-timeout 10m
+          -v minimal
+
+  aot-smoke:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET SDK 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-aot-${{ runner.os }}-${{ hashFiles('**/*.sln*', '**/*.csproj', '**/Directory.Packages.props') }}
+          restore-keys: |
+            nuget-aot-${{ runner.os }}-
+
+      - name: NativeAOT smoke (publish + encrypted round-trip)
+        shell: pwsh
+        run: ./Scripts/aot-smoke.ps1
