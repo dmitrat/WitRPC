@@ -27,7 +27,7 @@ dotnet add package OutWit.Communication.Client.Blazor
 
 ## Target Frameworks
 
-`net10.0` · `net9.0` · `net8.0` · `net7.0` · `net6.0`
+`net10.0` ï¿½ `net9.0` ï¿½ `net8.0` ï¿½ `net7.0` ï¿½ `net6.0`
 
 ## Getting Started
 
@@ -278,28 +278,33 @@ Disable: `options.Reconnect = null;`
 
 ### Retry Policy (`ChannelRetryOptions`)
 
-Individual RPC calls are retried on transient failures.
+Individual RPC calls are retried on transient, client-local failures â€” `Timeout` (the call did not come back in time) and `TransportError` (the connection failed mid-call). A service fault (`InternalServerError`) is **never retried by default**: re-running failed business logic must be an explicit decision.
+
+Retries also apply only to methods you declare idempotent. With no declarations the policy is inert â€” a command never silently runs twice:
+
+```csharp
+options.Retry!.IdempotentMethods = new[] { nameof(IMyService.GetStatus), nameof(IMyService.ListItems) };
+// or, deliberately: options.Retry!.RetryAllMethods = true;
+```
+
+A retried call keeps its `InvocationId`, so a 3.0 server that already executed the first attempt answers the retry from its de-duplication cache instead of executing the method again.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `MaxRetries` | `int` | 3 | Maximum retry attempts before giving up. |
 | `InitialDelay` | `TimeSpan` | 500 ms | Delay before the first retry. |
 | `MaxDelay` | `TimeSpan` | 10 s | Upper bound for the backoff delay. |
-| `BackoffMultiplier` | `double` | 2.0 | Multiplier applied after each failed retry. |
-
-Additionally, the following are applied automatically and can be overridden via `ConfigureClient`:
-
-| Setting | Value |
-|---------|-------|
-| `BackoffType` | `Exponential` |
-| Retried statuses | `InternalServerError` |
-| Retried exceptions | `TimeoutException`, `IOException` |
+| `BackoffMultiplier` | `double` | 2.0 | Multiplier applied after each failed retry (exponential backoff). |
+| `IdempotentMethods` | `string[]` | empty | Methods declared safe to re-execute; only these are retried. |
+| `RetryAllMethods` | `bool` | `false` | Escape hatch: opts every method into retry. |
 
 Disable: `options.Retry = null;`
 
 ## Encryption
 
-Encryption is controlled by `UseEncryption` (default: `true`). When enabled, the library implements end-to-end encryption between the browser and the WitRPC server using a two-phase handshake. When disabled, the default plain encryptor is used (no JS interop calls).
+Encryption is controlled by `UseEncryption` (default: `true`). When enabled, the library encrypts WitRPC messages between the browser and the WitRPC server using a two-phase handshake. When disabled, the default plain encryptor is used (no JS interop calls).
+
+> **Defence in depth:** in production the WebSocket connection should run over `wss://` (TLS) â€” that is the primary protection. The message-layer encryption described here is an additional layer beneath it, not a replacement for TLS.
 
 ### Phase 1 -- RSA Key Exchange
 
@@ -311,10 +316,10 @@ Encryption is controlled by `UseEncryption` (default: `true`). When enabled, the
 
 ### Phase 2 -- AES Symmetric Encryption
 
-1. The server encrypts an AES-CBC key + IV with the client's RSA public key
+1. The server encrypts a master key + HKDF salt with the client's RSA public key
 2. `EncryptorClientWeb.DecryptRsa()` decrypts it in the browser
-3. `ResetAes()` stores the symmetric key and IV
-4. All subsequent communication uses `Encrypt()` / `Decrypt()` with AES-CBC
+3. Two **AES-256-GCM** keys â€” one per direction â€” are derived from the master key via HKDF-SHA256 in managed code
+4. All subsequent communication uses `Encrypt()` / `Decrypt()` with AES-GCM through the Web Crypto API (SubtleCrypto); each frame carries a strictly ordered counter, so replayed, reordered or tampered frames are rejected rather than decrypted
 
 ### RSA Parameters Mapping
 

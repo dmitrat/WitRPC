@@ -14,7 +14,7 @@ The core communication library of the WitRPC framework, providing base RPC funct
     
 -   **Multiple Transport Options:** Transport-agnostic design supporting various communication transports (e.g. Memory-Mapped Files, Named Pipes, TCP, WebSocket, REST). You can choose the best transport for your scenario without changing your service code.
     
--   **Secure & Authorized:** Built-in end-to-end encryption (AES for data encryption with RSA for key exchange) and token-based client authentication to secure communication. These features are easy to enable via configuration options, ensuring only authorized clients connect and that data is protected in transit.
+-   **Secure & Authorized:** Built-in message-layer encryption — authenticated **AES-256-GCM** with separate keys per direction, established through an RSA handshake — plus token-based client authentication. Tampered, replayed or reordered frames are detected and rejected, not silently decrypted. Treat it as **defence in depth**: on network transports, TLS (`wss://`, `https://`, TCP+TLS) remains the primary protection and WitRPC encryption is an additional layer beneath it; on local transports (memory-mapped files, named pipes) it is the natural way to protect the channel from other local processes.
     
 -   **Flexible Serialization:** Supports multiple serialization formats for transmitting data. By default, JSON is used for human-readable payloads, but you can switch to high-performance binary formats like MessagePack for efficiency (and other options such as MemoryPack or ProtoBuf in advanced scenarios).
     

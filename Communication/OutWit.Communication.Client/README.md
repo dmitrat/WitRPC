@@ -20,7 +20,7 @@ Key capabilities of this client library include:
 
 -   **Auto-Reconnection:** The client supports automatic reconnection with configurable retry strategies using `WithAutoReconnect()`.
 
--   **Retry Policies:** Failed calls can be automatically retried using configurable retry policies with `WithRetryPolicy()`.
+-   **Retry Policies:** Failed calls can be automatically retried using configurable retry policies with `WithRetryPolicy()`. Since 3.0, retries cover client-local failures (`Timeout`, `TransportError`) — a service fault (`InternalServerError`) is not retried by default — and apply only to methods declared idempotent via `RetryOptions.MarkIdempotent(...)` (or the explicit `RetryAllMethods` escape hatch). A retried call keeps its `InvocationId`, and a 3.0 server answers a duplicate from its de-duplication cache instead of executing the method twice.
     
 Under the hood, OutWit.Communication.Client works with the core OutWit.Communication components to format requests and decode responses. In most cases, you will use this package by including a transport-specific client package which depends on it, rather than using OutWit.Communication.Client alone.
 

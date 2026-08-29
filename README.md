@@ -5,7 +5,7 @@
 
 WitRPC is a modern API for client-server communication designed to simplify development and provide a robust, extensible framework. It offers a seamless way to handle real-time and event-driven interactions with minimal setup, acting as a powerful alternative to traditional frameworks like WCF and SignalR.
 
-> Current versions (2026-08-13): core 2.4.1, client transports 2.4.1, server 2.4.1 (server transports 2.4.0); `Client` 2.4.0, `Client.DependencyInjection` 2.4.0, `Client.DynamicProxy` 2.4.0 (new), `Client.Blazor` 1.0.9, `Client.HealthChecks` 2.3.5, `Server.DependencyInjection` 2.3.11, `InterProcess` 2.3.2 (`Host` 2.3.3). See [CHANGELOG.md](CHANGELOG.md).
+> Current version (2026-08-29): **3.0.0 — every package**. Protocol 3 is a coordinated major: a 3.0 client needs a 3.0 server (the server refuses older clients with a readable version message). See [CHANGELOG.md](CHANGELOG.md) for what changed and the migration notes.
 
 ## Features
 
@@ -18,9 +18,10 @@ WitRPC is a modern API for client-server communication designed to simplify deve
   - REST
 - **Composite Services**: Host multiple service interfaces on a single server, clients can request proxies for any registered interface.
 - **Security**:
-  - End-to-end encryption (AES/RSA)
+  - Authenticated message-layer encryption — AES-256-GCM per direction with an RSA handshake; tampered, replayed or reordered frames are rejected. Defence in depth: run TLS on network transports, use it as the channel protection on local ones (MMF, pipes)
   - Cross-platform BouncyCastle encryption (works in Blazor WebAssembly)
   - Token-based authorization
+  - Protocol version handshake — a mismatched client is refused with a readable reason
 - **Serialization**:
   - JSON (default)
   - MessagePack
@@ -28,7 +29,7 @@ WitRPC is a modern API for client-server communication designed to simplify deve
   - ProtoBuf
 - **Resilience**:
   - Auto-reconnection with configurable retry strategies
-  - Retry policies for failed calls
+  - Retry policies for failed calls — retries apply to client-local failures (`Timeout`, `TransportError`) and only to methods declared idempotent; a stable `InvocationId` plus server-side de-duplication means a retried call never executes twice
 - **Health Checks**: Built-in health check support for ASP.NET Core applications
 - **Cross-Platform Support**: Works across all .NET-supported platforms, including Blazor WebAssembly.
 - **Extensibility**: Default implementations for serialization, encryption, and authorization can be replaced with custom ones.

@@ -3,7 +3,7 @@
   <PropertyGroup>
 	  <TargetFrameworks>net10.0;net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
 
-	  <Version>2.4.0</Version>
+	  <Version>3.0.0</Version>
 
 	  <Description>Runtime dynamic proxy support (Castle.Core) for the WitRPC client. Reference this package to use GetService&lt;TService&gt;() without a source-generated proxy. The base client package is AOT-clean; this package opts back into runtime proxy generation.</Description>
 	  <PackageTags>OutWit;Communication;WitRPC;Client;DynamicProxy</PackageTags>

@@ -98,7 +98,7 @@ OutWit.InterProcess is a first-class part of the WitRPC framework. It builds on 
 
 -   You can use any **transport** supported by WitRPC for the host-agent connection. The library is typically configured to use fast local transports like memory-mapped files or named pipes by default, but the programming model doesn’t change based on transport. Developers simply call `Launch` or `Run` methods and the underlying transport is abstracted away.
     
--   Full support for **encryption and authorization:** If your WitRPC setup uses end-to-end encryption or token-based auth, those can be enabled in inter-process communications as well. For example, you could protect the channel between host and agent with AES/RSA encryption, just as you would for a network connection, to ensure even local IPC traffic is secure.
+-   Full support for **encryption and authorization:** If your WitRPC setup uses message-layer encryption or token-based auth, those can be enabled in inter-process communications as well. For a local link this is exactly where WitRPC encryption (authenticated AES-256-GCM in 3.0) earns its keep — there is no TLS on an MMF or pipe channel, so it is the way to keep other local processes from reading or tampering with the traffic.
     
 -   **Consistent serialization:** The default JSON serialization (or MessagePack, if configured) is used for data exchange, so complex objects, callbacks, and exceptions all serialize across processes the same way they do across network endpoints. This means your data contracts and DTOs require no special treatment for IPC.
     

@@ -9,7 +9,7 @@ Memory-mapped file transport client for WitRPC, enabling high-speed inter-proces
 
 Using this transport, the client and server coordinate via a common memory-mapped file name. The server creates the memory-mapped file and listens, and the client opens the same file to read/write requests and responses. This approach can achieve very high throughput since reading and writing to memory is much faster than socket communication.
 
-**Note:** This MMF client must be used in tandem with **OutWit.Communication.Server.MMF** on the server side. Both sides should use the same memory-mapped file name to communicate. Typically, MMF transport is used for **one-to-one** communication (one client and one server process) rather than many clients.
+**Note:** This MMF client must be used in tandem with **OutWit.Communication.Server.MMF** on the server side. Both sides should use the same memory-mapped file name to communicate. The MMF transport is **one-to-one by design**: one client and one server process per channel name. Both sides must run WitRPC 3.0 — the 3.0 channel layout (lossless, two directional regions) is not compatible with 2.x.
 
 ### Installation
 
@@ -46,9 +46,9 @@ In this snippet, we call `options.WithMemoryMappedFile("MyApp_MMF")` to tell the
 
 Using the `service` proxy obtained from the client is the same as with any other transport: you call methods and subscribe to events normally. The difference is entirely under the hood: requests and responses are being written to and read from shared memory.
 
-**Performance Consideration:** Memory-mapped file transport can achieve extremely high throughput for large volumes of data because it avoids serialization over network sockets. However, it's limited to local scenarios. Also, coordinating multiple readers/writers in one memory region is complex, so the WitRPC MMF transport is best used for one server and one client at a time. If you require multiple concurrent clients, consider using multiple MMF channels (with different names for each client) or use a different transport like Named Pipes or TCP which natively support multi-client.
+**Performance Consideration:** Memory-mapped file transport can achieve extremely high throughput for large volumes of data because it avoids the network stack entirely. However, it's limited to local scenarios, and it is one-to-one: one server and one client per channel. If you require multiple concurrent clients, use multiple MMF channels (a different name for each client) or a transport like Named Pipes or TCP which natively supports multi-client.
 
-**Security:** Memory-mapped files are accessible to any process with the same name and proper permissions on the system. For basic security, choose a unique name that is hard to guess to reduce the chance of an unintended process attaching. If needed, WitRPC's encryption (`WithEncryption()`) can add an extra layer of security by encrypting the data written to the memory file.
+**Security:** The channel's kernel objects live in the session-local `Local\` namespace, so they are not visible across sessions; within the session, any process with the same rights could attempt to attach by name. Choose a unique, hard-to-guess name, and if needed enable WitRPC's encryption (`WithEncryption()`) — authenticated AES-256-GCM in 3.0 — so another local process reading the memory sees only ciphertext and tampered frames are rejected.
 
 ### Further Documentation
 

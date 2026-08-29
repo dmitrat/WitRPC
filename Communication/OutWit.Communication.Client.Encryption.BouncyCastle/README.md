@@ -11,7 +11,7 @@ Cross-platform BouncyCastle-based encryption for WitRPC client, providing RSA/AE
 - ? **Xamarin/MAUI**
 - ? **Unity**
 
-The encryption uses RSA-OAEP (with SHA-256) for secure key exchange and AES-CBC for symmetric message encryption, providing end-to-end encryption for WitRPC communication.
+The encryption uses RSA-OAEP (with SHA-256) for the key handshake and authenticated **AES-256-GCM** for message encryption (since 3.0): separate keys per direction derived via HKDF, and tampered, replayed or reordered frames are rejected. Treat message-layer encryption as **defence in depth** — on network transports run TLS (`wss://`) as the primary protection. Both sides must run WitRPC 3.0; the 3.0 frame format is not compatible with the 2.x AES-CBC scheme.
 
 ### Installation
 
@@ -80,7 +80,7 @@ var server = WitServerBuilder.Build(options =>
 ### Security Details
 
 - **Key Exchange**: RSA-OAEP with SHA-256, 2048-bit keys
-- **Symmetric Encryption**: AES-256-CBC with PKCS7 padding
+- **Symmetric Encryption**: authenticated AES-256-GCM; one key per direction derived from the exchanged master key via HKDF-SHA256; frames carry a strictly ordered counter, so replayed, reordered or tampered frames throw instead of decrypting
 - **Key Generation**: Secure random using BouncyCastle's SecureRandom
 
 ### When to Use BouncyCastle

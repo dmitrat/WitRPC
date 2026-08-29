@@ -25,47 +25,78 @@ Install **OutWit.InterProcess.Host** in your main application project (the one t
 Install-Package OutWit.InterProcess.Host
 ```
 
-This will also install **OutWit.InterProcess** (base) and **OutWit.Communication.Client** (the WitRPC client core) as dependencies. The Host package targets .NET 6.0 on Windows. Ensure that your host and agent are built against compatible versions of WitRPC so their communications align.
+This will also install **OutWit.InterProcess** (base) and **OutWit.Communication.Client** (the WitRPC client core) as dependencies. The Host package targets .NET 6.0–10.0 on Windows. Host and agent must both run WitRPC 3.0 — the 3.0 wire protocol is a coordinated major.
 
 Typically, you'll also have a reference to the interface definitions that the host and agent share (so the host knows about `IExampleService`, for example). These interfaces can be in a common assembly referenced by both projects.
 
 ## Usage: Launching an Agent and Getting a Service Proxy
 
-Using OutWit.InterProcess.Host usually boils down to one main action: **launching an agent process and retrieving the service proxy**. The library likely provides a simple API to do this. The general pattern is:
+The core type is `HostAgent<TService>`: it spawns the agent executable, connects a WitRPC client over the transport you configure, and hands you the `TService` proxy.
 
-1.  **Prepare the agent executable:** Decide which process you are going to launch. This could be an external `.exe` file (perhaps the output of your agent project). Make sure the agent is accessible (e.g., include it in your deployment or have a known path).
-    
-2.  **Call the Host launch method:** Use the Host library’s API to start the agent. You will specify the service interface you expect the agent to provide, and the path to the agent program. There may be additional options (for example, working directory, command-line args, etc., if needed).
-    
-3.  **Receive the service interface proxy:** The launch method will return an implementation of the interface that actually forwards calls to the agent. You can immediately call methods on it or subscribe to its events. From here on, usage of the service is identical to a local object – the Host library and WitRPC handle the communication.
-    
-
-**Example (Host side):**
+**Example (one agent):**
 
 ```csharp
+using OutWit.Communication.Client;
+using OutWit.Communication.Client.Pipes.Utils;
 using OutWit.InterProcess.Host;
-using MySharedInterfaces;  // e.g., contains IExampleService
+using MySharedInterfaces;  // contains IExampleService
 
-// Launch the agent process (ExampleAgent.exe) and get a proxy to IExampleService
-IExampleService service = WitProcessHost.Launch<IExampleService>("ExampleAgent.exe");
+var options = new WitClientBuilderOptions();
+options.WithNamedPipe($"MyApp_{Guid.NewGuid():N}"); // this agent's own endpoint
 
-// Use the service proxy as if it's local
+var agent = new HostAgent<IExampleService>();
+
+if (!agent.Start(options, @".\ExampleAgent.exe", TimeSpan.Zero))
+    throw new InvalidOperationException("Agent failed to start");
+
+if (!await agent.Initialize(TimeSpan.FromSeconds(15)))
+    throw new InvalidOperationException("Agent failed to connect");
+
+IExampleService service = agent.Service!;
 string result = service.ProcessData("input-data");
-Console.WriteLine($"Agent returned: {result}");
 
-// You can also subscribe to events published by the remote service
+// Events raised by the agent arrive like local events:
 service.ProgressChanged += percent => Console.WriteLine($"Progress: {percent}%");
+
+// Graceful shutdown: disconnect, give the process a bounded window to leave
+// on its own, kill it (with its process tree) only if it does not.
+await agent.Stop();
 ```
 
-In this hypothetical code, `WitProcessHost.Launch<T>` starts the process `ExampleAgent.exe`, negotiates a connection, and returns an object that implements `IExampleService`. When you call `service.ProcessData`, the call is sent over to the agent process, executed by the real `ExampleService`, and the result is sent back. If `IExampleService` has events (like `ProgressChanged` in the snippet above), the agent can raise those and the Host library will forward them to your event handler in the host process.
+`Shutdown()` is the immediate kill switch, `Disposed` fires exactly once when the agent goes away for any reason (stop, kill, crash), and `IsInitialized`/`Service` are cleaned up on every exit path — a crashed agent never leaves a half-connected client or an orphan process behind.
 
-A few notes on this process:
+**Example (a pool of agents):** `HostManager<TService>` keeps a synchronized registry of agents, each on its own endpoint. Since 3.0 its constructor takes an **options factory**, called once per agent — every agent must get its own transport and address:
 
--   The first call to `Launch` might take a short moment, as it’s starting a process and setting up IPC. Once connected, calls are typically fast (especially using in-memory or pipe transport).
+```csharp
+using var manager = new HostManager<IExampleService>(
+    () =>
+    {
+        var options = new WitClientBuilderOptions();
+        options.WithNamedPipe($"MyApp_{Guid.NewGuid():N}");
+        return options;
+    },
+    @".\ExampleAgent.exe",
+    TimeSpan.Zero);
+
+var first = await manager.CreateClient(TimeSpan.FromSeconds(15));
+var second = await manager.CreateClient(TimeSpan.FromSeconds(15));
+
+first.Service!.ProcessData("input");
+
+// A crashed agent removes itself from the registry; create a replacement:
+manager.ShutdownAgent(first.Id);
+var replacement = await manager.CreateClient(TimeSpan.FromSeconds(15));
+
+// Disposing the manager takes every remaining agent process down with it.
+```
+
+A few notes:
+
+-   `Start` returns `false` (and releases the process object) when the executable cannot be launched; `Initialize` returns `false` when the agent did not come up within the timeout.
     
--   If the agent fails to start or connect (for example, if the file path is wrong or the agent crashes on startup), the Host library should throw an exception or return an error. Be prepared to handle such cases (e.g., log the error or notify the user).
+-   The first `Initialize` takes a moment — a process is starting and IPC is being negotiated. Once connected, calls are fast (especially over pipes or memory-mapped files).
     
--   The Host can launch multiple agents by calling `Launch` multiple times (perhaps with different executables or the same executable with different arguments). Each call would yield a different service proxy connected to a different process.
+-   Subscribe to `Disposed` to react to an agent dying unexpectedly; with `HostManager` the dead agent is also removed from the registry automatically.
     
 
 ## Scenarios and Use Cases

@@ -42,28 +42,49 @@ server.StartWaitingForConnection();
 Console.WriteLine("RESTful RPC server running at http://localhost:5000/api/example/");
 ```
 
-In this configuration, the server will listen for HTTP requests at the base URL `http://localhost:5000/api/example/`. Each RPC method call is mapped to an HTTP endpoint:
+In this configuration, the server listens for HTTP requests at the base URL `http://localhost:5000/api/example/`. The contract (since 3.0) is written down and stable:
 
--   A client performing an HTTP POST to `http://localhost:5000/api/example/SomeMethod` (with JSON payload) will invoke `SomeMethod` on `MyService`.
-    
--   If the method returns a result, the server will return it as a JSON response body. If the method is void (or one-way), the server might return a 204 No Content or similar.
-    
--   If a token is set (as in the example), the server expects an `Authorization: Bearer MySecretToken` header on incoming requests. Unauthorized requests will receive an HTTP 401 response.
-    
+### The wire contract
 
-On the client side, you could use OutWit.Communication.Client.Rest (if it's a .NET client) or simply make HTTP requests using any HTTP client. The WitRPC client will handle constructing the proper URLs and payloads if you use the Client.Rest package.
+**`POST {base}/{MethodName}`** — the JSON body is a WitRPC request envelope, the same `WitRequest` every other transport carries:
 
-**Security and HTTPS:** In production, you should run the REST endpoint over HTTPS (TLS) to ensure encryption of data in transit. To do this, you would:
+```http
+POST /api/example/Concat HTTP/1.1
+Authorization: Bearer MySecretToken
+Content-Type: application/json
 
--   Configure an HTTPS URL in `WithRest`, e.g., `options.WithRest("https://myhost.example.com/api/example/")`.
-    
--   Ensure that the specified host and port have a certificate bound (HttpListener on Windows requires you to configure this, often via `netsh` or using a certificate that matches the domain).
-    
--   Clients would then use `https://` for their requests. WitRPC's REST client will happily work with an HTTPS address as well.  
-    If HTTPS is used, you might not need WitRPC's message-level encryption (`WithEncryption()`), since TLS already provides transport security. However, using token auth is still recommended to ensure only authorized clients call your endpoints.
-    
+{
+  "MethodName": "Concat",
+  "InvocationId": "11111111-2222-3333-4444-555555555555",
+  "Parameters": ["ImhlbGxvIg==", "NDI="],
+  "ContractId": 0,
+  "MethodId": 0,
+  "ParameterTypesByName": [ ... ]
+}
+```
 
-**Response Codes and Errors:** The REST server will map WitRPC's responses to HTTP status codes. For example, if a method throws an exception or returns an error status, the server might respond with a 400 or 500 series status code and possibly a JSON error message. This design allows non-.NET clients to handle errors in a straightforward way via HTTP responses.
+-   `Parameters` — one element per argument: the argument's **JSON value, UTF-8 encoded, then base64-wrapped** (`ImhlbGxvIg==` is `"hello"`, `NDI=` is `42`). An empty element is a `null` argument.
+-   Method resolution: when `MethodId` is non-zero (the .NET `WitClientRest` proxy always sends it), the server dispatches by id and deserializes arguments against the method's declared parameter types — no type information travels on the wire. With `MethodId` = 0 the server resolves by `MethodName`, and a method **with** parameters then needs `ParameterTypes`/`ParameterTypesByName` filled in; a parameterless method resolves by name alone.
+-   `Authorization: Bearer <token>` is required when the server is configured with an access token; requests without a valid token get **401**.
+
+**`GET {base}/{MethodName}`** — allowed for **parameterless** methods only; equivalent to a POST with an empty parameter list.
+
+**The response body is always a JSON `WitResponse`** — on success *and* on failure — so a caller can always read the outcome from the body:
+
+```json
+{"Status":200,"Data":"ImhlbGxvNDIi","ErrorMessage":null,"ErrorDetails":null}
+{"Status":500,"Data":null,"ErrorMessage":"Something failed","ErrorDetails":null}
+```
+
+`Data` is the return value in the same base64-wrapped-JSON form; `null` for `void` methods.
+
+**HTTP status mapping:** 200 Ok · 400 bad/unparsable request · 401 invalid token · 405 unsupported HTTP verb · 408 processing timeout · 413 body over the size cap · 500 service fault.
+
+**Limits and behavior:** requests are handled concurrently and independently — a slow or throwing call neither blocks the next request nor takes the listener down. The body size is capped (`maxBodyBytes`, 64 MB default → 413), concurrency is bounded (`maxConcurrentRequests`), and processing is time-bounded by the configured timeout. Server-to-client events are **not supported** over REST (stateless request/reply) — use WebSocket or another persistent transport for callbacks.
+
+On the client side, use **OutWit.Communication.Client.Rest** from .NET — it produces exactly the envelope above — or reproduce the envelope from any HTTP-capable stack.
+
+**Security and HTTPS:** In production, run the REST endpoint over HTTPS (TLS) — that is the transport protection for REST. WitRPC's message-layer encryption does not apply to the REST transport (each call is a bare HTTP request); use `https://` in `WithRest(...)`, bind a certificate for the host/port (HttpListener on Windows typically needs a `netsh http add sslcert` binding), and keep token auth on so only authorized clients call your endpoints.
 
 ### Further Documentation
 

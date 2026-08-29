@@ -57,9 +57,11 @@ IExampleService service = new ProxyGenerator()
     .CreateInterfaceProxyWithoutTarget<IExampleService>(new RequestInterceptorDynamic(client, true));
 ```
 
-In this example, the client will send HTTP requests to `http://localhost:5000/api/example/`. Each method call on `service` will be translated into an HTTP request (usually a POST) to an endpoint like `http://localhost:5000/api/example/MethodName` with a JSON payload containing the method parameters. The server will process the request and send back a JSON response, which the client library will convert into the method’s return value (or throw an exception if the server returned an error).
+In this example, the client sends HTTP requests to `http://localhost:5000/api/example/`. Each method call on `service` becomes a `POST {base}/{MethodName}` whose JSON body is the WitRPC request envelope (`WitRequest`): the method name, a stable `InvocationId`, the arguments (each one serialized to JSON, UTF-8 encoded and base64-wrapped), and the contract/method ids the server dispatches by. A parameterless method can go out as a plain `GET {base}/{MethodName}` when `RestClientTransportOptions.Mode` allows it (`PostOnly` is the default). The full wire contract, with examples, is documented in the **OutWit.Communication.Server.Rest** package README.
 
-If an access token is provided via `.WithAccessToken("YourBearerToken")`, the client will include it as a Bearer token in the `Authorization` header of each HTTP request. The server can then validate this token to authorize the call.
+The response body is always a JSON `WitResponse` — the client reads it **even on a non-2xx HTTP status**, so a server fault surfaces as a typed fault from the proxy rather than a raw `HttpRequestException`. Client-local failures map to honest statuses: an HTTP timeout becomes `Timeout`, a send/receive/parse failure becomes `TransportError` — neither is confused with a service fault.
+
+The access token supplied through the `IAccessTokenProvider` (e.g. `AccessTokenProviderStatic("YourBearerToken")`) is sent as an `Authorization: Bearer` header on every request; the server validates it and answers 401 when it does not match.
 
 **Server Setup:** On the server side, using OutWit.Communication.Server.Rest, you would do something like:
 
@@ -69,7 +71,7 @@ options.WithRest("http://localhost:5000/api/example/");
 
 The server will then listen on that URL prefix for incoming requests. Ensure the paths and port match between client and server.
 
-**Security:** It’s recommended to use HTTPS when using the REST transport in production. This means using an `https://` URL (and corresponding `wss://` for WebSocket if mixed) and having a TLS certificate configured. The WitRPC REST server (based on HttpListener) will encrypt traffic at the transport layer in that case. The `.WithEncryption()` option in WitRPC is generally not used for REST, because you typically rely on HTTPS for security. (If you did call `.WithEncryption()` as well, the payloads would be double-encrypted, which usually isn’t necessary.)
+**Security:** Use HTTPS for the REST transport in production — an `https://` URL with a TLS certificate configured on the server. TLS is the transport protection here: WitRPC's message-layer encryption (`WithEncryption()`) does not apply to REST, since each call is an independent bare HTTP request with no encryption handshake. Token auth still applies and is recommended.
 
 **Use Cases:** The REST client is perfect if you want to call a WitRPC service from an environment where you can’t run the full WitRPC client (for example, from a web page using AJAX, or a Python script). It trades some performance for wide accessibility. Each RPC call incurs HTTP overhead, so for high-frequency call patterns a persistent transport might be better.
 

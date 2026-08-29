@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Note**: Since 2.3.1, package versions diverge per package family. Each section below lists the package versions it produced (verified against csproj `<Version>` values).
 
+## [3.0.0] - 2026-08-29
+
+> **Highlighted: protocol 3 — a coordinated hardening major.** Every package ships as **3.0.0** (including `Client.Blazor`, previously 1.0.x, and `InterProcess.*`, previously 2.3.x). The wire format changed, so 3.0 clients require 3.0 servers; from 3.0 onward the server refuses a mismatched client with a readable version message, and payload models are version-tolerant so 3.x can evolve without another major. The full stage-by-stage record lives in [ROADMAP-v3.md](ROADMAP-v3.md).
+
+### Breaking
+
+- **Wire format** (`WitRequest`/`WitResponse` and the handshake): new fields `InvocationId`, `ContractId`, `MethodId`, `ProtocolVersion`, `ErrorMessage`; all payload models are now `[MemoryPackable(GenerateType.VersionTolerant)]`. A 2.x peer cannot talk to a 3.0 peer — update both ends in one wave.
+- **Encryption**: AES-CBC replaced by authenticated **AES-256-GCM** (separate keys per direction via HKDF-SHA256, strictly ordered frame counters, AAD = protocol version + direction). Tampering, replay, reordering, or a dropped frame now throw `WitExceptionEncryption` instead of silently producing garbage. Standard, BouncyCastle, and Blazor Web Crypto encryptors moved together and interoperate within their pairs. Benchmarked 4.5–6× faster than the CBC path it replaces.
+- **Retry semantics** (`RetryOptions`, Blazor `ChannelRetryOptions`): `InternalServerError` (a service fault) is **no longer retried by default**; retries cover the new client-local statuses `Timeout` (408) and `TransportError` (503) and apply **only to methods declared idempotent** (`MarkIdempotent(...)` / `IdempotentMethods`, or the explicit `RetryAllMethods` escape hatch). With no declarations the policy is inert.
+- **Concurrency contract**: service methods are invoked concurrently across connections (since the Stage 2 rework) and must be thread-safe; set `MaxConcurrentRequests = 1` on the server to restore global serialization.
+- **`HostManager` constructor** (`OutWit.InterProcess.Host`): now takes a `Func<WitClientBuilderOptions>` factory instead of a single options instance — the old shape handed every agent the *same* transport and address, so a second agent landed on the first one's endpoint.
+- **MMF channel layout**: one file split into two directional regions with an atomic handoff; both ends must run 3.0. Public API unchanged (`WithMemoryMappedFile(name[, size])`).
+- **REST**: rebuilt on a written contract. `POST {base}/{Method}` with the whole `WitRequest` as the JSON body (`GET` for parameterless methods), `Authorization: Bearer`, the body always a `WitResponse` (also on non-2xx), HTTP status mapped from it. The old REST-only request/processor/exception types were deleted; the `OutWit.Common.Rest` dependency dropped from the client. REST with parameters works now (it never did end-to-end before 3.0).
+
+### Added
+
+- **Protocol version handshake**: `WitProtocol.VERSION = 3`; the server refuses older/unreadable initializations with a logged, readable reason (encrypted for the client when it offered a key) instead of a decode failure.
+- **Contract-scoped dispatch**: deterministic FNV-1a contract/method ids computed from namespace-qualified names (no assembly identity — linked-source contracts across different assemblies dispatch correctly). One dictionary lookup per call; parameters deserialize against the method's **declared** types, eliminating per-call reflection scans and `Type.GetType` on wire-supplied names from the fast path. Two services with identical method signatures on one channel no longer collide, and callbacks are filtered by contract on the client.
+- **Invocation de-duplication**: `WitRequest.InvocationId` stays stable across retries; the server answers duplicates from a bounded per-connection cache (64 entries, ≤256 KB each) without re-executing the method.
+- **Honest statuses**: `Timeout = 408` and `TransportError = 503` (client-local) split from `InternalServerError` (service fault); REST maps them to HTTP statuses.
+- **Framing and lifecycle hardening**: length prefixes read fully and validated before allocation; `MaxMessageSize` per transport (256 MB default); handshake timeout (30 s default); idempotent `Dispose` with `Disconnected` raised exactly once; callbacks delivered only to authorized connections; failed auth closes the transport.
+- **MMF rework**: lossless one-to-one channel (two directional regions, chunking, ready/free event pairs, peer death detected through an abandoned mutex — no heartbeats), kernel objects in the session-local `Local\` namespace.
+- **InterProcess hardening**: graceful `HostAgent.Stop()` (disconnect → bounded wait → `Kill(entireProcessTree: true)`), one cleanup path for every exit route, `Disposed` raised exactly once, a synchronized `HostManager` registry with no finalizer, and real-process integration tests replacing the stub suite.
+- **In-flight requests fault on disconnect**: a dropped connection promptly fails pending calls with `TransportError` instead of hanging them forever.
+- **CI gate** (`.github/workflows/ci.yml`): own-code warnings as errors, tests on every TFM, the NativeAOT smoke does a real round-trip against a live server, and publishing is blocked unless CI is green.
+- **NativeAOT-ready wire path**: the round-trip smoke immediately caught three AOT breaks and 3.0 fixes them all — the encryption handshake serialized RSA keys through reflection-based `System.Text.Json` (now hand-written JSON, wire-identical, JWK aliases accepted); MemoryPack discovered wire-model formatters via reflection that trimming removed (now registered explicitly at assembly load, trim-safe); and proxy type-name literals carried reference-facade assembly names NativeAOT cannot resolve (fixed by `OutWit.Common.Proxy` 1.2.11 + `OutWit.Common.Proxy.Generator` 2.2.2, now the pinned minimums). An AOT-published client completes an encrypted round-trip against a live server — proven in CI on every run.
+
+### Fixed
+
+- A throwing service method no longer tears down the connection (it becomes an `InternalServerError` response; all transports).
+- A latent frame-ordering bug: every client transport (and the MMF server transport) raised inbound frames via fire-and-forget `Task.Run`, so an event could overtake the response it preceded. Frames now arrive synchronously in read order; the client processes them through a single inbound channel and dispatches user event handlers off the loop.
+- Client authorization now honours the connect timeout.
+- The Blazor Web Crypto encryptor advances its send counter only after successful JS encryption.
+- REST listener survives unexpected exceptions, handles requests concurrently under a limit, and enforces `MaxBodyBytes` (64 MB default → 413).
+
+### Known issues
+
+- WebSocket server restart still hangs an already-connected client (pre-existing on 2.x: `HttpListener.Close()` aborts live connections). Documented in ROADMAP-v3.md "Known defects"; fix planned for a 3.x lifecycle pass.
+
 ## [2.4.1] - 2026-08-13
 
 Documentation-only wave: no code changes. The package READMEs (shown on nuget.org) now document the 2.4.0 dynamic proxy split — the parameterless `GetService<T>()` requires the opt-in `OutWit.Communication.Client.DynamicProxy` package, and the source-generated (`[ProxyTarget]`) path needs no extra package.
