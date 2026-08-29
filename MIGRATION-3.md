@@ -1,7 +1,7 @@
 # Ecosystem migration to WitRPC 3.x
 
 Status: **plan, verified against every consumer on 2026-08-29; execution starts
-next session.** WitRPC 3.0.0 and 3.1.0 are on nuget.org (Tcp packages 3.1.1; REST packages 3.2.1 with the readable contract restored and a `WitClientRestBuilder`; DependencyInjection packages 3.2.0 with `AddWitRpcRestServer` / `AddWitRpcRestClient`);
+next session.** WitRPC 3.0.0 and 3.1.0 are on nuget.org (Server / Client / Client.DynamicProxy / Tcp 3.1.1; REST packages 3.2.2 with the readable contract restored, `WitClientRestBuilder` and composite hosts; DependencyInjection packages 3.2.1 with `AddWitRpcRestServer` / `AddWitRpcRestClient` and every interface-typed option resolvable from the container -- consumers pin the latest of each: Server / Client 3.1.1, transports 3.1.0 (Tcp 3.1.1), DI 3.2.1);
 nothing that talks to production has been redeployed yet.
 
 The one fact that shapes everything: **protocol 3 is not wire-compatible with
