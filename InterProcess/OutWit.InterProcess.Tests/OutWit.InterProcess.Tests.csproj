@@ -7,6 +7,8 @@
 
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <!-- One test host at a time: these tests spawn real agent processes. -->
+    <TestTfmsInParallel>false</TestTfmsInParallel>
   </PropertyGroup>
 
 	<ItemGroup>

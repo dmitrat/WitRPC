@@ -337,7 +337,9 @@ namespace OutWit.Communication.Tests.Transports
 
             // A client that takes the seat and says hello, held alive so the
             // server attaches (and the harness wires its sink) before it dies.
-            var raw = await AttachRawClientAsync(server.Name);
+            // The raw client opens the kernel objects directly, so it needs the
+            // per-process channel name the factory actually published under.
+            var raw = await AttachRawClientAsync(Shared.ChannelName(server.Name));
             m_disposables.Add(raw);
 
             await server.WaitForClientAsync();
@@ -362,8 +364,10 @@ namespace OutWit.Communication.Tests.Transports
         {
             string name = Name(TransportType.MMF);
 
-            // A raw server that publishes a channel and then dies still owning its presence mutex.
-            var raw = await PublishRawServerAndDieAsync(name);
+            // A raw server that publishes a channel and then dies still owning its
+            // presence mutex. It publishes the kernel objects directly, so it uses
+            // the per-process channel name the real client will resolve.
+            var raw = await PublishRawServerAndDieAsync(Shared.ChannelName(name));
             m_disposables.Add(raw);
 
             var client = Client(TransportType.MMF, name);

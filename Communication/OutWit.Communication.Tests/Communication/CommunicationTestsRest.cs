@@ -29,18 +29,17 @@ namespace OutWit.Communication.Tests.Communication
 
         #endregion
 
-        #region Fields
-
-        // Each test binds its own port so the listeners never collide.
-        private static int s_port = 15050;
-
-        #endregion
-
         #region Setup
 
+        // Each test binds its own port so the listeners never collide. The OS
+        // assigns it, so it can never land in a Windows excluded-port range.
         private static string NextUrl()
         {
-            int port = Interlocked.Increment(ref s_port);
+            var probe = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+            probe.Start();
+            int port = ((System.Net.IPEndPoint)probe.LocalEndpoint).Port;
+            probe.Stop();
+
             return $"http://localhost:{port}/rest/";
         }
 

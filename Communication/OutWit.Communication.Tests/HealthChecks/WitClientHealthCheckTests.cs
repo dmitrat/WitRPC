@@ -115,7 +115,9 @@ namespace OutWit.Communication.Tests.HealthChecks
                 
                 services.AddWitRpcClient("test-client", ctx =>
                 {
-                    ctx.WithNamedPipe(testName);
+                    // The server above was created through Shared, which
+                    // publishes under the per-process channel name.
+                    ctx.WithNamedPipe(Shared.ChannelName(testName));
                     ctx.WithJson();
                     ctx.WithEncryption();
                     ctx.WithAccessToken("token");

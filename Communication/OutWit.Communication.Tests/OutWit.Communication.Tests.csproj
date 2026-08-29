@@ -2,6 +2,12 @@
 
   <PropertyGroup>
     <TargetFrameworks>net10.0-windows;net8.0-windows</TargetFrameworks>
+    <!-- CS0067/CS8669 come from OutWit.Common.Proxy.Generator output, not from
+         code owned by this repo; suppressed until the generator is fixed upstream. -->
+    <NoWarn>$(NoWarn);CS0067;CS8669</NoWarn>
+    <!-- One test host at a time: the net8 and net10 hosts must not race each
+         other for kernel-object channel names and machine resources. -->
+    <TestTfmsInParallel>false</TestTfmsInParallel>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 

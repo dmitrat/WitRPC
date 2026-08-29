@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Security;
+using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using OutWit.Communication.Client.Authorization;
 using OutWit.Communication.Client.Encryption;
@@ -35,6 +37,48 @@ namespace OutWit.Communication.Tests
     public static class Shared
     {
         private const string AUTHORIZATION_TOKEN = "token";
+
+        private static readonly object PORT_LOCK = new object();
+
+        private static readonly Dictionary<string, int> PORTS_BY_KEY = new Dictionary<string, int>();
+
+        /// <summary>
+        /// Kernel-object channel names (MMF, pipes) carry the process id: a
+        /// multi-TFM `dotnet test` runs one test host per TFM, and two hosts
+        /// running the same-named test must not collide on the same channel.
+        /// Within a process the suffix is stable, so restart tests still reuse
+        /// their channel.
+        /// </summary>
+        internal static string ChannelName(string name)
+        {
+            return $"{name}_{Environment.ProcessId}";
+        }
+
+        /// <summary>
+        /// One port per (transport, test name), chosen by the OS. Binding port 0
+        /// hands back a port that is actually free and assignable -- unlike a
+        /// port drawn from a fixed range, it can never land in a Windows
+        /// excluded-port block (the source of the intermittent AccessDenied /
+        /// 10013 bind failures). The server and client sides of a test share
+        /// the port through this cache, and a restart test reuses its port.
+        /// Ports are process-local, so parallel TFM hosts cannot collide here.
+        /// </summary>
+        private static int PortFor(string key)
+        {
+            lock (PORT_LOCK)
+            {
+                if (PORTS_BY_KEY.TryGetValue(key, out int port))
+                    return port;
+
+                var probe = new TcpListener(IPAddress.Loopback, 0);
+                probe.Start();
+                port = ((IPEndPoint)probe.LocalEndpoint).Port;
+                probe.Stop();
+
+                PORTS_BY_KEY[key] = port;
+                return port;
+            }
+        }
 
         public static IServiceBase GetServiceStatic(WitClient client)
         {
@@ -205,54 +249,43 @@ namespace OutWit.Communication.Tests
                 case TransportType.MMF:
                     return new MemoryMappedFileServerTransportFactory(new MemoryMappedFileServerTransportOptions()
                     {
-                        Name = name,
+                        Name = ChannelName(name),
                         Size = 1024 * 1024
                     });
 
                 case TransportType.Pipes:
                     return new NamedPipeServerTransportFactory(new NamedPipeServerTransportOptions
                     {
-                        PipeName = name,
+                        PipeName = ChannelName(name),
                         MaxNumberOfClients = maxNumberOfClients
                     });
 
-                // Port ranges are wide and outside anything Windows reserves.
-                // "netsh interface ipv4 show excludedportrange tcp" lists 5357 and
-                // the 8690-9489 block among others, and the old choices walked
-                // straight into them: 100-300 is the privileged range, and
-                // 5100-5900 contains 5357. Because the seed is
-                // string.GetHashCode(), which .NET Core randomises per process, a
-                // different set of ports was drawn on every run -- so the failures
-                // looked random rather than like a bad range.
                 case TransportType.Tcp:
+                    return new TcpServerTransportFactory(new TcpServerTransportOptions
                     {
-                        var random = new Random(name.GetHashCode());
-
-                        return new TcpServerTransportFactory(new TcpServerTransportOptions
-                        {
-                            Port = random.Next(20000, 29999),
-                            MaxNumberOfClients = maxNumberOfClients
-                        });
-                    }
+                        Port = PortFor($"Tcp:{name}"),
+                        MaxNumberOfClients = maxNumberOfClients
+                    });
 
                 case TransportType.TcpSecure:
                     {
-                        var random = new Random(name.GetHashCode());
                         return new TcpSecureServerTransportFactory(new TcpSecureServerTransportOptions
                         {
-                            Port = random.Next(30000, 39999),
+                            Port = PortFor($"TcpSecure:{name}"),
                             MaxNumberOfClients = maxNumberOfClients,
+#if NET9_0_OR_GREATER
+                            Certificate = X509CertificateLoader.LoadPkcs12(Properties.Resources.certificate1, "Pa$$w0rd")
+#else
                             Certificate = new X509Certificate(Properties.Resources.certificate1, "Pa$$w0rd")
+#endif
                         });
                     }
 
                 case TransportType.WebSocket:
                 default:
                     {
-                        // Use hash-based port to ensure same port for same test name
-                        var random = new Random(name.GetHashCode());
-                        var port = random.Next(40000, 49999);
-                        
+                        var port = PortFor($"WebSocket:{name}");
+
                         return new WebSocketServerTransportFactory(new WebSocketServerTransportOptions
                         {
                             Host = (HostInfo?)$"http://localhost:{port}/{name}/",
@@ -270,32 +303,28 @@ namespace OutWit.Communication.Tests
                 case TransportType.MMF:
                     return new MemoryMappedFileClientTransport(new MemoryMappedFileClientTransportOptions()
                     {
-                        Name = name
+                        Name = ChannelName(name)
                     });
 
                 case TransportType.Pipes:
                     return new NamedPipeClientTransport(new NamedPipeClientTransportOptions
                     {
                         ServerName = ".",
-                        PipeName = name
+                        PipeName = ChannelName(name)
                     });
 
                 case TransportType.Tcp:
+                    return new TcpClientTransport(new TcpClientTransportOptions
                     {
-                        var random = new Random(name.GetHashCode());
-                        return new TcpClientTransport(new TcpClientTransportOptions
-                        {
-                            Port = random.Next(20000, 29999),
-                            Host = "127.0.0.1"
-                        });
-                    }
+                        Port = PortFor($"Tcp:{name}"),
+                        Host = "127.0.0.1"
+                    });
 
                 case TransportType.TcpSecure:
                     {
-                        var random = new Random(name.GetHashCode());
                         return new TcpSecureClientTransport(new TcpSecureClientTransportOptions
                         {
-                            Port = random.Next(30000, 39999),
+                            Port = PortFor($"TcpSecure:{name}"),
                             Host = "127.0.0.1",
                             TargetHost = "localhost",
                             SslValidationCallback = AcceptAllCertificates
@@ -305,10 +334,8 @@ namespace OutWit.Communication.Tests
                 case TransportType.WebSocket:
                 default:
                     {
-                        // Use same hash-based port as server
-                        var random = new Random(name.GetHashCode());
-                        var port = random.Next(40000, 49999);
-                        
+                        var port = PortFor($"WebSocket:{name}");
+
                         return new WebSocketClientTransport(new WebSocketClientTransportOptions
                         {
                             Url = $"ws://localhost:{port}/{name}/",
