@@ -48,6 +48,9 @@ namespace OutWit.Communication.Server.Tcp
                 if (Client == null)
                     throw new WitExceptionTransport($"Failed to init tcp client");
 
+                // Latency over throughput on the accepted socket as well.
+                Client.NoDelay = true;
+
                 Stream = CreateStream();
 
                 IsListening = true;
@@ -70,10 +73,14 @@ namespace OutWit.Communication.Server.Tcp
 
             try
             {
-                var lengthBuffer = BitConverter.GetBytes(data.Length);
+                // One write per frame: a separate write for the four-byte prefix
+                // and another for the payload is the write-write-read pattern
+                // Nagle and delayed ACK punish with a ~200 ms stall per message.
+                var frame = new byte[sizeof(int) + data.Length];
+                BitConverter.TryWriteBytes(frame, data.Length);
+                data.CopyTo(frame, sizeof(int));
 
-                await Stream.WriteAsync(lengthBuffer);
-                await Stream.WriteAsync(data);
+                await Stream.WriteAsync(frame);
 
             }
             catch (IOException)

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Note**: Since 2.3.1, package versions diverge per package family. Each section below lists the package versions it produced (verified against csproj `<Version>` values).
 
+## [Client.Tcp / Server.Tcp 3.1.1] - 2026-08-29
+
+TCP packages only: 3.1.0 -> 3.1.1. Every other package stays 3.1.0.
+
+### Fixed
+
+- **TCP latency: Nagle + delayed ACK were stalling every message.** Neither end set `NoDelay`, and a frame went out as two writes (the four-byte length prefix, then the payload) -- the write-write-read pattern that Nagle's algorithm holds back until the peer's delayed ACK arrives, roughly 200 ms per message on Windows. Both ends now set `TcpClient.NoDelay = true` and write each frame with a single call. Found through the release gate: every CI flake during the 3.x publish was a TCP test missing a one-second budget while pipes and WebSocket were fine. TCP+TLS shares the base and gets the same fix.
+
 ## [3.1.0] - 2026-08-29
 
 > **Highlighted: serializers become plugins.** The core packages now carry only what every setup needs -- MemoryPack for the message envelope and JSON as the default payload serializer. MessagePack and protobuf-net move to opt-in packages, and a third plugin brings Google.Protobuf for proto-first gRPC models. A WitRPC client no longer drags MessagePack and protobuf-net (and their transitive graphs) into every application -- notably every Blazor WebAssembly bundle.

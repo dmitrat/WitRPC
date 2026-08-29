@@ -38,7 +38,9 @@ namespace OutWit.Communication.Client.Tcp
 
         public async Task<bool> ConnectAsync(TimeSpan timeout, CancellationToken cancellationToken)
         {
-            Client = new TcpClient();
+            // Latency over throughput: RPC frames are small and must not wait
+            // for the Nagle timer or the peer's delayed ACK.
+            Client = new TcpClient { NoDelay = true };
 
             try
             {
@@ -73,10 +75,14 @@ namespace OutWit.Communication.Client.Tcp
 
             try
             {
-                var lengthBuffer = BitConverter.GetBytes(data.Length);
+                // One write per frame: a separate write for the four-byte prefix
+                // and another for the payload is the write-write-read pattern
+                // Nagle and delayed ACK punish with a ~200 ms stall per message.
+                var frame = new byte[sizeof(int) + data.Length];
+                BitConverter.TryWriteBytes(frame, data.Length);
+                data.CopyTo(frame, sizeof(int));
 
-                await Stream.WriteAsync(lengthBuffer);
-                await Stream.WriteAsync(data);
+                await Stream.WriteAsync(frame);
             }
             catch (IOException)
             {
