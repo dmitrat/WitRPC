@@ -53,6 +53,9 @@
     <ProjectReference Include="..\OutWit.Communication.Server.Rest\OutWit.Communication.Server.Rest.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Server.Tcp\OutWit.Communication.Server.Tcp.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Server.WebSocket\OutWit.Communication.Server.WebSocket.csproj" />
+    <ProjectReference Include="..\OutWit.Communication.Serializers.GoogleProtobuf\OutWit.Communication.Serializers.GoogleProtobuf.csproj" />
+    <ProjectReference Include="..\OutWit.Communication.Serializers.MessagePack\OutWit.Communication.Serializers.MessagePack.csproj" />
+    <ProjectReference Include="..\OutWit.Communication.Serializers.ProtoBuf\OutWit.Communication.Serializers.ProtoBuf.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Server\OutWit.Communication.Server.csproj" />
     <ProjectReference Include="..\OutWit.Communication\OutWit.Communication.csproj" />
   </ItemGroup>

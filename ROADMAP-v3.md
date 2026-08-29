@@ -441,6 +441,33 @@ protocol version check. These are features, not hardening.
     `AotSmoke.Server` and `InterProcess.Tests.Agent` registered in both
     `.sln` and `.slnx`.
 
+### 3.1.0 follow-up — serializers become plugins
+
+Decided during the 3.0.0 publish (too late for the major, and 3.0.0's core was
+already on nuget.org): the core dragged MessagePack and protobuf-net into every
+consumer — every Blazor WASM bundle included — although only a migrant from
+SignalR or gRPC ever needs them. The reason those serializers exist at all is
+**bring your own models**: someone with models already annotated for
+MessagePack-CSharp or protobuf-net must be able to swap the transport and touch
+nothing. The split keeps that promise exactly and makes it cheaper for everyone
+else:
+
+- `OutWit.Communication.Serializers.MessagePack` / `.ProtoBuf` carry the two
+  serializers and one generic `WithX<TOptions>()` each, via the new
+  `ISerializationOptions` in the core (implemented by both builder options), so a
+  plugin references neither client nor server.
+- `OutWit.Communication.Serializers.GoogleProtobuf` is new: proto-first gRPC
+  models are `Google.Protobuf` `IMessage`s that protobuf-net cannot read, so the
+  old "gRPC-compatible" promise held only for code-first users. `IMessage`
+  payloads travel as protobuf wire bytes, everything else through a fallback
+  (JSON by default), decided per declared type on both sides.
+- The envelope is MemoryPack-only: the wire models lost their
+  MessagePack/ProtoBuf attributes, `DiscoveryClientOptions.WithMessagePack/
+  WithProtoBuf` went away, the ten wire-model MessagePack/ProtoBuf round-trip
+  tests with them. User payloads are untouched by any of this.
+- Consumer wave targets 3.1.0 directly — nobody in the workspace consumed 3.0.0,
+  so the extra version costs no one a second bump.
+
 ### The consumer wave (after packages are published)
 
 Publishing 3.0.0 is a `publish.yml` run per package (now gated on CI). Then:

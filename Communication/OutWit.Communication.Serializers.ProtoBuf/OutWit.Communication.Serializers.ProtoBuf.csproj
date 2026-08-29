@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>net10.0;net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
+
+	  <Version>3.1.0</Version>
+
+	  <Description>protobuf-net parameter serialization for WitRPC (client and server). Reference this package and call WithProtoBuf() to move code-first protobuf models ([ProtoContract]/[DataContract], as used with protobuf-net.Grpc) over WitRPC unchanged. For protoc-generated Google.Protobuf messages use OutWit.Communication.Serializers.GoogleProtobuf instead.</Description>
+	  <PackageTags>OutWit;Communication;WitRPC;Serialization;ProtoBuf;protobuf-net</PackageTags>
+
+	  <RepositoryUrl>https://github.com/dmitrat/WitRPC/tree/main/Communication/OutWit.Communication.Serializers.ProtoBuf</RepositoryUrl>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OutWit.Communication\OutWit.Communication.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OutWit.Common.ProtoBuf" />
+  </ItemGroup>
+
+</Project>

@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Runtime.Serialization;
 using MemoryPack;
-using MessagePack;
 using OutWit.Common.Abstract;
 using OutWit.Common.Values;
-using ProtoBuf;
 
 namespace OutWit.Communication.Responses
 {
-    [MessagePackObject]
     [DataContract]
     [MemoryPackable(GenerateType.VersionTolerant)]
-    [ProtoContract]
     public partial class WitResponseAuthorization : ModelBase
     {
         #region Constructors
@@ -46,18 +42,14 @@ namespace OutWit.Communication.Responses
 
         #region Properties
 
-        [Key(0)]
 
         [MemoryPackOrder(0)]
         [DataMember]
-        [ProtoMember(1)]
         public bool IsAuthorized { get; set; }
 
-        [Key(1)]
 
         [MemoryPackOrder(1)]
         [DataMember]
-        [ProtoMember(2)]
         public string? Message { get; set; }
 
         #endregion

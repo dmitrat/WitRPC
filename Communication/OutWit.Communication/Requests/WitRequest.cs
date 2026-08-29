@@ -3,19 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using MemoryPack;
-using MessagePack;
 using OutWit.Common.Abstract;
 using OutWit.Common.Collections;
 using OutWit.Common.Values;
 using OutWit.Communication.Model;
-using ProtoBuf;
 
 namespace OutWit.Communication.Requests
 {
-    [MessagePackObject]
     [DataContract]
     [MemoryPackable(GenerateType.VersionTolerant)]
-    [ProtoContract]
     public partial class WitRequest : ModelBase
     {
         #region Constructors
@@ -82,53 +78,39 @@ namespace OutWit.Communication.Requests
 
         #region Properties
 
-        [Key(0)]
 
         [MemoryPackOrder(0)]
         [DataMember]
-        [ProtoMember(1)]
         public string Token { get; set; }
 
-        [Key(1)]
 
         [MemoryPackOrder(1)]
         [DataMember]
-        [ProtoMember(2)]
         public string MethodName { get; set; }
 
-        [Key(2)]
 
         [MemoryPackOrder(2)]
         [DataMember]
-        [ProtoMember(3)]
         public byte[][] Parameters { get; set; }
 
-        [Key(3)]
 
         [MemoryPackOrder(3)]
         [DataMember]
-        [ProtoMember(4)]
         public Type[] ParameterTypes { get; set; }
 
-        [Key(4)]
 
         [MemoryPackOrder(4)]
         [DataMember]
-        [ProtoMember(5)]
         public ParameterType[] ParameterTypesByName { get; set; }
 
-        [Key(5)]
 
         [MemoryPackOrder(5)]
         [DataMember]
-        [ProtoMember(6)]
         public Type[] GenericArguments { get; set; }
 
-        [Key(6)]
 
         [MemoryPackOrder(6)]
         [DataMember]
-        [ProtoMember(7)]
         public ParameterType[] GenericArgumentsByName { get; set; }
 
         /// <summary>
@@ -136,10 +118,8 @@ namespace OutWit.Communication.Requests
         /// attempts of one call, which is what lets the server answer a
         /// duplicate from its cache instead of executing the method again.
         /// </summary>
-        [Key(7)]
         [MemoryPackOrder(7)]
         [DataMember]
-        [ProtoMember(8)]
         public Guid InvocationId { get; set; }
 
         /// <summary>
@@ -147,10 +127,8 @@ namespace OutWit.Communication.Requests
         /// <see cref="Utils.ContractIds.GetContractId"/> of the service
         /// interface. Zero when the caller did not declare a contract.
         /// </summary>
-        [Key(8)]
         [MemoryPackOrder(8)]
         [DataMember]
-        [ProtoMember(9)]
         public long ContractId { get; set; }
 
         /// <summary>
@@ -159,10 +137,8 @@ namespace OutWit.Communication.Requests
         /// the method's declared types. Zero falls back to name-based
         /// resolution (hand-built requests, REST, generic methods).
         /// </summary>
-        [Key(9)]
         [MemoryPackOrder(9)]
         [DataMember]
-        [ProtoMember(10)]
         public long MethodId { get; set; }
 
         #endregion

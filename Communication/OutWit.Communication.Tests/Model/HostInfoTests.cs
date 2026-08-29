@@ -3,8 +3,6 @@ using NUnit.Framework.Legacy;
 using OutWit.Communication.Model;
 using OutWit.Common.Json;
 using OutWit.Common.MemoryPack;
-using OutWit.Common.MessagePack;
-using OutWit.Common.ProtoBuf;
 using OutWit.Common.Utils;
 
 namespace OutWit.Communication.Tests.Model
@@ -492,47 +490,6 @@ namespace OutWit.Communication.Tests.Model
         }
 
         [Test]
-        public void MessagePackSerializationTest()
-        {
-            var info1 = new HostInfo
-            {
-                Host = "host",
-                Port = 2,
-                UseSsl = true,
-                UseWebSocket = true,
-                Path = "name"
-            };
-
-            var bytes = info1.ToMessagePackBytes();
-
-            ClassicAssert.NotNull(bytes);
-
-            var info2 = bytes.FromMessagePackBytes<HostInfo>();
-            ClassicAssert.NotNull(info2);
-
-            Assert.That(info2, Is.Not.SameAs(info1));
-            ClassicAssert.True(info1.Is(info2));
-
-
-            info1 = new HostInfo
-            {
-                Host = "host",
-                UseSsl = true,
-                UseWebSocket = false
-            };
-
-            bytes = info1.ToMessagePackBytes();
-
-            ClassicAssert.NotNull(bytes);
-
-            info2 = bytes.FromMessagePackBytes<HostInfo>();
-            ClassicAssert.NotNull(info2);
-
-            Assert.That(info2, Is.Not.SameAs(info1));
-            ClassicAssert.True(info1.Is(info2));
-        }
-
-        [Test]
         public void JsonSerializationTest()
         {
             var info1 = new HostInfo
@@ -578,27 +535,5 @@ namespace OutWit.Communication.Tests.Model
             ClassicAssert.True(info1.Is(info2));
         }
 
-        [Test]
-        public void ProtoBufSerializationTest()
-        {
-            var info1 = new HostInfo
-            {
-                Host = "host",
-                Port = 2,
-                UseSsl = true,
-                UseWebSocket = true,
-                Path = "name"
-            };
-
-            var bytes = info1.ToProtoBytes();
-
-            ClassicAssert.NotNull(bytes);
-
-            var info2 = bytes.FromProtoBytes<HostInfo>();
-            ClassicAssert.NotNull(info2);
-
-            Assert.That(info2, Is.Not.SameAs(info1));
-            ClassicAssert.True(info1.Is(info2));
-        }
     }
 }

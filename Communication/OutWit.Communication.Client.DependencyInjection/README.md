@@ -133,6 +133,8 @@ services.AddWitRpcClient("service-c", ctx =>
 });
 ```
 
+> `WithMessagePack()` / `WithProtoBuf()` come from the opt-in `OutWit.Communication.Serializers.MessagePack` / `.ProtoBuf` packages (since 3.1.0) — reference the package and add its `using`.
+
 #### With Service Provider Access
 
 Access the service provider during configuration to resolve dependencies like loggers, token providers, or configuration:

@@ -7,7 +7,7 @@ using OutWit.Communication.Server.Encryption;
 
 namespace OutWit.Communication.Server
 {
-    public class WitServerBuilderOptions
+    public class WitServerBuilderOptions : ISerializationOptions
     {
         #region Constructors
 

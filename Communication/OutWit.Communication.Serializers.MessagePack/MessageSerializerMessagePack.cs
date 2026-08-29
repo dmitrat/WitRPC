@@ -5,7 +5,7 @@ using OutWit.Common.MessagePack;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace OutWit.Communication.Serializers
+namespace OutWit.Communication.Serializers.MessagePack
 {
     public class MessageSerializerMessagePack : IMessageSerializer
     {

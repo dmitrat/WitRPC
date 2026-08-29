@@ -1,7 +1,6 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
 using OutWit.Communication.Interfaces;
-using OutWit.Common.MessagePack;
 using System.Collections.Generic;
 using System.Linq;
 using OutWit.Common.MemoryPack;

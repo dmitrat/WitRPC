@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>net10.0;net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
+
+	  <Version>3.1.0</Version>
+
+	  <Description>MessagePack parameter serialization for WitRPC (client and server). Reference this package and call WithMessagePack() to move models already annotated for MessagePack-CSharp (SignalR's MessagePack protocol) over WitRPC unchanged. Keeps MessagePack out of the core packages for everyone who does not use it.</Description>
+	  <PackageTags>OutWit;Communication;WitRPC;Serialization;MessagePack</PackageTags>
+
+	  <RepositoryUrl>https://github.com/dmitrat/WitRPC/tree/main/Communication/OutWit.Communication.Serializers.MessagePack</RepositoryUrl>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OutWit.Communication\OutWit.Communication.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OutWit.Common.MessagePack" />
+  </ItemGroup>
+
+</Project>

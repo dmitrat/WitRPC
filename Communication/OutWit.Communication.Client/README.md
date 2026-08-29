@@ -14,7 +14,7 @@ Key capabilities of this client library include:
     
 -   **Transport Agnostic:** The client library works with any supported transport (Named Pipes, TCP, WebSocket, Memory-Mapped Files, REST, etc.). The actual transport is provided by a transport-specific package, but the client API remains the same. You simply configure the desired transport during setup (for example, using `.WithTcp(...)`, `.WithWebSocket(...)`, etc.) and the library handles the details.
     
--   **Serialization & Encryption:** The client supports all WitRPC serialization options (JSON by default, or MessagePack/others) and can enable encryption and authentication to match the server's configuration. These are toggled via builder options like `.WithJson()`, `.WithMessagePack()`, `.WithEncryption()`, and `.WithAccessToken("token")` for providing credentials.
+-   **Serialization & Encryption:** The client supports all WitRPC serialization options (JSON by default, MemoryPack in the core; MessagePack, protobuf-net and Google.Protobuf through the opt-in `OutWit.Communication.Serializers.*` packages since 3.1.0) and can enable encryption and authentication to match the server's configuration. These are toggled via builder options like `.WithJson()`, `.WithMemoryPack()`, `.WithMessagePack()` (with the plugin package referenced), `.WithEncryption()`, and `.WithAccessToken("token")` for providing credentials.
     
 -   **Error Handling & Timeouts:** You can specify timeouts for connection and calls. The framework will return error statuses or throw exceptions if calls fail or time out, making it easier to handle network issues. The `ConnectAsync` method allows you to gracefully attempt connections within a specified timeframe.
 

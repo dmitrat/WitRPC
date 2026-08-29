@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Note**: Since 2.3.1, package versions diverge per package family. Each section below lists the package versions it produced (verified against csproj `<Version>` values).
 
+## [3.1.0] - 2026-08-29
+
+> **Highlighted: serializers become plugins.** The core packages now carry only what every setup needs -- MemoryPack for the message envelope and JSON as the default payload serializer. MessagePack and protobuf-net move to opt-in packages, and a third plugin brings Google.Protobuf for proto-first gRPC models. A WitRPC client no longer drags MessagePack and protobuf-net (and their transitive graphs) into every application -- notably every Blazor WebAssembly bundle.
+
+Package versions after this release: every package 3.1.0 (one number for the family), plus three new ones.
+
+### Added
+
+- **New package**: `OutWit.Communication.Serializers.MessagePack` -- `MessageSerializerMessagePack` and the `WithMessagePack()` extensions (client and server, one generic method via the new `ISerializationOptions`). Models annotated for MessagePack-CSharp (SignalR's MessagePack protocol) move over WitRPC unchanged.
+- **New package**: `OutWit.Communication.Serializers.ProtoBuf` -- `MessageSerializerProtoBuf` and `WithProtoBuf()`. Code-first protobuf-net models (`[ProtoContract]`, `[DataContract]` as used with protobuf-net.Grpc) move over unchanged.
+- **New package**: `OutWit.Communication.Serializers.GoogleProtobuf` -- `MessageSerializerGoogleProtobuf` and `WithGoogleProtobuf()`. protoc-generated `IMessage` parameters and results travel as protobuf wire bytes, exactly as gRPC would send them; everything else in a signature (primitives, `Guid`, enums, plain DTOs) goes through a fallback serializer, JSON by default (`WithGoogleProtobuf(IMessageSerializer fallback)` to choose another). This closes the gap for proto-first gRPC migrations, which protobuf-net could never read.
+- `ISerializationOptions` in the core: the one property (`ParametersSerializer`) a serializer plugin needs, implemented by both builder options, so a plugin ships a single `WithX<TOptions>()` extension and references neither the client nor the server package.
+
+### Changed
+
+- **Breaking (package split)**: `WithMessagePack()` / `WithProtoBuf()` and the two serializer classes left `OutWit.Communication` / `.Client` / `.Server`. Migration: add the matching `OutWit.Communication.Serializers.*` package on both ends and a `using OutWit.Communication.Serializers.MessagePack;` (or `.ProtoBuf`) line; call sites stay as they were. The 2.4.0 DynamicProxy split followed the same shape.
+- **The message envelope is MemoryPack-only.** WitRPC's own wire models (`WitMessage`, `WitRequest`/`WitResponse`, the handshake pairs, `ParameterType`, `DiscoveryMessage`, `HostInfo`) no longer carry `[MessagePackObject]`/`[ProtoContract]` annotations; `[DataContract]` stays. Consequently the `DiscoveryClientOptions.WithMessagePack()` / `WithProtoBuf()` overloads are gone (discovery datagrams are WitRPC's own messages, not yours) and `WithMessageSerializer(...)` can no longer be pointed at MessagePack or protobuf-net. Payload serialization -- the thing the plugins are for -- is unaffected: your models are serialized by your serializer and travel inside the envelope as bytes.
+- `OutWit.Communication` no longer depends on `OutWit.Common.MessagePack` and `OutWit.Common.ProtoBuf`.
+
 ## [3.0.0] - 2026-08-29
 
 > **Highlighted: protocol 3 — a coordinated hardening major.** Every package ships as **3.0.0** (including `Client.Blazor`, previously 1.0.x, and `InterProcess.*`, previously 2.3.x). The wire format changed, so 3.0 clients require 3.0 servers; from 3.0 onward the server refuses a mismatched client with a readable version message, and payload models are version-tolerant so 3.x can evolve without another major. The full stage-by-stage record lives in [ROADMAP-v3.md](ROADMAP-v3.md).

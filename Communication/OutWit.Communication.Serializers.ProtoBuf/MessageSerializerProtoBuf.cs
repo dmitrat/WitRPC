@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using OutWit.Communication.Interfaces;
 using OutWit.Common.ProtoBuf;
 
-namespace OutWit.Communication.Serializers
+namespace OutWit.Communication.Serializers.ProtoBuf
 {
     public class MessageSerializerProtoBuf : IMessageSerializer
     {

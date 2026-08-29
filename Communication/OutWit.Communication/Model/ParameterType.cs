@@ -3,17 +3,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using MemoryPack;
-using MessagePack;
 using OutWit.Common.Abstract;
 using OutWit.Common.Values;
-using ProtoBuf;
 
 namespace OutWit.Communication.Model
 {
-    [MessagePackObject]
     [DataContract]
     [MemoryPackable(GenerateType.VersionTolerant)]
-    [ProtoContract]
     public partial class ParameterType : ModelBase
     {
         #region Constructors
@@ -30,7 +26,6 @@ namespace OutWit.Communication.Model
             Assembly = type.Assembly.GetName().Name;
         }
 
-        [SerializationConstructor]
         [JsonConstructor]
         [MemoryPackConstructor]
         public ParameterType(string type, string assembly)
@@ -93,18 +88,14 @@ namespace OutWit.Communication.Model
 
         #region Properties
 
-        [Key(0)]
 
         [MemoryPackOrder(0)]
         [DataMember]
-        [ProtoMember(1)]
         public string? Type { get; private set; }
 
-        [Key(1)]
 
         [MemoryPackOrder(1)]
         [DataMember]
-        [ProtoMember(2)]
         public string? Assembly { get; private set; }
 
         #endregion

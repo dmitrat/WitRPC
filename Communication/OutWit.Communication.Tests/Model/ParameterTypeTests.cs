@@ -1,7 +1,5 @@
 using OutWit.Common.Json;
 using OutWit.Common.MemoryPack;
-using OutWit.Common.MessagePack;
-using OutWit.Common.ProtoBuf;
 using OutWit.Communication.Model;
 using OutWit.Communication.Tests.Mock.Model;
 using OutWit.Communication.Utils;
@@ -77,21 +75,6 @@ namespace OutWit.Communication.Tests.Model
         }
 
         [Test]
-        public void MessagePackSerializationTest()
-        {
-            var type1 = new ParameterType("1", "2");
-
-            var bytes = type1.ToMessagePackBytes();
-            Assert.That(bytes, Is.Not.Null);
-
-            var type2 = bytes.FromMessagePackBytes<ParameterType>();
-            Assert.That(type2, Is.Not.Null);
-            Assert.That(type1, Is.Not.SameAs(type2));
-            Assert.That(type1.Is(type2), Is.True);
-
-        }
-
-        [Test]
         public void JsonSerializationTest()
         {
             var type1 = new ParameterType("1", "2");
@@ -119,18 +102,5 @@ namespace OutWit.Communication.Tests.Model
             Assert.That(type1.Is(type2), Is.True);
         }
 
-        [Test]
-        public void ProtoBufSerializationTest()
-        {
-            var type1 = new ParameterType("1", "2");
-
-            var json = type1.ToProtoBytes();
-            Assert.That(json, Is.Not.Null);
-
-            var type2 = json.FromProtoBytes<ParameterType>();
-            Assert.That(type2, Is.Not.Null);
-            Assert.That(type1, Is.Not.SameAs(type2));
-            Assert.That(type1.Is(type2), Is.True);
-        }
     }
 }

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>net10.0;net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
+
+	  <Version>3.1.0</Version>
+
+	  <Description>Google.Protobuf parameter serialization for WitRPC (client and server). Reference this package and call WithGoogleProtobuf() to move protoc-generated messages (classic proto-first gRPC, Grpc.Tools) over WitRPC unchanged: IMessage parameters and results travel as protobuf wire bytes, everything else falls back to JSON.</Description>
+	  <PackageTags>OutWit;Communication;WitRPC;Serialization;Protobuf;Google.Protobuf;gRPC</PackageTags>
+
+	  <RepositoryUrl>https://github.com/dmitrat/WitRPC/tree/main/Communication/OutWit.Communication.Serializers.GoogleProtobuf</RepositoryUrl>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OutWit.Communication\OutWit.Communication.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" />
+  </ItemGroup>
+
+</Project>
