@@ -226,7 +226,48 @@ protocol version check. These are features, not hardening.
     transports (the WitServer/WitClient layer already serializes sends, so the
     conformance ConcurrentSends test stays MMF-only); async TLS handshake (TCP/TLS
     unused by the consumers); bounded inbound queue; `IAsyncDisposable`.
-- [ ] Stage 4 — protocol 3
+- [~] Stage 4 — protocol 3, **first half landed** (everything except contract
+  ids and AEAD). Commit on `v3`: `b5e0b00`.
+  - **Version tolerance.** Every payload wire model (`WitRequest`, `WitResponse`,
+    the initialization/authorization pairs, `ParameterType`, `DiscoveryMessage`)
+    is `[MemoryPackable(GenerateType.VersionTolerant)]` with explicit
+    `[MemoryPackOrder]` mirroring the MessagePack `[Key]` numbering — 3.x can now
+    add fields without another major. The `WitMessage` envelope (id, kind,
+    payload) is deliberately **frozen** non-tolerant and documented as such: any
+    build can read any other build's envelope and answer with a readable refusal;
+    evolution happens inside payloads.
+  - **Version handshake.** `WitProtocol.VERSION = 3`;
+    `WitRequestInitialization.ProtocolVersion` (a pre-3.0 client reads as 0),
+    `WitResponseInitialization.{ProtocolVersion, ErrorMessage}`. The server
+    refuses a mismatched or unreadable initialization with a readable reason
+    (encrypted for the client when it offered a key), logs it, and closes the
+    connection; the client surfaces `ErrorMessage` instead of guessing from a
+    null key. A 2.x client cannot read 3.0 bytes at all — it fails fast with the
+    reason in the *server* log; the in-band message works from 3.0 onward.
+  - **Honest statuses.** `Timeout = 408` and `TransportError = 503` — client-local
+    outcomes — split from `InternalServerError` (a service fault). The client maps
+    its own timeout → `Timeout`, send/receive/parse failures → `TransportError`
+    (REST client likewise); `RetryOptions` retries `Timeout`/`TransportError` by
+    default and **no longer retries `InternalServerError`** — re-running failed
+    business logic is an explicit opt-in.
+  - **In-flight requests fault on disconnect** (was a known defect): both
+    `OnServerDisconnected` and `Dispose` complete pending requests with a
+    transport exception, so a dropped connection fails calls promptly instead of
+    hanging them forever.
+  - **InvocationId + de-duplication + idempotent-only retry.**
+    `WitRequest.InvocationId` is stamped once per logical call (in
+    `CreateRequest` and defensively in `WitClient.SendRequest`) and stays stable
+    across retry attempts. The server keeps a bounded per-connection cache
+    (64 entries, ≤256 KB each) and answers a duplicate invocation from it without
+    re-executing the method. Retry is restricted to methods the consumer declared
+    via `RetryOptions.MarkIdempotent(...)` (or the explicit `RetryAllMethods`
+    escape hatch) — a command never silently runs twice. Blazor's
+    `ChannelRetryOptions` exposes the same knobs; its default retry is now inert
+    until methods are declared.
+  - Deferred to the second half of Stage 4: `ContractId`/`MethodId`/`EventId`
+    (routing by id, collision check at `Register`) and AEAD (AES-GCM, per-direction
+    keys, nonce counter, associated data, replay window — benchmarked 4.5-6×
+    *faster* than the current CBC path, so no performance excuse remains).
 - [x] Stage 5 — REST rebuilt. Commit on `v3`: `75bf391`.
   - **Client** (`WitClientRest`): one stateless HTTP call per request. A single
     process-wide `HttpClient` (its own timeout disabled; each call bounded by the
@@ -285,12 +326,10 @@ protocol version check. These are features, not hardening.
   WebSocket path (a server restart hangs live clients on their next request) and
   belongs in lifecycle hardening. Currently excluded from green runs via
   `--filter FullyQualifiedName!~StartStopWaitingForConnectionTest`.
-- **A dropped connection does not fault the client's in-flight requests.** With no
-  client timeout configured, `WitClient.SendMessageAsync` awaits the pending TCS
-  indefinitely; `OnServerDisconnected` sets state but does not complete pending
-  requests (only `Dispose` does). A disconnect should fault them (as `Dispose`
-  already does) so a call fails promptly instead of hanging. Small, client-side,
-  fits the concurrency/lifecycle work.
+- ~~A dropped connection does not fault the client's in-flight requests.~~
+  **Fixed in the Stage 4 first half**: `OnServerDisconnected` and `Dispose` both
+  complete pending requests with a transport exception, surfaced as
+  `TransportError`.
 - **Tcp bind flakiness (`AccessDenied`/10013) — pre-existing, reproduces on `main`.**
   Intermittent `TcpListener.Start()` bind failures across the Tcp test cases; a
   test-infra port-selection issue, not a library defect. Belongs to Stage 7's
