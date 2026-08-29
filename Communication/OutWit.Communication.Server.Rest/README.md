@@ -42,47 +42,46 @@ server.StartWaitingForConnection();
 Console.WriteLine("RESTful RPC server running at http://localhost:5000/api/example/");
 ```
 
-In this configuration, the server listens for HTTP requests at the base URL `http://localhost:5000/api/example/`. The contract (since 3.0) is written down and stable:
+In this configuration, the server listens for HTTP requests at the base URL `http://localhost:5000/api/example/`. This transport is WitRPC's **compatibility layer**: the caller on the other side does not need to be WitRPC at all -- curl, a browser, a Python script. The contract (since 3.2.0) is plain JSON both ways:
 
 ### The wire contract
 
-**`POST {base}/{MethodName}`** — the JSON body is a WitRPC request envelope, the same `WitRequest` every other transport carries:
+**`POST {base}/{MethodName}`** with a JSON body of the arguments -- either an **object of named arguments** or an **array of positional ones**:
 
 ```http
-POST /api/example/Concat HTTP/1.1
+POST /api/example/StartProcessing HTTP/1.1
 Authorization: Bearer MySecretToken
 Content-Type: application/json
 
-{
-  "MethodName": "Concat",
-  "InvocationId": "11111111-2222-3333-4444-555555555555",
-  "Parameters": ["ImhlbGxvIg==", "NDI="],
-  "ContractId": 0,
-  "MethodId": 0,
-  "ParameterTypesByName": [ ... ]
-}
+{"number": {"A": 2, "B": 3}, "iterations": 4}
 ```
 
--   `Parameters` — one element per argument: the argument's **JSON value, UTF-8 encoded, then base64-wrapped** (`ImhlbGxvIg==` is `"hello"`, `NDI=` is `42`). An empty element is a `null` argument.
--   Method resolution: when `MethodId` is non-zero (the .NET `WitClientRest` proxy always sends it), the server dispatches by id and deserializes arguments against the method's declared parameter types — no type information travels on the wire. With `MethodId` = 0 the server resolves by `MethodName`, and a method **with** parameters then needs `ParameterTypes`/`ParameterTypesByName` filled in; a parameterless method resolves by name alone.
--   `Authorization: Bearer <token>` is required when the server is configured with an access token; requests without a valid token get **401**.
+```http
+POST /api/example/RequestData HTTP/1.1
+Content-Type: application/json
 
-**`GET {base}/{MethodName}`** — allowed for **parameterless** methods only; equivalent to a POST with an empty parameter list.
+["hello"]
+```
 
-**The response body is always a JSON `WitResponse`** — on success *and* on failure — so a caller can always read the outcome from the body:
+-   Names are matched to the method's parameter names case-insensitively; `param1`, `param2`, ... are accepted as positional aliases. A JSON object whose keys match no parameter is taken positionally, in document order.
+-   Every argument is bound against the method's **declared parameter type** -- a nested object becomes your DTO, `null` becomes a null argument, a missing optional argument is null. No type names, no encoding, no envelope.
+-   Overloads resolve by name and argument count.
+
+**`GET {base}/{MethodName}?name=value&...`** for simple arguments (query values by parameter name or `param1=...`). Strings, enums, GUIDs and dates are taken verbatim; numbers and booleans must parse; anything else must be JSON (`?number={"A":2,"B":3}`, URL-encoded).
+
+**The reply is the return value as plain JSON** -- `"hello"`, `42`, `{"A":6,"B":9}` -- with `200`; a `void` method answers `204 No Content`. Errors carry an HTTP status and a small JSON object:
 
 ```json
-{"Status":200,"Data":"ImhlbGxvNDIi","ErrorMessage":null,"ErrorDetails":null}
-{"Status":500,"Data":null,"ErrorMessage":"Something failed","ErrorDetails":null}
+{"status":"BadRequest","error":"Method 'RequestData' does not take 2 argument(s)"}
 ```
 
-`Data` is the return value in the same base64-wrapped-JSON form; `null` for `void` methods.
+**HTTP status mapping:** 200 result; 204 nothing to return; 400 unbindable arguments or invalid JSON; 401 invalid token; 404 no such method; 405 unsupported HTTP verb; 408 processing timeout; 413 body over the size cap; 500 service fault (with `details`).
 
-**HTTP status mapping:** 200 Ok · 400 bad/unparsable request · 401 invalid token · 405 unsupported HTTP verb · 408 processing timeout · 413 body over the size cap · 500 service fault.
+`Authorization: Bearer <token>` is required when the server is configured with an access token. Generic methods are not callable over REST; property getters are (`GET .../StringProperty` calls `get_StringProperty`).
 
-**Limits and behavior:** requests are handled concurrently and independently — a slow or throwing call neither blocks the next request nor takes the listener down. The body size is capped (`maxBodyBytes`, 64 MB default → 413), concurrency is bounded (`maxConcurrentRequests`), and processing is time-bounded by the configured timeout. Server-to-client events are **not supported** over REST (stateless request/reply) — use WebSocket or another persistent transport for callbacks.
+**Limits and behavior:** requests are handled concurrently and independently -- a slow or throwing call neither blocks the next request nor takes the listener down. The body size is capped (`maxBodyBytes`, 64 MB default -> 413), concurrency is bounded (`maxConcurrentRequests`), and processing is time-bounded by the configured timeout. Server-to-client events are **not supported** over REST (stateless request/reply) -- use WebSocket or another persistent transport for callbacks.
 
-On the client side, use **OutWit.Communication.Client.Rest** from .NET — it produces exactly the envelope above — or reproduce the envelope from any HTTP-capable stack.
+On the client side, use **OutWit.Communication.Client.Rest** from .NET -- it sends exactly the JSON above (a positional array, or a query string when its mode allows) -- or call the endpoints from any HTTP-capable stack.
 
 **Security and HTTPS:** In production, run the REST endpoint over HTTPS (TLS) — that is the transport protection for REST. WitRPC's message-layer encryption does not apply to the REST transport (each call is a bare HTTP request); use `https://` in `WithRest(...)`, bind a certificate for the host/port (HttpListener on Windows typically needs a `netsh http add sslcert` binding), and keep token auth on so only authorized clients call your endpoints.
 

@@ -21,7 +21,11 @@ namespace OutWit.Communication.Server.Rest
             if (options.RequestProcessor == null)
                 throw new WitException("Request processor cannot be empty");
 
-            return new WitServerRest(options.TransportOptions, options.TokenValidator, options.RequestProcessor, options.Logger, options.Timeout,
+            if (options.Contracts.Count == 0)
+                throw new WitException("REST needs the service contract type(s) to bind readable requests; use WithService<TService> or WithRequestProcessor(processor, contracts)");
+
+            return new WitServerRest(options.TransportOptions, options.TokenValidator, options.RequestProcessor,
+                new RestMethodCatalog(options.Contracts), options.Logger, options.Timeout,
                 options.MaxBodyBytes, options.MaxConcurrentRequests);
         }
 
@@ -51,9 +55,14 @@ namespace OutWit.Communication.Server.Rest
 
         #region Processor
 
-        public static WitServerRestBuilderOptions WithRequestProcessor(this WitServerRestBuilderOptions me, IRequestProcessor requestProcessor)
+        /// <summary>
+        /// Uses a custom processor. The contract types are what the REST layer
+        /// binds readable calls against, so they must be listed explicitly.
+        /// </summary>
+        public static WitServerRestBuilderOptions WithRequestProcessor(this WitServerRestBuilderOptions me, IRequestProcessor requestProcessor, params Type[] contracts)
         {
             me.RequestProcessor = requestProcessor;
+            me.Contracts.AddRange(contracts);
             return me;
         }
 
@@ -61,6 +70,7 @@ namespace OutWit.Communication.Server.Rest
             where TService: class
         {
             me.RequestProcessor = new RequestProcessor<TService>(service, isStrongAssemblyMatch);
+            me.Contracts.Add(typeof(TService));
             return me;
         }
 
@@ -68,6 +78,7 @@ namespace OutWit.Communication.Server.Rest
             where TService : class, new ()
         {
             me.RequestProcessor = new RequestProcessor<TService>(new TService(), isStrongAssemblyMatch);
+            me.Contracts.Add(typeof(TService));
             return me;
         }
 
@@ -75,6 +86,7 @@ namespace OutWit.Communication.Server.Rest
             where TService : class, new()
         {
             me.RequestProcessor = new RequestProcessor<TService>(serviceBuilder(), isStrongAssemblyMatch);
+            me.Contracts.Add(typeof(TService));
             return me;
         }
 

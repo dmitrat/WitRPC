@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Server.Authorization;
@@ -26,6 +27,13 @@ namespace OutWit.Communication.Server.Rest
         public RestServerTransportOptions? TransportOptions { get; set; }
 
         public IRequestProcessor? RequestProcessor { get; set; }
+
+        /// <summary>
+        /// The service contract types the REST layer binds readable calls against
+        /// (method names, parameter names and declared types). Filled by
+        /// <c>WithService</c>; a custom processor must list its contracts.
+        /// </summary>
+        public List<Type> Contracts { get; } = new();
 
         public IAccessTokenValidator TokenValidator { get; set; }
 

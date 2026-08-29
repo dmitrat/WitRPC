@@ -1,10 +1,15 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using OutWit.Communication.Exceptions;
 using OutWit.Communication.Interfaces;
+using OutWit.Communication.Model;
 using OutWit.Communication.Requests;
 using OutWit.Communication.Responses;
 using OutWit.Communication.Serializers;
@@ -12,18 +17,20 @@ using OutWit.Communication.Serializers;
 namespace OutWit.Communication.Client.Rest
 {
     /// <summary>
-    /// The REST transport client. Each call is one stateless HTTP request: the
-    /// whole <see cref="WitRequest"/> is the JSON body of a
-    /// <c>POST {base}/{method}</c> (or a <c>GET</c> for a parameterless method
-    /// when the mode allows one), and the reply is always a <see cref="WitResponse"/>
-    /// read back from the body — including on a non-2xx status, so a server fault
-    /// comes back as a response rather than a thrown HTTP exception.
+    /// The REST transport client. Each call is one stateless HTTP request in the
+    /// same readable shape any other client would send: <c>POST {base}/{method}</c>
+    /// with a JSON array of the arguments (or <c>GET {base}/{method}?param1=...</c>
+    /// when the mode allows one), <c>Authorization: Bearer</c> from the token
+    /// provider, and the return value read back as plain JSON -- or, on an HTTP
+    /// error status, the server's JSON error object turned into a fault.
     /// </summary>
     public class WitClientRest : IClient
     {
         #region Constants
 
         private const string JSON_MEDIA_TYPE = "application/json";
+
+        private const string POSITIONAL_PREFIX = "param";
 
         #endregion
 
@@ -51,7 +58,6 @@ namespace OutWit.Communication.Client.Rest
 
             Options = options;
             ParametersSerializer = new MessageSerializerJson();
-            MessageSerializer = new MessageSerializerJson();
             TokenProvider = tokenProvider;
         }
 
@@ -63,6 +69,9 @@ namespace OutWit.Communication.Client.Rest
         {
             if (request == null)
                 return WitResponse.BadRequest("Empty request");
+
+            if (request.GenericArguments.Length > 0 || request.GenericArgumentsByName.Length > 0)
+                return WitResponse.BadRequest("Generic methods cannot be called over REST");
 
             try
             {
@@ -84,11 +93,9 @@ namespace OutWit.Communication.Client.Rest
 
                 byte[] body = await httpResponse.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
 
-                if (body.Length == 0)
-                    return WitResponse.TransportError($"Server returned an empty body (HTTP {(int)httpResponse.StatusCode})");
-
-                return MessageSerializer.Deserialize<WitResponse>(body)
-                       ?? WitResponse.TransportError("Failed to deserialize the response");
+                return httpResponse.IsSuccessStatusCode
+                    ? WitResponse.Success(body)
+                    : ToFault(httpResponse.StatusCode, body);
             }
             catch (OperationCanceledException) when (timeout is { IsCancellationRequested: true })
             {
@@ -106,21 +113,19 @@ namespace OutWit.Communication.Client.Rest
 
         private HttpRequestMessage BuildRequest(WitRequest request)
         {
-            var uri = new Uri(Options.Host!.AppendPath(request.MethodName).BuildConnection(true));
-
-            bool parameterless = request.Parameters.Length == 0;
-            bool useGet = parameterless && Options.Mode != RestClientRequestModes.PostOnly;
+            var host = Options.Host!.AppendPath(request.MethodName);
 
             HttpRequestMessage message;
-            if (useGet)
+            if (UseGet(request))
             {
-                message = new HttpRequestMessage(HttpMethod.Get, uri);
+                var builder = new UriBuilder(host.BuildConnection(true)) { Query = BuildQuery(request) };
+                message = new HttpRequestMessage(HttpMethod.Get, builder.Uri);
             }
             else
             {
-                message = new HttpRequestMessage(HttpMethod.Post, uri)
+                message = new HttpRequestMessage(HttpMethod.Post, new Uri(host.BuildConnection(true)))
                 {
-                    Content = new ByteArrayContent(MessageSerializer.Serialize(request))
+                    Content = new ByteArrayContent(BuildBody(request))
                 };
                 message.Content.Headers.ContentType = new MediaTypeHeaderValue(JSON_MEDIA_TYPE);
             }
@@ -129,6 +134,113 @@ namespace OutWit.Communication.Client.Rest
                 message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", request.Token);
 
             return message;
+        }
+
+        private bool UseGet(WitRequest request)
+        {
+            int count = request.Parameters.Length;
+
+            return Options.Mode switch
+            {
+                RestClientRequestModes.AllowGet => true,
+                RestClientRequestModes.AllowGetForMethodsWithSingleParameter => count <= 1,
+                RestClientRequestModes.AllowGetForMethodsWithoutParameters => count == 0,
+                _ => false
+            };
+        }
+
+        /// <summary>
+        /// The arguments as one JSON array, each already serialized by the JSON
+        /// parameters serializer; a null argument is JSON null.
+        /// </summary>
+        private static byte[] BuildBody(WitRequest request)
+        {
+            var body = new StringBuilder("[");
+
+            for (int i = 0; i < request.Parameters.Length; i++)
+            {
+                if (i > 0)
+                    body.Append(',');
+
+                var parameter = request.Parameters[i];
+                body.Append(parameter == null || parameter.Length == 0 ? "null" : Encoding.UTF8.GetString(parameter));
+            }
+
+            body.Append(']');
+            return Encoding.UTF8.GetBytes(body.ToString());
+        }
+
+        /// <summary>
+        /// <c>param1=...&amp;param2=...</c>; a JSON string travels unquoted, anything
+        /// else as its JSON text, so the query stays readable and the server binds
+        /// it against the declared types.
+        /// </summary>
+        private static string BuildQuery(WitRequest request)
+        {
+            var parts = new List<string>();
+
+            for (int i = 0; i < request.Parameters.Length; i++)
+            {
+                var parameter = request.Parameters[i];
+                string text = parameter == null || parameter.Length == 0 ? "null" : Encoding.UTF8.GetString(parameter);
+
+                if (text.Length >= 2 && text[0] == '"' && text[^1] == '"')
+                    text = JsonSerializer.Deserialize<string>(text) ?? "";
+
+                parts.Add($"{POSITIONAL_PREFIX}{i + 1}={Uri.EscapeDataString(text)}");
+            }
+
+            return string.Join("&", parts);
+        }
+
+        /// <summary>
+        /// Turns the server's error object (<c>{"status":..,"error":..,"details":..}</c>)
+        /// into the fault the proxy throws; an unreadable body falls back to the
+        /// HTTP status alone.
+        /// </summary>
+        private static WitResponse ToFault(HttpStatusCode httpStatus, byte[] body)
+        {
+            string? status = null;
+            string error = $"HTTP {(int)httpStatus}";
+            string? details = null;
+
+            if (body.Length > 0)
+            {
+                try
+                {
+                    using var document = JsonDocument.Parse(body);
+                    var root = document.RootElement;
+
+                    if (root.ValueKind == JsonValueKind.Object)
+                    {
+                        if (root.TryGetProperty("status", out var statusElement))
+                            status = statusElement.GetString();
+                        if (root.TryGetProperty("error", out var errorElement))
+                            error = errorElement.GetString() ?? error;
+                        if (root.TryGetProperty("details", out var detailsElement))
+                            details = detailsElement.GetString();
+                    }
+                }
+                catch (JsonException)
+                {
+                }
+            }
+
+            string message = details == null ? error : $"{error}: {details}";
+
+            if (status == nameof(CommunicationStatus.Unauthorized) || httpStatus == HttpStatusCode.Unauthorized)
+                return WitResponse.UnauthorizedRequest(message);
+
+            if (status == nameof(CommunicationStatus.Timeout) || httpStatus == HttpStatusCode.RequestTimeout)
+                return WitResponse.Timeout(message);
+
+            if (status == nameof(CommunicationStatus.TransportError) || httpStatus == HttpStatusCode.BadGateway)
+                return WitResponse.TransportError(message);
+
+            if (status == nameof(CommunicationStatus.BadRequest) || (int)httpStatus >= 400 && (int)httpStatus < 500)
+                return WitResponse.BadRequest(message);
+
+            return WitResponse.InternalServerError(message);
         }
 
         private CancellationTokenSource? CreateTimeout()
@@ -146,8 +258,6 @@ namespace OutWit.Communication.Client.Rest
         public RestClientTransportOptions Options { get; }
 
         public IMessageSerializer ParametersSerializer { get; }
-
-        private IMessageSerializer MessageSerializer { get; }
 
         public IAccessTokenProvider TokenProvider { get; }
 

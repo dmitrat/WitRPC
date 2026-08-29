@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Note**: Since 2.3.1, package versions diverge per package family. Each section below lists the package versions it produced (verified against csproj `<Version>` values).
 
+## [Client.Rest / Server.Rest 3.2.0] - 2026-08-29
+
+REST packages only: 3.1.0 -> 3.2.0. Every other package stays 3.1.0 (Tcp 3.1.1).
+
+### Changed
+
+- **REST is a readable compatibility layer again.** The 3.0 rebuild put the whole `WitRequest` envelope in the HTTP body -- arguments as base64-wrapped JSON plus type names or method ids -- which made the transport unusable from anything that is not WitRPC, defeating the reason it exists. 3.2.0 restores the original idea on top of the 3.x internals: `POST {base}/{Method}` with a plain JSON body (an object of named arguments or an array of positional ones), `GET {base}/{Method}?name=value` for simple arguments, the return value back as plain JSON (`204` for void), and an HTTP error status with a small JSON error object (`{"status":"BadRequest","error":"..."}`) on failure. Arguments are bound against the contract's declared parameter types by a new `RestMethodCatalog`, so a caller needs the method name and the values -- nothing else. Names match case-insensitively; `param1...paramN` positional aliases and JSON-object-in-document-order are accepted for 2.x-style callers; unknown method is 404, wrong arity or invalid JSON is 400. Property getters are callable; generic methods are not.
+- `WitClientRest` sends the same readable shape (a positional JSON array, or a query string in the GET modes) and reads plain JSON back; `WitServerRestBuilderOptions` gains `Contracts`, filled by `WithService<T>`; `WithRequestProcessor(processor, params Type[] contracts)` for custom processors.
+- New `CommunicationTestsRestInterop` fixture drives the server with a bare `HttpClient` and plain JSON -- the contract is tested from the outside, not through the proxy.
+
 ## [Client.Tcp / Server.Tcp 3.1.1] - 2026-08-29
 
 TCP packages only: 3.1.0 -> 3.1.1. Every other package stays 3.1.0.

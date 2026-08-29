@@ -1,34 +1,35 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OutWit.Communication.Interfaces;
+using OutWit.Communication.Model;
 using OutWit.Communication.Requests;
 using OutWit.Communication.Responses;
 using OutWit.Communication.Serializers;
-using OutWit.Communication.Utils;
 
 namespace OutWit.Communication.Server.Rest
 {
     /// <summary>
-    /// The REST transport server. It hosts one HTTP endpoint per service: a
-    /// <c>POST {base}/{method}</c> whose JSON body is the whole
-    /// <see cref="WitRequest"/> (or a <c>GET {base}/{method}</c> for a
-    /// parameterless call), runs it through the same <see cref="IRequestProcessor"/>
-    /// every other transport uses, and returns the <see cref="WitResponse"/> as
-    /// JSON with an HTTP status mapped from it.
+    /// The REST transport server -- WitRPC's compatibility layer for callers
+    /// that are not WitRPC at all. One HTTP endpoint per method:
+    /// <c>POST {base}/{method}</c> with a plain JSON body (an object of named
+    /// arguments or an array of positional ones), or <c>GET {base}/{method}?a=1</c>
+    /// for simple arguments. The reply is the method's return value as plain
+    /// JSON (<c>204</c> for nothing), or an HTTP error status with a small JSON
+    /// error object. Arguments are bound against the contract's declared
+    /// parameter types, so a caller needs the method name and the values --
+    /// nothing WitRPC-specific.
     /// <para>
-    /// Requests are handled concurrently and independently: a slow or failing one
-    /// neither blocks the accept loop nor brings the listener down. The body is
-    /// size-capped and processing is time-bounded.
-    /// </para>
-    /// <para>
-    /// REST is stateless request/reply, so it carries no server-to-client
-    /// callbacks; events are delivered only by the persistent transports.
+    /// Requests are handled concurrently and independently: a slow or failing
+    /// one neither blocks the accept loop nor brings the listener down. The body
+    /// is size-capped and processing is time-bounded. REST is stateless
+    /// request/reply, so it carries no server-to-client callbacks.
     /// </para>
     /// </summary>
     public class WitServerRest : IDisposable
@@ -52,12 +53,14 @@ namespace OutWit.Communication.Server.Rest
         #region Constructors
 
         public WitServerRest(RestServerTransportOptions options, IAccessTokenValidator tokenValidator, IRequestProcessor requestProcessor,
-            ILogger? logger, TimeSpan? timeout, long maxBodyBytes = DEFAULT_MAX_BODY_BYTES, int maxConcurrentRequests = int.MaxValue)
+            RestMethodCatalog catalog, ILogger? logger, TimeSpan? timeout,
+            long maxBodyBytes = DEFAULT_MAX_BODY_BYTES, int maxConcurrentRequests = int.MaxValue)
         {
             Options = options;
             Serializer = new MessageSerializerJson();
             TokenValidator = tokenValidator;
             RequestProcessor = requestProcessor;
+            Catalog = catalog;
 
             RequestProcessor.ResetSerializer(Serializer);
 
@@ -124,8 +127,7 @@ namespace OutWit.Communication.Server.Rest
 
                 try
                 {
-                    var (response, status) = await ProcessAsync(context.Request).ConfigureAwait(false);
-                    WriteResponse(context.Response, response, status);
+                    await ProcessAsync(context).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -135,53 +137,89 @@ namespace OutWit.Communication.Server.Rest
             catch (Exception e)
             {
                 Logger?.LogError(e, "Failed to handle a REST request");
-                TryWriteError(context.Response);
+                TryWriteError(context.Response, HttpStatusCode.InternalServerError, CommunicationStatus.InternalServerError, "Failed to process the request", null);
             }
         }
 
-        private async Task<(WitResponse response, HttpStatusCode status)> ProcessAsync(HttpListenerRequest httpRequest)
+        private async Task ProcessAsync(HttpListenerContext context)
         {
+            var httpRequest = context.Request;
+            var httpResponse = context.Response;
+
             string? token = GetBearerToken(httpRequest);
 
             if (!TokenValidator.IsRequestTokenValid(token ?? ""))
-                return (WitResponse.UnauthorizedRequest("Token is not valid"), HttpStatusCode.Unauthorized);
+            {
+                WriteError(httpResponse, HttpStatusCode.Unauthorized, CommunicationStatus.Unauthorized, "Token is not valid", null);
+                return;
+            }
 
-            WitRequest? request;
+            string methodName = MethodFromUrl(httpRequest);
+            if (string.IsNullOrEmpty(methodName))
+            {
+                WriteError(httpResponse, HttpStatusCode.BadRequest, CommunicationStatus.BadRequest, "The URL must end with the method name", null);
+                return;
+            }
+
+            RestBinding binding;
 
             if (httpRequest.HttpMethod == HttpMethod.Post.Method)
             {
                 if (httpRequest.ContentLength64 > MaxBodyBytes)
-                    return (WitResponse.BadRequest($"Request body exceeds the {MaxBodyBytes} byte limit"), HttpStatusCode.RequestEntityTooLarge);
+                {
+                    WriteError(httpResponse, HttpStatusCode.RequestEntityTooLarge, CommunicationStatus.BadRequest, $"Request body exceeds the {MaxBodyBytes} byte limit", null);
+                    return;
+                }
 
                 byte[]? body = await ReadBodyAsync(httpRequest).ConfigureAwait(false);
                 if (body == null)
-                    return (WitResponse.BadRequest($"Request body exceeds the {MaxBodyBytes} byte limit"), HttpStatusCode.RequestEntityTooLarge);
-
-                try
                 {
-                    request = Serializer.Deserialize<WitRequest>(body);
+                    WriteError(httpResponse, HttpStatusCode.RequestEntityTooLarge, CommunicationStatus.BadRequest, $"Request body exceeds the {MaxBodyBytes} byte limit", null);
+                    return;
                 }
-                catch (Exception e)
+
+                if (body.Length == 0)
                 {
-                    return (WitResponse.BadRequest("Failed to parse the request", e), HttpStatusCode.BadRequest);
+                    binding = Catalog.BindBody(methodName, null);
+                }
+                else
+                {
+                    try
+                    {
+                        using var document = JsonDocument.Parse(body);
+                        binding = Catalog.BindBody(methodName, document.RootElement);
+                    }
+                    catch (JsonException e)
+                    {
+                        WriteError(httpResponse, HttpStatusCode.BadRequest, CommunicationStatus.BadRequest, "The body is not valid JSON", e.Message);
+                        return;
+                    }
                 }
             }
             else if (httpRequest.HttpMethod == HttpMethod.Get.Method)
             {
-                request = new WitRequest { MethodName = MethodFromUrl(httpRequest) };
+                binding = Catalog.BindQuery(methodName, httpRequest.QueryString);
             }
             else
             {
-                return (WitResponse.BadRequest($"Unsupported method {httpRequest.HttpMethod}"), HttpStatusCode.MethodNotAllowed);
+                WriteError(httpResponse, HttpStatusCode.MethodNotAllowed, CommunicationStatus.BadRequest, $"Unsupported HTTP method {httpRequest.HttpMethod}", null);
+                return;
             }
 
-            if (request == null || string.IsNullOrEmpty(request.MethodName))
-                return (WitResponse.BadRequest("Request is empty"), HttpStatusCode.BadRequest);
+            if (binding.Request == null)
+            {
+                WriteError(httpResponse, binding.Status, CommunicationStatus.BadRequest, binding.Error ?? "Cannot bind the request", null);
+                return;
+            }
 
-            request.Token = token ?? request.Token;
+            binding.Request.Token = token ?? "";
 
-            var response = await ProcessWithTimeoutAsync(request).ConfigureAwait(false);
-            return (response, ToHttpStatus(response.Status));
+            var response = await ProcessWithTimeoutAsync(binding.Request).ConfigureAwait(false);
+
+            if (response.Status == CommunicationStatus.Ok)
+                WriteResult(httpResponse, response.Data);
+            else
+                WriteError(httpResponse, ToHttpStatus(response.Status), response.Status, response.ErrorMessage ?? "Request failed", response.ErrorDetails);
         }
 
         private async Task<WitResponse> ProcessWithTimeoutAsync(WitRequest request)
@@ -240,24 +278,58 @@ namespace OutWit.Communication.Server.Rest
             return segments is { Length: > 0 } ? segments[^1] : "";
         }
 
-        private static HttpStatusCode ToHttpStatus(Model.CommunicationStatus status)
+        private static HttpStatusCode ToHttpStatus(CommunicationStatus status)
         {
             return status switch
             {
-                Model.CommunicationStatus.Ok => HttpStatusCode.OK,
-                Model.CommunicationStatus.BadRequest => HttpStatusCode.BadRequest,
-                Model.CommunicationStatus.Unauthorized => HttpStatusCode.Unauthorized,
-                Model.CommunicationStatus.Timeout => HttpStatusCode.RequestTimeout,
-                Model.CommunicationStatus.TransportError => HttpStatusCode.BadGateway,
+                CommunicationStatus.Ok => HttpStatusCode.OK,
+                CommunicationStatus.BadRequest => HttpStatusCode.BadRequest,
+                CommunicationStatus.Unauthorized => HttpStatusCode.Unauthorized,
+                CommunicationStatus.Timeout => HttpStatusCode.RequestTimeout,
+                CommunicationStatus.TransportError => HttpStatusCode.BadGateway,
                 _ => HttpStatusCode.InternalServerError
             };
         }
 
-        private void WriteResponse(HttpListenerResponse httpResponse, WitResponse response, HttpStatusCode status)
+        /// <summary>
+        /// The return value as plain JSON; nothing to return is 204 No Content.
+        /// </summary>
+        private static void WriteResult(HttpListenerResponse httpResponse, byte[]? data)
         {
-            byte[] bytes = Serializer.Serialize(response);
+            if (data == null || data.Length == 0)
+            {
+                httpResponse.StatusCode = (int)HttpStatusCode.NoContent;
+                httpResponse.Close();
+                return;
+            }
 
-            httpResponse.StatusCode = (int)status;
+            httpResponse.StatusCode = (int)HttpStatusCode.OK;
+            httpResponse.ContentType = JSON_MEDIA_TYPE;
+            httpResponse.ContentLength64 = data.Length;
+
+            using var output = httpResponse.OutputStream;
+            output.Write(data, 0, data.Length);
+        }
+
+        /// <summary>
+        /// A small, readable error object: <c>{"status":"BadRequest","error":"...","details":"..."}</c>.
+        /// </summary>
+        private static void WriteError(HttpListenerResponse httpResponse, HttpStatusCode httpStatus, CommunicationStatus status, string error, string? details)
+        {
+            using var stream = new MemoryStream();
+            using (var writer = new Utf8JsonWriter(stream))
+            {
+                writer.WriteStartObject();
+                writer.WriteString("status", status.ToString());
+                writer.WriteString("error", error);
+                if (details != null)
+                    writer.WriteString("details", details);
+                writer.WriteEndObject();
+            }
+
+            byte[] bytes = stream.ToArray();
+
+            httpResponse.StatusCode = (int)httpStatus;
             httpResponse.ContentType = JSON_MEDIA_TYPE;
             httpResponse.ContentLength64 = bytes.Length;
 
@@ -265,11 +337,11 @@ namespace OutWit.Communication.Server.Rest
             output.Write(bytes, 0, bytes.Length);
         }
 
-        private void TryWriteError(HttpListenerResponse httpResponse)
+        private void TryWriteError(HttpListenerResponse httpResponse, HttpStatusCode httpStatus, CommunicationStatus status, string error, string? details)
         {
             try
             {
-                WriteResponse(httpResponse, WitResponse.InternalServerError("Failed to process the request"), HttpStatusCode.InternalServerError);
+                WriteError(httpResponse, httpStatus, status, error, details);
             }
             catch (Exception)
             {
@@ -310,6 +382,8 @@ namespace OutWit.Communication.Server.Rest
         #region Services
 
         private IRequestProcessor RequestProcessor { get; }
+
+        private RestMethodCatalog Catalog { get; }
 
         private RestServerTransportOptions Options { get; }
 

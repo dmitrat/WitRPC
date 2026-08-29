@@ -342,6 +342,13 @@ protocol version check. These are features, not hardening.
     and the `OutWit.Common.Rest` dependency dropped from the client.
   - Events over REST remain unsupported (stateless request/reply, no callbacks) —
     documented in the type summaries.
+  - **Corrected in Client.Rest / Server.Rest 3.2.0.** The envelope-in-the-body
+    shape above defeated the point of REST — a compatibility layer for callers
+    that are not WitRPC (curl, JS, Python). 3.2.0 keeps the shared processor
+    but binds plain JSON (named object / positional array / query string)
+    against the declared parameter types via `RestMethodCatalog`, returns the
+    result as plain JSON, and answers errors with a small JSON object. Tested
+    from the outside with a bare HttpClient (`CommunicationTestsRestInterop`).
   - Done-when met: `CommunicationTestsRest` mirrors the transport fixtures
     (sync / async `Task<T>` / void / async void / null parameters / null result /
     multiple nullable params / no-auth / wrong-token fault / GET-for-parameterless)
