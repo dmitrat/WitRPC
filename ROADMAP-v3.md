@@ -226,8 +226,8 @@ protocol version check. These are features, not hardening.
     transports (the WitServer/WitClient layer already serializes sends, so the
     conformance ConcurrentSends test stays MMF-only); async TLS handshake (TCP/TLS
     unused by the consumers); bounded inbound queue; `IAsyncDisposable`.
-- [~] Stage 4 — protocol 3, **first half landed** (everything except contract
-  ids and AEAD). Commit on `v3`: `b5e0b00`.
+- [x] Stage 4 — protocol 3. First half (`b5e0b00`), contract ids (`6d5286f`),
+  AEAD (`8499544`).
   - **Version tolerance.** Every payload wire model (`WitRequest`, `WitResponse`,
     the initialization/authorization pairs, `ParameterType`, `DiscoveryMessage`)
     is `[MemoryPackable(GenerateType.VersionTolerant)]` with explicit
@@ -264,10 +264,56 @@ protocol version check. These are features, not hardening.
     escape hatch) — a command never silently runs twice. Blazor's
     `ChannelRetryOptions` exposes the same knobs; its default retry is now inert
     until methods are declared.
-  - Deferred to the second half of Stage 4: `ContractId`/`MethodId`/`EventId`
-    (routing by id, collision check at `Register`) and AEAD (AES-GCM, per-direction
-    keys, nonce counter, associated data, replay window — benchmarked 4.5-6×
-    *faster* than the current CBC path, so no performance excuse remains).
+  - **Contract ids (`6d5286f`).** `ContractIds`: deterministic FNV-1a ids from
+    namespace-qualified names with no assembly identity. `WitRequest` gains
+    `ContractId` + `MethodId`; the interceptor (now handed the contract type by
+    both `GetService<T>` entry points) stamps them, and both processors dispatch
+    by one dictionary lookup, deserializing parameters against the method's
+    **declared** types — the per-call reflection scan and `Type.GetType` from
+    wire strings are gone from the fast path. `CompositeRequestProcessor` routes
+    contract-scoped: two services with the same method signature on one channel
+    each get their own calls (audit finding 7 — regression-tested with the
+    `CancelJob(Guid)` scenario). Callbacks are stamped with the raising
+    contract's id and filtered on the client, so colliding event names across
+    services no longer cross-deliver. Deviations, deliberate: **EventId** folded
+    into ContractId + event name (names are unique within a contract);
+    **generic methods** keep the name-based path (`MethodId = 0`) — their closed
+    signatures differ per call; ids are computed at runtime, not by the source
+    generator (`IProxyInvocation` exposes no `MethodInfo`; a generator version
+    can come with an `OutWit.Common.Proxy` bump without wire changes).
+  - **AEAD (`8499544`).** AES-256-GCM per direction: the handshake's
+    `SymmetricKey`/`Vector` become a master key + HKDF salt (wire shape
+    unchanged, interfaces unchanged); both ends derive one key per direction.
+    Frame: `[counter:8][tag:16][ciphertext]`; nonce = the counter (keys are
+    fresh per connection, which is what makes it unique); AAD = protocol version
+    + direction; the receiver requires counters strictly in order, so replayed,
+    reordered, dropped or tampered frames throw `WitExceptionEncryption` instead
+    of the old CBC path's silent empty array. `EncryptorGeneral` (client+server)
+    and BouncyCastle move together — BC keeps its web-format RSA handshake and
+    shares the same `AeadCipher`, so the pairs interoperate; the Blazor Web
+    encryptor does GCM through SubtleCrypto with counters and HKDF kept in
+    managed code (the JS stays stateless). Benchmarked 4.5-6× faster than the
+    CBC path it replaces. `AeadCipherTests`: round-trip, tamper, replay,
+    reorder, cross-direction, and General client↔server interop.
+    The strict counter also exposed (and forced the fix of) a latent bug: every
+    client transport and the MMF server transport raised inbound frames via
+    fire-and-forget `Task.Run` — unordered. Before, that occasionally delivered
+    an event after the response it preceded (silent); under AEAD it dropped a
+    frame and hung the caller (diagnosed from the hang dump: server counters
+    3/2, client 2/2 — the response overtook the callback and failed the counter
+    check). Frames now arrive synchronously in read order; `WitClient` mirrors
+    the server with one inbound channel, decrypts in order, and dispatches user
+    event handlers off the loop (a handler calling back into its own client
+    must not deadlock the inbound processing). Sealing and sending share one
+    lock; authorization now honours the connect timeout.
+  - Done-when: tampering/replay/reordering rejected by tests ✓; a 2.x client
+    against 3.0 fails with the version story ✓ (readable in-band from 3.0 on,
+    server-log + fast failure for pre-3.0); consumers update in one wave —
+    that's Stage 7's release work.
+  - Consciously moved out of 3.0: cancellation/deadline propagation (deferred
+    here from Stage 2). It is a feature, not hardening — and now that the wire
+    is version-tolerant it can ship in any 3.x minor without a break, which
+    removes the reason to rush it into the major.
 - [x] Stage 5 — REST rebuilt. Commit on `v3`: `75bf391`.
   - **Client** (`WitClientRest`): one stateless HTTP call per request. A single
     process-wide `HttpClient` (its own timeout disabled; each call bounded by the
