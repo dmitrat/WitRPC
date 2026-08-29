@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -30,6 +30,7 @@ namespace OutWit.Communication.Processors
         {
             IsStrongAssemblyMatch = isStrongAssemblyMatch;
             Services = new Dictionary<Type, ServiceInfo>();
+            MethodsById = new Dictionary<long, (ServiceInfo Service, MethodInfo Method)>();
         }
 
         #endregion
@@ -54,8 +55,24 @@ namespace OutWit.Communication.Processors
             Services[serviceType] = serviceInfo;
 
             // Subscribe to events
+            // Contract-scoped method ids: the same method name and parameters on
+            // two registered services stay distinct because the id includes the
+            // contract -- the misrouting the audit found cannot happen by id.
+            foreach (MethodInfo method in serviceType.GetAllMethods())
+            {
+                long methodId = ContractIds.GetMethodId(serviceType, method);
+                if (methodId == ContractIds.NONE)
+                    continue;
+
+                if (!MethodsById.TryAdd(methodId, (serviceInfo, method)))
+                    throw new InvalidOperationException(
+                        $"Method id collision: {serviceType.Name}.{method.Name} clashes with an already registered method");
+            }
+
+            long contractId = ContractIds.GetContractId(serviceType);
+
             foreach (EventInfo info in serviceType.GetAllEvents())
-                info.AddEventHandler(service, info.CreateUniversalHandler(this, HandleEvent));
+                info.AddEventHandler(service, info.CreateUniversalHandler(new EventSource(this, contractId), HandleEvent));
 
             return this;
         }
@@ -92,15 +109,35 @@ namespace OutWit.Communication.Processors
                 return WitResponse.BadRequest("Request is empty");
 
             // Find the service that can handle this request
-            var (serviceInfo, method) = FindServiceAndMethod(request);
-            
+            ServiceInfo? serviceInfo = null;
+            MethodInfo? method = null;
+            object?[]? parameters = null;
+
+            // The id path: contract-scoped lookup, parameters deserialized
+            // against the method's declared types.
+            if (request.MethodId != ContractIds.NONE &&
+                MethodsById.TryGetValue(request.MethodId, out var byId) &&
+                byId.Method.GetParameters().Length == request.Parameters.Length)
+            {
+                serviceInfo = byId.Service;
+                method = byId.Method;
+                parameters = request.GetParameters(Serializer,
+                    method.GetParameters().Select(info => info.ParameterType).ToArray());
+            }
+
             if (serviceInfo == null || method == null)
-                return WitResponse.BadRequest($"Method not found on any registered service, method name: {request.MethodName}");
+            {
+                (serviceInfo, method) = FindServiceAndMethod(request);
+
+                if (serviceInfo == null || method == null)
+                    return WitResponse.BadRequest($"Method not found on any registered service, method name: {request.MethodName}");
+
+                parameters = request.GetParameters(Serializer);
+            }
 
             try
             {
                 var returnType = method.ReturnType;
-                var parameters = request.GetParameters(Serializer);
 
                 if (returnType == typeof(Task))
                     return await ProcessAsync(serviceInfo.Service, method, parameters);
@@ -224,8 +261,10 @@ namespace OutWit.Communication.Processors
 
         #region Static Event Handler
 
-        private static void HandleEvent(CompositeRequestProcessor sender, string eventName, object[] parameters)
+        private static void HandleEvent(EventSource source, string eventName, object[] parameters)
         {
+            CompositeRequestProcessor sender = source.Owner;
+
             if (sender.Serializer == null)
                 return;
 
@@ -251,6 +290,10 @@ namespace OutWit.Communication.Processors
                     request.Parameters[i] = Array.Empty<byte>();
             }
 
+            // The callback names the contract that raised it, so clients with
+            // several proxies on this channel route it to the right one.
+            request.ContractId = source.ContractId;
+
             sender.RaiseCallback(request);
         }
 
@@ -259,6 +302,8 @@ namespace OutWit.Communication.Processors
         #region Properties
 
         private Dictionary<Type, ServiceInfo> Services { get; }
+
+        private Dictionary<long, (ServiceInfo Service, MethodInfo Method)> MethodsById { get; }
 
         private bool IsStrongAssemblyMatch { get; }
 
@@ -278,6 +323,20 @@ namespace OutWit.Communication.Processors
 
             public Type ServiceType { get; }
             public object Service { get; }
+        }
+
+        /// <summary>Binds a registered contract's events to its contract id.</summary>
+        private sealed class EventSource
+        {
+            public EventSource(CompositeRequestProcessor owner, long contractId)
+            {
+                Owner = owner;
+                ContractId = contractId;
+            }
+
+            public CompositeRequestProcessor Owner { get; }
+
+            public long ContractId { get; }
         }
 
         #endregion

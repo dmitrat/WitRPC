@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Castle.DynamicProxy;
 using OutWit.Communication.Interceptors;
 
@@ -18,7 +18,7 @@ namespace OutWit.Communication.Client
             where TService : class
         {
             var proxyGenerator = new ProxyGenerator();
-            var interceptor = new RequestInterceptorDynamic(me, strongAssemblyMatch);
+            var interceptor = new RequestInterceptorDynamic(me, strongAssemblyMatch, typeof(TService));
 
             return proxyGenerator.CreateInterfaceProxyWithoutTarget<TService>(interceptor);
         }

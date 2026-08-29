@@ -50,6 +50,8 @@ namespace OutWit.Communication.Requests
                 return false;
 
             return InvocationId.Is(request.InvocationId) &&
+                   ContractId.Is(request.ContractId) &&
+                   MethodId.Is(request.MethodId) &&
                    Token.Is(request.Token) &&
                    MethodName.Is(request.MethodName) &&
                    Parameters.SelectMany(x=>x).Is(request.Parameters.SelectMany(x=>x)) &&
@@ -64,6 +66,8 @@ namespace OutWit.Communication.Requests
             return new WitRequest
             {
                 InvocationId = InvocationId,
+                ContractId = ContractId,
+                MethodId = MethodId,
                 Token = Token,
                 MethodName = MethodName,
                 Parameters = Parameters,
@@ -137,6 +141,29 @@ namespace OutWit.Communication.Requests
         [DataMember]
         [ProtoMember(8)]
         public Guid InvocationId { get; set; }
+
+        /// <summary>
+        /// Identifies the contract this request (or callback) belongs to --
+        /// <see cref="Utils.ContractIds.GetContractId"/> of the service
+        /// interface. Zero when the caller did not declare a contract.
+        /// </summary>
+        [Key(8)]
+        [MemoryPackOrder(8)]
+        [DataMember]
+        [ProtoMember(9)]
+        public long ContractId { get; set; }
+
+        /// <summary>
+        /// Identifies the exact method within the contract, letting the server
+        /// dispatch with a dictionary lookup and deserialize parameters against
+        /// the method's declared types. Zero falls back to name-based
+        /// resolution (hand-built requests, REST, generic methods).
+        /// </summary>
+        [Key(9)]
+        [MemoryPackOrder(9)]
+        [DataMember]
+        [ProtoMember(10)]
+        public long MethodId { get; set; }
 
         #endregion
     }

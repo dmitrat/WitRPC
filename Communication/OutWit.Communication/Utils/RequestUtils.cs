@@ -95,6 +95,31 @@ namespace OutWit.Communication.Utils
             return result.ToArray();
         }
 
+        /// <summary>
+        /// Deserializes parameters against the invoked method's declared types
+        /// -- the id-dispatch path, which never resolves type names from the
+        /// wire. An empty payload is a null argument, mirroring the name-based
+        /// overload.
+        /// </summary>
+        public static object?[] GetParameters(this WitRequest me, IMessageSerializer serializer, IReadOnlyList<Type> declaredTypes, ILogger? logger = null)
+        {
+            if (me.Parameters.Length == 0)
+                return Array.Empty<object>();
+
+            var result = new object?[me.Parameters.Length];
+
+            for (int i = 0; i < me.Parameters.Length; i++)
+            {
+                byte[] bytes = me.Parameters[i];
+
+                result[i] = bytes == null || bytes.Length == 0
+                    ? null
+                    : serializer.Deserialize(bytes, declaredTypes[i], logger);
+            }
+
+            return result;
+        }
+
         public static WitRequest? GetRequest(this byte[]? data, IMessageSerializer serializer)
         {
             if (data == null)

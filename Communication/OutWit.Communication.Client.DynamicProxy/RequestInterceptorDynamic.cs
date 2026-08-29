@@ -13,8 +13,8 @@ namespace OutWit.Communication.Interceptors
     {
         #region Constructors
 
-        public RequestInterceptorDynamic(IClient client, bool strongAssemblyMatch)
-            : base(client, strongAssemblyMatch)
+        public RequestInterceptorDynamic(IClient client, bool strongAssemblyMatch, Type? contract = null)
+            : base(client, strongAssemblyMatch, contract)
         {
 
         }

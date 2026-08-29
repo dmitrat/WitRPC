@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -20,6 +21,14 @@ namespace OutWit.Communication.Processors
 
         #endregion
 
+        #region Fields
+
+        private readonly Dictionary<long, MethodInfo> m_methodsById = new();
+
+        private readonly long m_contractId;
+
+        #endregion
+
         #region Constructors
 
         public RequestProcessor(TService service, bool isStrongAssemblyMatch = true)
@@ -27,12 +36,28 @@ namespace OutWit.Communication.Processors
             Service = service;
             IsStrongAssemblyMatch = isStrongAssemblyMatch;
 
+            m_contractId = ContractIds.GetContractId(typeof(TService));
+            InitMethods();
             InitEvents();
         }
 
         #endregion
 
         #region Initialization
+
+        private void InitMethods()
+        {
+            foreach (MethodInfo method in typeof(TService).GetAllMethods())
+            {
+                long methodId = ContractIds.GetMethodId(typeof(TService), method);
+                if (methodId == ContractIds.NONE)
+                    continue;
+
+                if (!m_methodsById.TryAdd(methodId, method))
+                    throw new InvalidOperationException(
+                        $"Method id collision on {typeof(TService).Name}: '{method.Name}' clashes with '{m_methodsById[methodId].Name}'");
+            }
+        }
 
         private void InitEvents()
         {
@@ -57,20 +82,40 @@ namespace OutWit.Communication.Processors
             if (request == null)
                 return WitResponse.BadRequest("Request is empty");
 
-            var method = request.GetMethod(Service);
-            if(method == null)
-                return WitResponse.BadRequest($"Method not found on service, method name: {request.MethodName}");
+            MethodInfo? method = null;
+            object?[]? parameters = null;
+
+            // The id path: one dictionary lookup, parameters deserialized
+            // against the method's declared types -- no reflection scan, no
+            // type-name resolution from the wire.
+            if (request.MethodId != ContractIds.NONE &&
+                m_methodsById.TryGetValue(request.MethodId, out MethodInfo? byId) &&
+                byId.GetParameters().Length == request.Parameters.Length)
+            {
+                method = byId;
+                parameters = request.GetParameters(Serializer,
+                    byId.GetParameters().Select(info => info.ParameterType).ToArray());
+            }
+
+            if (method == null)
+            {
+                method = request.GetMethod(Service);
+                if (method == null)
+                    return WitResponse.BadRequest($"Method not found on service, method name: {request.MethodName}");
+
+                parameters = request.GetParameters(Serializer);
+            }
 
             try
             {
                 var returnType = method.ReturnType;
                 if (returnType == typeof(Task))
-                    return await ProcessAsync(method, request.GetParameters(Serializer));
+                    return await ProcessAsync(method, parameters!);
                 
                 if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(Task<>))
-                    return await ProcessGenericAsync(method, request.GetParameters(Serializer));
+                    return await ProcessGenericAsync(method, parameters!);
                 else 
-                    return method.Invoke(Service, request.GetParameters(Serializer)).Success(Serializer);
+                    return method.Invoke(Service, parameters).Success(Serializer);
             }
             catch (Exception e)
             {
@@ -157,6 +202,11 @@ namespace OutWit.Communication.Processors
                 if (parameter is TService)
                     request.Parameters[i] = Array.Empty<byte>();
             }
+
+            // The callback names its contract so a client holding several
+            // proxies on one channel delivers it to the right one even when
+            // event names collide across services.
+            request.ContractId = sender.m_contractId;
 
             sender.RaiseCallback(request);
         }

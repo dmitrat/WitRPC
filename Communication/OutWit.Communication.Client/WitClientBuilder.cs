@@ -42,7 +42,7 @@ namespace OutWit.Communication.Client
         public static TService GetService<TService>(this WitClient me, Func<IProxyInterceptor, TService> create, bool strongAssemblyMatch = true)
             where TService : class
         {
-            return create(new RequestInterceptor(me, strongAssemblyMatch));
+            return create(new RequestInterceptor(me, strongAssemblyMatch, typeof(TService)));
         }
 
         #region Authorization

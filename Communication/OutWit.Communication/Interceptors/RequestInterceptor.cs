@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using OutWit.Common.Proxy.Interfaces;
 using OutWit.Common.Proxy.Utils;
+using OutWit.Common.Reflection;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Model;
 using OutWit.Communication.Requests;
@@ -24,14 +26,21 @@ namespace OutWit.Communication.Interceptors
 
         private readonly ConcurrentDictionary<string, Delegate> m_eventDelegates = new ();
 
+        private readonly Dictionary<string, long> m_methodIds = new();
+
+        private readonly long m_contractId;
+
         #endregion
 
         #region Constructors
 
-        public RequestInterceptor(IClient client, bool strongAssemblyMatch)
+        public RequestInterceptor(IClient client, bool strongAssemblyMatch, Type? contract = null)
         {
             Client = client;
             IsStrongAssemblyMatch = strongAssemblyMatch;
+
+            if (contract != null)
+                m_contractId = InitContract(contract);
 
             InitEvents();
         }
@@ -40,9 +49,31 @@ namespace OutWit.Communication.Interceptors
 
         #region Initialization
 
+        private long InitContract(Type contract)
+        {
+            // Non-generic methods get precomputed ids so each call is one
+            // dictionary lookup away from its id; generic methods keep the
+            // name-based path (their closed signatures differ per call).
+            foreach (var method in contract.GetAllMethods())
+            {
+                long methodId = ContractIds.GetMethodId(contract, method);
+                if (methodId == ContractIds.NONE)
+                    continue;
+
+                m_methodIds[MethodKey(method.Name, method.GetParameters().Select(info => info.ParameterType))] = methodId;
+            }
+
+            return ContractIds.GetContractId(contract);
+        }
+
         private void InitEvents()
         {
             Client.CallbackReceived += OnCallbackReceived;
+        }
+
+        private static string MethodKey(string methodName, IEnumerable<Type> parameterTypes)
+        {
+            return methodName + "(" + string.Join(",", parameterTypes.Select(ContractIds.StableName)) + ")";
         }
 
         #endregion
@@ -73,6 +104,15 @@ namespace OutWit.Communication.Interceptors
         {
             var parameterTypes = invocation.GetParametersTypes();
             var request = invocation.MethodName.CreateRequest(invocation.Parameters, parameterTypes, Client.ParametersSerializer);
+
+            request.ContractId = m_contractId;
+
+            if (m_contractId != ContractIds.NONE &&
+                invocation.GetGenericArguments().Length == 0 &&
+                m_methodIds.TryGetValue(MethodKey(invocation.MethodName, parameterTypes), out long methodId))
+            {
+                request.MethodId = methodId;
+            }
 
             if (IsStrongAssemblyMatch)
             {
@@ -157,6 +197,13 @@ namespace OutWit.Communication.Interceptors
         {
             if(request == null) 
                 return;
+            // A callback stamped for another contract is not this proxy's event,
+            // even when the event names collide across services on one channel.
+            if (request.ContractId != ContractIds.NONE &&
+                m_contractId != ContractIds.NONE &&
+                request.ContractId != m_contractId)
+                return;
+
             if(!m_eventDelegates.TryGetValue(request.MethodName, out Delegate? handlers))
                 return;
 
