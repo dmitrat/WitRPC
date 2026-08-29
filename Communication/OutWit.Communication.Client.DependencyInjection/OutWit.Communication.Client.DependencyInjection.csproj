@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net10.0;net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
 
-    <Version>3.1.0</Version>
+    <Version>3.2.0</Version>
 
     <Description>Microsoft.Extensions.DependencyInjection integration for WitRPC client, providing easy registration and lifecycle management of WitRPC client services.</Description>
     <PackageTags>OutWit;Communication;WitRPC;DependencyInjection;DI;Client</PackageTags>
@@ -27,6 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\OutWit.Communication.Client\OutWit.Communication.Client.csproj" />
     <ProjectReference Include="..\OutWit.Communication.Client.DynamicProxy\OutWit.Communication.Client.DynamicProxy.csproj" />
+    <ProjectReference Include="..\OutWit.Communication.Client.Rest\OutWit.Communication.Client.Rest.csproj" />
   </ItemGroup>
 
 </Project>

@@ -25,21 +25,35 @@ Install-Package OutWit.Communication.Server.Rest
 
 ### Usage
 
-To expose a service over REST, specify an HTTP URL prefix when configuring the server:
+The REST server is its own host (stateless HTTP, not a `WitServer` transport), built with `WitServerRestBuilder`:
 
 ```csharp
-using OutWit.Communication.Server;
 using OutWit.Communication.Server.Rest;
 
-var server = WitServerBuilder.Build(options =>
+var server = WitServerRestBuilder.Build(options =>
 {
-    options.WithService(new MyService());
-    options.WithRest("http://localhost:5000/api/example/");
-    options.WithAccessToken("MySecretToken"); // optional: require a token for requests
-    // Note: The REST transport uses JSON serialization by default for requests/responses
+    options.WithUrl("http://localhost:5000/api/example/");
+    options.WithService<IExampleService>(new ExampleService());
+    options.WithAccessToken("MySecretToken");      // optional: require a Bearer token
+    options.WithTimeout(TimeSpan.FromSeconds(30));  // optional: per-call processing limit
+    options.WithMaxBodyBytes(16 * 1024 * 1024);     // optional: 64 MB by default
+    options.WithMaxConcurrentRequests(64);          // optional: unbounded by default
 });
 server.StartWaitingForConnection();
-Console.WriteLine("RESTful RPC server running at http://localhost:5000/api/example/");
+```
+
+Or through dependency injection (`OutWit.Communication.Server.DependencyInjection`, since 3.2.0) -- registered by name, built on first use, started with the host when `autoStart` is set:
+
+```csharp
+services.AddWitRpcRestServer<IExampleService, ExampleService>("api", ctx =>
+{
+    ctx.WithUrl("http://localhost:5000/api/example/");
+    ctx.WithAccessTokenValidator<MyTokenValidator>();   // resolved from the container
+    ctx.WithLogger("WitRPC.Rest");
+}, autoStart: true);
+
+// or expose a service already registered in the container:
+services.AddWitRpcRestServer("api", ctx => { ctx.WithUrl("..."); ctx.WithService<IExampleService>(); });
 ```
 
 In this configuration, the server listens for HTTP requests at the base URL `http://localhost:5000/api/example/`. This transport is WitRPC's **compatibility layer**: the caller on the other side does not need to be WitRPC at all -- curl, a browser, a Python script. The contract (since 3.2.0) is plain JSON both ways:
@@ -87,7 +101,7 @@ On the client side, use **OutWit.Communication.Client.Rest** from .NET -- it sen
 
 ### Further Documentation
 
-Visit the [witrpc.io](https://witrpc.io/) documentation for detailed information on the REST transport, including how method parameters and return values are serialized in the HTTP requests/responses and how to handle things like binary data or complex types in a REST scenario.
+Visit the [witrpc.io](https://witrpc.io/) documentation for more on the REST transport. The request and response shapes above are the whole contract; complex arguments are the JSON your DTOs serialize to.
 
 ## License
 

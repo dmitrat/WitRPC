@@ -172,6 +172,27 @@ services.AddWitRpcClient<IMyService>("my-service", ctx =>
 }, autoConnect: true, connectionTimeout: TimeSpan.FromSeconds(30));
 ```
 
+#### REST Clients (since 3.2.0)
+
+A REST client is stateless (nothing to connect, no hosted service). Register it by name and inject the service interface as a proxy over it:
+
+```csharp
+using OutWit.Communication.Client.DependencyInjection;
+using OutWit.Communication.Client.Rest;
+
+services.AddWitRpcRestClient<IOrderService>("orders-api", ctx =>
+{
+    ctx.WithUrl("http://localhost:5000/api/orders/");
+    ctx.WithAccessTokenProvider<MyTokenProvider>();   // from the container
+    ctx.WithTimeout(TimeSpan.FromSeconds(30));
+});
+
+// IOrderService is now injectable; the raw client is available as well:
+var client = provider.GetRequiredService<IWitClientRestFactory>().GetClient("orders-api");
+```
+
+Every call goes out as plain JSON (`POST {base}/{Method}` with a JSON array of arguments, or a GET when the mode allows), so the same server serves curl and JavaScript callers alike.
+
 ### Further Documentation
 
 For more about WitRPC and dependency injection patterns, see the official documentation on [witrpc.io](https://witrpc.io/).

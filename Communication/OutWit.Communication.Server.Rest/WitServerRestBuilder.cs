@@ -15,6 +15,15 @@ namespace OutWit.Communication.Server.Rest
             var options = new WitServerRestBuilderOptions();
             optionsBuilder(options);
 
+            return Build(options);
+        }
+
+        /// <summary>
+        /// Builds a REST server from already-configured options (the DI factory
+        /// path, where the options object is the builder context).
+        /// </summary>
+        public static WitServerRest Build(WitServerRestBuilderOptions options)
+        {
             if (options.TransportOptions == null)
                 throw new WitException("Transport options cannot be empty");
 
@@ -129,6 +138,24 @@ namespace OutWit.Communication.Server.Rest
         public static WitServerRestBuilderOptions WithTimeout(this WitServerRestBuilderOptions me, TimeSpan timeout)
         {
             me.Timeout = timeout;
+            return me;
+        }
+
+        #endregion
+
+        #region Limits
+
+        /// <summary>The largest request body accepted, in bytes; a larger one is refused with 413.</summary>
+        public static WitServerRestBuilderOptions WithMaxBodyBytes(this WitServerRestBuilderOptions me, long maxBodyBytes)
+        {
+            me.MaxBodyBytes = maxBodyBytes;
+            return me;
+        }
+
+        /// <summary>The most requests processed at once; the rest wait.</summary>
+        public static WitServerRestBuilderOptions WithMaxConcurrentRequests(this WitServerRestBuilderOptions me, int maxConcurrentRequests)
+        {
+            me.MaxConcurrentRequests = maxConcurrentRequests;
             return me;
         }
 

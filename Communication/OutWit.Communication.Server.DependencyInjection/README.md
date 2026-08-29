@@ -262,6 +262,36 @@ services.AddWitRpcServerWithServices("api-server",
     autoStart: true);
 ```
 
+#### REST Servers (since 3.2.0)
+
+The REST transport has its own host (`WitServerRest`, stateless HTTP). It registers the same way -- by name, built on first use, optionally started with the host -- through `AddWitRpcRestServer`:
+
+```csharp
+using OutWit.Communication.Server.DependencyInjection;
+using OutWit.Communication.Server.Rest;
+
+services.AddWitRpcRestServer<IOrderService, OrderService>("orders-api", ctx =>
+{
+    ctx.WithUrl("http://localhost:5000/api/orders/");
+    ctx.WithAccessTokenValidator<MyTokenValidator>();   // from the container
+    ctx.WithLogger("WitRPC.Rest");
+    ctx.WithMaxConcurrentRequests(64);
+}, autoStart: true);
+
+// Expose a service that is already registered:
+services.AddWitRpcRestServer("orders-api", ctx =>
+{
+    ctx.WithUrl("http://localhost:5000/api/orders/");
+    ctx.WithService<IOrderService>();
+});
+
+// Resolve it explicitly instead of auto-starting:
+var server = provider.GetRequiredService<IWitServerRestFactory>().GetServer("orders-api");
+server.StartWaitingForConnection();
+```
+
+The REST contract (plain JSON in, plain JSON out) is documented in the `OutWit.Communication.Server.Rest` package README.
+
 ### Further Documentation
 
 For more about WitRPC and dependency injection patterns, see the official documentation on [witrpc.io](https://witrpc.io/).

@@ -28,20 +28,19 @@ Install-Package OutWit.Communication.Client.Rest
 
 ### Usage
 
-The REST client is stateless and is constructed directly (it does not go through `WitClientBuilder` and needs no `ConnectAsync` — every call is an independent HTTP request):
+The REST client is stateless (every call is an independent HTTP request, nothing to `ConnectAsync`) and is built with `WitClientRestBuilder` (since 3.2.1):
 
 ```csharp
-using OutWit.Communication.Client.Authorization;
 using OutWit.Communication.Client.Rest;
 using OutWit.Communication.Interceptors;
-using OutWit.Communication.Model;
 
-var client = new WitClientRest(
-    new RestClientTransportOptions
-    {
-        Host = (HostInfo)"http://localhost:5000/api/example/" // base URL for the RESTful service
-    },
-    new AccessTokenProviderStatic("YourBearerToken")); // or AccessTokenProviderPlain() when no auth is required
+var client = WitClientRestBuilder.Build(options =>
+{
+    options.WithUrl("http://localhost:5000/api/example/");   // base URL of the REST server
+    options.WithAccessToken("YourBearerToken");              // or WithoutAuthorization()
+    options.WithTimeout(TimeSpan.FromSeconds(30));           // per-call limit
+    options.WithMode(RestClientRequestModes.AllowGetForMethodsWithoutParameters);
+});
 
 // Source-generated proxy: [ProxyTarget("ExampleServiceProxy")] on the interface
 // plus the OutWit.Common.Proxy.Generator package — no extra runtime dependency:
@@ -63,13 +62,30 @@ The reply is the return value as plain JSON (`204 No Content` for `void`). On an
 
 The access token supplied through the `IAccessTokenProvider` (e.g. `AccessTokenProviderStatic("YourBearerToken")`) is sent as an `Authorization: Bearer` header on every request; the server validates it and answers 401 when it does not match.
 
-**Server Setup:** On the server side, using OutWit.Communication.Server.Rest, you would do something like:
+Through dependency injection (`OutWit.Communication.Client.DependencyInjection`, since 3.2.0) the service interface is injected directly as a proxy over a named REST client:
 
 ```csharp
-options.WithRest("http://localhost:5000/api/example/");
+services.AddWitRpcRestClient<IExampleService>("api", ctx =>
+{
+    ctx.WithUrl("http://localhost:5000/api/example/");
+    ctx.WithAccessTokenProvider<MyTokenProvider>();   // resolved from the container
+});
+
+// later: IExampleService is an injectable proxy; IWitClientRestFactory gives the raw WitClientRest
 ```
 
-The server will then listen on that URL prefix for incoming requests. Ensure the paths and port match between client and server.
+**Server Setup:** On the server side, using OutWit.Communication.Server.Rest:
+
+```csharp
+var server = WitServerRestBuilder.Build(options =>
+{
+    options.WithUrl("http://localhost:5000/api/example/");
+    options.WithService<IExampleService>(new ExampleService());
+});
+server.StartWaitingForConnection();
+```
+
+Ensure the base URL matches between client and server.
 
 **Security:** Use HTTPS for the REST transport in production — an `https://` URL with a TLS certificate configured on the server. TLS is the transport protection here: WitRPC's message-layer encryption (`WithEncryption()`) does not apply to REST, since each call is an independent bare HTTP request with no encryption handshake. Token auth still applies and is recommended.
 

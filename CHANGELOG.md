@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Note**: Since 2.3.1, package versions diverge per package family. Each section below lists the package versions it produced (verified against csproj `<Version>` values).
 
+## [REST via DI: Client.DependencyInjection / Server.DependencyInjection 3.2.0, Client.Rest / Server.Rest 3.2.1] - 2026-08-29
+
+### Added
+
+- **REST servers through dependency injection**: `AddWitRpcRestServer(name, ctx => ...)`, `AddWitRpcRestServer<TService, TImplementation>(...)`, both with an `autoStart` overload that starts the server with the host (`WitServerRestHostedService`); `IWitServerRestFactory.GetServer(name)`; a `WitServerRestBuilderContext` with `WithService<T>()`, `WithAccessTokenValidator<T>()` and `WithLogger` resolving from the container. Server.DependencyInjection now references Server.Rest (no third-party dependencies come with it).
+- **REST clients through dependency injection**: `AddWitRpcRestClient(name, ctx => ...)` and `AddWitRpcRestClient<TService>(...)`, which injects the service interface as a proxy over the named client; `IWitClientRestFactory.GetClient(name)` / `GetService<T>(name)`; `WithAccessTokenProvider<T>()` on the context.
+- `WitClientRestBuilder` -- the REST client gets the same fluent builder as every other client: `WithUrl`, `WithHost`, `WithOptions`, `WithMode`, `WithTimeout`, `WithAccessToken`, `WithAccessTokenProvider`, `WithoutAuthorization`, and `Build(options)` for the DI path.
+- `WitServerRestBuilder.Build(options)` overload, `WithMaxBodyBytes` and `WithMaxConcurrentRequests` extensions.
+
+### Fixed
+
+- The core, `Client.Rest` and `Server.Rest` READMEs showed an `options.WithRest(...)` call on `WitServerBuilder` that has never existed; they now show `WitServerRestBuilder` / `WitClientRestBuilder` and the DI registrations.
+
 ## [Client.Rest / Server.Rest 3.2.0] - 2026-08-29
 
 REST packages only: 3.1.0 -> 3.2.0. Every other package stays 3.1.0 (Tcp 3.1.1).
