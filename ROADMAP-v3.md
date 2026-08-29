@@ -346,7 +346,39 @@ protocol version check. These are features, not hardening.
     (sync / async `Task<T>` / void / async void / null parameters / null result /
     multiple nullable params / no-auth / wrong-token fault / GET-for-parameterless)
     — 10 tests, green on net8.0 and net10.0.
-- [ ] Stage 6 — InterProcess
+- [x] Stage 6 — InterProcess hardened. Commit on `v3`: `3a3a33f`.
+  - **`HostAgent`**: `Stop()` is the graceful path the plan asked for —
+    disconnect, a bounded wait (5 s) for the agent to leave on its own, and only
+    then `Kill(entireProcessTree: true)`; `Shutdown()` stays the kill switch but
+    now also waits for the exit and releases everything. One `CleanUp` path used
+    by every exit route (stop, kill, crash, dispose): the client is **disposed**,
+    not just disconnected; `Process.Exited` is unsubscribed; the process handle
+    is disposed; `Disposed` is raised exactly once, whichever side died first.
+    All state transitions under a lock.
+  - **`HostManager`**: the finalizer is gone; the registry is synchronized; the
+    `Disposed` subscription is removed on removal; `Dispose` is idempotent and
+    takes every remaining agent's process down. **Breaking:** the constructor
+    now takes a `Func<WitClientBuilderOptions>` factory instead of one options
+    instance — the old shape handed every agent the *same* transport and
+    address, so a second agent landed on the first one's endpoint. Each agent
+    now gets its own options. (No caller in the workspace used the old
+    constructor.)
+  - `HostUtils.RunAgent` disposes the process object when `Start()` returns
+    false. `AgentApplication` (WPF) needed nothing: no finalizer, and its parent
+    process handle lives exactly as long as the process does.
+  - **Integration tests against a real agent process** (the stub `Assert.Pass`
+    suite is gone): a console `OutWit.InterProcess.Tests.Agent` serves the test
+    contract over the pipe it is handed, follows its parent down, and writes a
+    marker file from `ProcessExit` — which runs on a clean exit but not on a
+    kill, so the graceful-stop test can tell the two apart after the fact.
+    Eight tests: start/call/stop with no process left behind, graceful stop
+    (marker present), shutdown kill (marker absent), crash → `Disposed` raised
+    and state cleaned, missing executable fails cleanly, registry
+    create/shutdown/dispose, crash → self-removal → replacement agent works,
+    concurrent creation registers all three. The contract crosses the process
+    boundary as shared source — two assemblies, two different .NET types — and
+    dispatches via Stage 4's contract-scoped method ids, proving the
+    assembly-independent routing on a live boundary.
 - [ ] Stage 7 — release
 
 ### Robustness fixes (found while validating, folded into the branch)
