@@ -468,6 +468,25 @@ else:
 - Consumer wave targets 3.1.0 directly — nobody in the workspace consumed 3.0.0,
   so the extra version costs no one a second bump.
 
+### Published (2026-08-29)
+
+- **3.0.0** — all 23 packages, in dependency waves through the gated
+  `publish.yml` (each run: full CI gate, then push). Three runs failed their
+  gate on the first try and passed on retry; every failure was a TCP test
+  missing a one-second budget on a loaded runner — which pointed at the real
+  defect below.
+- **3.1.0** — all 26 packages (the 3 serializer plugins included), same waves,
+  from the `v3` → `main` merge `c95f146`.
+- **Client.Tcp / Server.Tcp 3.1.1** — the TCP transports never set `NoDelay`
+  and wrote each frame as two calls (length prefix, then payload): the
+  write-write-read pattern Nagle holds until the peer's delayed ACK, ~200 ms
+  per message on Windows. One write per frame, `NoDelay` on both ends. Found
+  by the release gate, not by a user — which is what the gate is for.
+- Gate hardening along the way: the two "too many clients" reconnect tests got
+  a bounded retry window instead of a one-second bet; CI gives vstest five
+  minutes to reach the test host after one slow runner aborted a net8 run
+  before executing a single test.
+
 ### The consumer wave (after packages are published)
 
 Publishing 3.0.0 is a `publish.yml` run per package (now gated on CI). Then:
