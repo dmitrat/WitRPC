@@ -333,9 +333,10 @@ working throughout (OIDC over HTTP).
    - Blender `addon-v2.0.1` (an `addon-v2.0.0` already exists, built with
      native 1.0.0), ParaView `plugin-v0.6.2`, 3ds-Max `plugin-v1.1.0-beta`,
      Inventor and WitSweep releases per their own conventions.
-6. **WitForms → `1.3.0`, WitAnalytics → `1.1.0`, WitLicense → `1.3.0`** last,
-   each: version in `.env`, pull, up; live test = sign in + the profile page +
-   one channel-backed page.
+6. **WitForms → `1.3.1`, WitAnalytics → `1.1.1`, WitLicense → `1.3.1`** last
+   (rebuilt on Client.Blazor 3.1.1, so returning browsers heal their cached
+   interop script by themselves), each: version in `.env`, pull, up; live
+   test = sign in + the profile page + one channel-backed page.
 7. Afterwards, on the dev machine: `git checkout nuget.config` in 3ds-Max,
    Inventor, Simulation, WitSweep (the scratch feed), and delete
    `~/.nuget/packages/outwit.simulation.bridge.session/0.3.0` and
