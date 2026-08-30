@@ -1,10 +1,12 @@
 # Ecosystem migration to WitRPC 3.x
 
-Status: **pushed and built on 2026-08-30 — every repository is on GitHub with
-its release tag and CI has produced the images and the GitHub releases;
-nothing is deployed and nothing is on nuget.org yet.** The deploy order the
-operator chose, with the exact commands, is in "Rollout, in the order chosen"
-below; "Step 0 — done" records how the code got there. WitRPC 3.0.0 and 3.1.0 are on nuget.org (Server / Client / Client.DynamicProxy / Tcp 3.1.1; REST packages 3.2.3 with the readable contract restored, `WitClientRestBuilder` and composite hosts; DependencyInjection packages 3.2.1 with `AddWitRpcRestServer` / `AddWitRpcRestClient` and every interface-typed option resolvable from the container -- consumers pin the latest of each: Server / Client 3.1.1, transports 3.1.0 (Tcp 3.1.1), DI 3.2.1);
+Status: **rolling out, 2026-08-30 — WitIdentity 1.5.0, the WitCloud gateway
+1.7.0 and the Portal 1.1.0 are LIVE on protocol 3; the 3.x node
+(`client-v2.0.0-beta`) and the native SDK (`native-v2.0.0`) are released and
+in the portal feed; the node fleet, the plugins (with the nuget.org
+publishes) and the three small services are still ahead.** "Rollout log"
+below records what each step showed; "Rollout, in the order chosen" is the
+plan it follows; "Step 0 — done" records how the code got there. WitRPC 3.0.0 and 3.1.0 are on nuget.org (Server / Client / Client.DynamicProxy / Tcp 3.1.1; REST packages 3.2.3 with the readable contract restored, `WitClientRestBuilder` and composite hosts; DependencyInjection packages 3.2.1 with `AddWitRpcRestServer` / `AddWitRpcRestClient` and every interface-typed option resolvable from the container -- consumers pin the latest of each: Server / Client 3.1.1, transports 3.1.0 (Tcp 3.1.1), DI 3.2.1);
 nothing that talks to production has been redeployed yet.
 
 The one fact that shapes everything: **protocol 3 is not wire-compatible with
@@ -256,6 +258,44 @@ publish (`OutWit.Cloud.SDK 2.0.0`, the native carrier, `Bridge.Session
 0.3.0`), which third parties would pick up against a 2.x production gateway.
 
 CI outcomes (2026-08-30): every CI / docker / client-release run is green (WitRPC, WitIdentity 1.5.0, Forms 1.3.0, Analytics 1.1.0, License 1.3.0, Portal 1.1.0, WitCloud 1.7.0, client-v1.1.6-beta). `native-sdk` publishes and passes the AOT gate, ABI gate, C loader, C++ host and pyoc offline gate on all three RIDs -- after one real fix: on macOS the .NET 10 Apple crypto PAL, reached for the first time by AES-GCM, force-loads the Swift 6 overlays that the Xcode 15 SDK of macos-14 lacks; the workflow now selects Xcode 16 (`fcf441a`, and `native-v2.0.0` was moved onto it). Its only failing step is the *pyoc live smoke against production*, which a protocol-3 library cannot pass while engine.omnibuscloud.com is 2.x -- so the `release` job of the native-v2.0.0 run stays skipped until step 2 below, after which `gh run rerun --failed` on that run publishes the GitHub release and the GitHub Packages carrier.
+
+#### Rollout log (2026-08-30)
+
+1. **WitIdentity 1.5.0 — live (~07:50Z).** 3.x probe connects and dispatches,
+   2.x probe refused. The first report was "the UI does not connect": the
+   browser had cached the 2.x `cryptoInterop.js` (the host sends no
+   `Cache-Control` for `_content/*`, the path never changes); a private
+   window worked. Root fix: **Client.Blazor 3.1.1** (`0df3624`, on
+   nuget.org) — `EncryptorClientWeb` probes for the protocol-3 functions and
+   re-imports the module under a versioned URL when they are missing. Hosts
+   already built on 3.1.0 need one Ctrl+F5 per returning browser.
+2. **WitCloud gateway 1.7.0 — live (08:33Z).** The first
+   `witcloud-update.service` run died on ghcr `TOOMANYREQUESTS` while pulling
+   the 7 GB application layer (the image is the same size and shape as
+   1.6.102 — 7.25 GB compressed, one publish layer — so every update pulls
+   it); a later run went through. Verified: `/version` → protocol 3, health
+   ready, S2S Cloud→Identity authenticated over 3.x, the production SDK
+   smoke (native 2.0.0) passes end to end including a real
+   `RenderBlenderVersion` job; the 1.1.0 library is refused with the crypto
+   error; 158 refusals of 2.x nodes in the first hour (the fleet retrying
+   every 5 s). **Defect to file:** a job submitted seconds after the gateway
+   started failed in `OutWit.Engine.WitEngine.Compile` with
+   `ArgumentNullException (Parameter 'provider')` — `CreateScope` on a
+   provider the engine had not been given yet; fine once warm.
+3. **`client-v2.0.0-beta`** released (11 assets) right after the flip;
+   **`native-v2.0.0`** released after the rerun (all three RIDs passed the
+   live smoke against the 3.x gateway; carrier nupkg attached, **not** on
+   nuget.org yet).
+4. **Portal 1.1.0 — live (08:44Z)** on the engine host: connected to the
+   gateway on the first call, artifact sync imported the eight 2.0.0-beta
+   builds within 30 s, `latest.json` serves 2.0.0-beta — nodes on 1.1.6 can
+   now follow by themselves.
+
+Ahead: the node fleet (manual installs of 2.0.0-beta), then the plugins —
+`publish.yml` OutWit.Cloud.SDK 2.0.0 → nuget.org, `native-carrier-nuget.yml`
+2.0.0, Simulation `publish.yml` Bridge.Session 0.3.0, then the plugin
+releases one at a time — then WitForms / WitAnalytics / WitLicense, rebuilt
+on Client.Blazor 3.1.1 first.
 
 #### Rollout, in the order chosen
 
