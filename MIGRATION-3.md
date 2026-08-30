@@ -1,7 +1,8 @@
 # Ecosystem migration to WitRPC 3.x
 
-Status: **plan, verified against every consumer on 2026-08-29; execution starts
-next session.** WitRPC 3.0.0 and 3.1.0 are on nuget.org (Server / Client / Client.DynamicProxy / Tcp 3.1.1; REST packages 3.2.3 with the readable contract restored, `WitClientRestBuilder` and composite hosts; DependencyInjection packages 3.2.1 with `AddWitRpcRestServer` / `AddWitRpcRestClient` and every interface-typed option resolvable from the container -- consumers pin the latest of each: Server / Client 3.1.1, transports 3.1.0 (Tcp 3.1.1), DI 3.2.1);
+Status: **Step 0 executed on 2026-08-30 — every consumer is moved in a local,
+unpushed commit and rebuilt; nothing is published or deployed yet.** See
+"Step 0 — done" below for the exact state and the Step 3 checklist. WitRPC 3.0.0 and 3.1.0 are on nuget.org (Server / Client / Client.DynamicProxy / Tcp 3.1.1; REST packages 3.2.3 with the readable contract restored, `WitClientRestBuilder` and composite hosts; DependencyInjection packages 3.2.1 with `AddWitRpcRestServer` / `AddWitRpcRestClient` and every interface-typed option resolvable from the container -- consumers pin the latest of each: Server / Client 3.1.1, transports 3.1.0 (Tcp 3.1.1), DI 3.2.1);
 nothing that talks to production has been redeployed yet.
 
 The one fact that shapes everything: **protocol 3 is not wire-compatible with
@@ -49,12 +50,13 @@ restored afterwards); plugins against a locally packed `OutWit.Cloud.SDK 2.0.0` 
 |---|---|---|---|
 | **WitIdentity** server + UI | hub for six clients | Server.WebSocket 2.3.4, Server.DI 2.3.9, Client.Blazor 1.0.6, Client.WebSocket 2.3.3 | compiles on 3.1.0 once the ASP.NET WASM packages move 10.0.8 → 10.0.10 (`Client.Blazor 3.1.0` floor; NU1605 otherwise): **server and UI compile** with that bump |
 | **WitCloud** server / UI / SDK / node client | UI↔server; server→Identity (S2S `IUsersChannel`); gateway↔nodes; gateway↔SDK | 2.4.0 / 1.0.9 / 2.3.10 | compiles; full suite **identical** on 2.4.0 and 3.1.0 (61 pre-existing failures, same names — missing `ClientRatingService` registration in `WitRpcTestHost`) |
+| **WitCloud.Portal** host + WASM client + `OutWit.Portal.Cloud` | client↔host (own channels); `Portal.Cloud`→**WitCloud gateway** (`Contracts.Internal` over WitRPC); client→Identity (`IdentityChannelFactory`); host→Identity S2S | Server.DI 2.3.9, Server.WS 2.3.4, Client.Blazor 1.0.7, Client.WS 2.3.3 | **missed by the first survey.** One deployable on two 3.x edges: it goes with the gateway in Step 3, and its Identity edges are down between Steps 1 and 3 exactly like WitCloud's S2S. Compiles and its suites pass on 3.x (Step 0) |
 | **WitForms** server + UI | UI↔server; UI→Identity | floating `2.3.*` / `1.0.*` | compiles on 3.1.0 |
 | **WitAnalytics** server + UI | same | floating | compiles on 3.1.0 |
 | **WitLicense** server + UI | same | floating | compiles on 3.1.0 |
-| **Native SDK** `OutWit.Cloud.SDK.Native` | NativeAOT over the managed SDK → `omnibuscloud_native.dll` | from source | publishes under NativeAOT on 3.1.0 (10.5 MB) |
+| **Native SDK** `OutWit.Cloud.SDK.Native` | NativeAOT over the managed SDK → `omnibuscloud_native.dll` | from source | publishes under NativeAOT on 3.1.0 (10.5 MB); the latest release is **native-v1.1.0** (not 1.0.0 as first written) |
 | **Blender addon** | python `pyoc` → native dll **bundled in the addon zip** (`NATIVE_VERSION 1.0.0`) | native 1.0.0 | rebuild zip with native 2.0.0 |
-| **ParaView plugin** | python `pyoc` → native dll bundled in the plugin package | native | rebuild package |
+| **ParaView plugin** | python `pyoc` → native dll bundled in the plugin package (`Plugin/NATIVE_VERSION 1.1.0`) | native 1.1.0 | rebuild package |
 | **3ds-Max plugin** | managed SDK **1.1.3** (public nuget only) | SDK | restores + compiles on SDK 2.0.0 (its `OutWit.Common.*` pins lag behind what the SDK needs — NU1605; align pins in the real bump) |
 | **Inventor add-in** | managed SDK 1.2.0 (private feeds) | SDK | restores + compiles on SDK 2.0.0 (private feeds resolve; same pin alignment) |
 | **Simulation** `OutWit.Simulation.Bridge.Session` | managed SDK 1.2.0 → also consumed by WitSweep | SDK | restores + compiles on SDK 2.0.0 |
@@ -116,6 +118,97 @@ and the S2S user-directory lookup, not sign-in.
   package — **not published**.
 - Manual smoke on a staging pair: UI login → profile page over WitRPC, S2S
   lookup, one job submitted from the native SDK loader (`examples/c/loader`).
+
+### Step 0 — done (2026-08-30)
+
+Everything below is a **local, unpushed commit on `main`** of its repository
+(the Portal, the OmnibusCloud initiators and the two plugin repos included),
+so the cutover is a `git push` + tag per repository in the order of Steps 1–3.
+Every suite was run after the change; numbers are in the commit messages.
+
+| Repository | Commit(s) | What moved |
+|---|---|---|
+| WitIdentity | `a3de4a1` | Server.DI 3.2.1, Server.WS 3.1.0, Client.Blazor / Client.WS 3.1.0 (server, UI **and the Examples in the solution**); WASM Authentication/DevServer 10.0.10; `WithMaxConcurrentRequests(1)`; `_Ecosystem/_WitRPC` deleted (it was gitignored) |
+| WitForms, WitAnalytics, WitLicense | `d572b39`, `02e4e18`, `ae20a2a` | floating `2.3.*` / `1.0.*` → explicit 3.2.1 / 3.1.0; the cap |
+| WitCloud.Portal | `c64eda2` | all three projects on 3.x (+ Client.DynamicProxy 3.1.1 in `Portal.Cloud`); WASM 10.0.10 and `Microsoft.Extensions.*` 10.0.10 floors; the cap |
+| WitCloud | `96bc306` → `77f0271`, `885fe42`, `81219b7`, `6cda86a` | pins 3.1.1 / 3.2.1; the cap on the gateway **and the per-node servers**; `GET /version`; **SDK 2.0.0**; the node's update-on-connect-failure (below); the SDK probe (below); the AOT baseline (35 reviewed, one new upstream key from the 3.x interceptor) |
+| WitCloud `release/2.x` | worktree `../WitCloud-2x`, `85751e0`, `b78fbf9`, `034ba94` | the **last 2.x line** off `b2956be`: the same node feature and SDK probe, SDK **1.3.1** (protocol 2). Builds; client + SDK suites green. Tag `client-v1.1.6-beta` on `034ba94` is the last 2.x node release |
+| Simulation | `e113754` | `Bridge.Session` **0.3.0** on SDK 2.0.0; solver floors (Auth 1.1.0 → Serilog 4.4.0, Aspects 1.3.4) |
+| WitSweep | `a0ce720` | Bridge.Session `0.3.*`, Serilog 4.4.0 |
+| Inventor | `ddd22d9` | SDK 2.0.0, Bridge.Session `0.3.*` |
+| 3ds-Max | `6474fc5` | SDK 1.1.3 → 2.0.0, Auth 1.1.0, Serilog 4.4.0, Aspects 1.3.4 |
+| Blender, ParaView | `f53c906`, `ebe95f8` | `NATIVE_VERSION` → 2.0.0; both packages built against a locally published native 2.0.0 |
+
+Two things the survey had wrong, both fixed above: **WitCloud.Portal** is a
+WitRPC consumer on two edges, and the native SDK's latest release is
+**1.1.0**. One 3.x API move that bit twice: the reflection-based
+`WitClient.GetService<T>()` now lives in `OutWit.Communication.Client.DynamicProxy`
+(WitIdentity's `Example.WeatherConsumer`, the Portal's `Portal.Cloud`).
+
+**The node follows a server it can no longer talk to** (`77f0271`, on both
+lines). The scheduled update check only notifies, so until now a fleet
+followed a server upgrade as fast as someone clicked "Update now" per
+machine. Now, on the third consecutive failed gateway-level recovery (then
+every twelfth) and on a startup connect failure, the node asks the public
+feed; when a newer build is published for its platform it downloads +
+verifies it and hands it to the external updater, then exits with CleanQuit
+(desktop shell and background mode both). Feed traffic is once per 10 min
+per node; `AutoUpdateOnConnectFailure` (user-scoped, default on) opts a device
+out. **This is what makes the last 2.x node release worth shipping before
+Step 3**: a fleet on `client-v1.1.6-beta` follows the 3.x gateway in
+minutes, a fleet on 1.1.5 does not follow at all.
+
+**The SDK explains a refused connect** (`885fe42`, both lines). `GET /version`
+on the gateway (3.x commit) answers `{ server, protocol, minSdk }`; the SDK
+probes it when `ConnectAsync` returns false and names both protocols and the
+release to move to. The 2.x SDK **1.3.1** carries the same probe (protocol 2)
+— publishing it is optional: it only helps a plugin rebuilt on it *before*
+the cutover, and every plugin is rebuilt on 2.0.0 right after anyway.
+
+Verified beyond compiling: WitCloud core sweep 834/0, SDK 99, Data 324,
+Native 132, Documents 59; native AOT publish + reviewed-warning gate + ABI
+export gate + C loader + C++ host all PASS on win-x64; SDK 2.0.0 packed
+(dependencies Auth 1.1.0, Contracts 1.2.0, Client 3.1.1, Client.WS 3.1.0 —
+all on nuget.org already); Bridge.Session 0.3.0 packed; WitIdentity,
+Forms, Analytics, License and Portal suites green including the PostgreSql
+providers (throwaway `postgres:16` container).
+
+**Local state to be aware of.** The four initiator repos (3ds-Max, Inventor,
+Simulation, WitSweep) have an **uncommitted** `nuget.config` edit adding the
+scratch feed (`…\scratchpadeed`) so they restore SDK 2.0.0 / Bridge.Session
+0.3.0 before those are published — `git checkout nuget.config` in each before
+pushing. `~/.nuget/packages` holds the scratch-built `outwit.cloud.sdk/2.0.0`
+and `outwit.simulation.bridge.session/0.3.0`: **delete both folders after the
+real publish**, or the local builds keep using the scratch bits.
+
+**Not done in Step 0 — the smoke on a real pair.** Two routes were tried and
+both are blocked on things only the operator has: `test.omnibuscloud.com`
+accepts publickey only and none of the keys on this machine is authorized
+(`id_ed25519` is encrypted with another passphrase; `omnibuscloud_macbook`
+and `id_ed25519_stats_deploy` are refused for root/ubuntu/dmitrat) — the
+right key or user is needed; and the `WitCloud.Test` fork that feeds the
+test server is 88 commits behind `main` with its own `feat(api): job
+visibility` conflicting in `IApiChannel` / `IWitCloudJobs` / the SDK, so
+syncing it is a merge to be done deliberately, not a pull. What stands in
+for the pair meanwhile: the WitCloud **Integration** category runs the real
+3.x `WitServer` + WebSocket + encryption in-process (151 pass; the same 61
+`ClientRatingService` test-host failures as on 2.x), which is the identical
+`AddWitRpcServerWithServices` path WitIdentity, Forms, Analytics, License and
+the Portal host use. The Blazor UI ↔ server edge and the S2S lookup have no
+headless test and remain the first thing to click through after Step 1.
+Also pre-existing: the 3ds-Max `SmokeValidateCurrentSceneThrough3dsMaxBatch*`
+tests fail identically on the unchanged tree (local 3ds Max, exit -130).
+
+#### Step 3 checklist, in order
+
+1. WitCloud: push `main`; tag `v1.6.103` (or the docker.yml dispatch) → gateway image; deploy.
+2. WitCloud.Portal: push `main`; tag → image; deploy (its gateway edge is now 3.x; its Identity edges were already 3.x after Step 1).
+3. WitCloud: push `release/2.x`; tag `client-v1.1.6-beta` **on `034ba94`** → the last 2.x node in the appcast is what the fleet needs *before* the gateway flips. (This is the one step that may run **before** 1: it is protocol-neutral.)
+4. WitCloud `main`: tag `client-v1.2.0-beta` → the 3.x node in the appcast; nodes on 1.1.6 pick it up within minutes of being refused.
+5. WitCloud: `publish.yml` for `OutWit.Cloud.SDK` (2.0.0) → nuget.org; tag `native-v2.0.0` → native-sdk.yml → then `native-carrier-nuget.yml` 2.0.0 → nuget.org.
+6. Simulation: push; `publish.yml` for `OutWit.Simulation.Bridge.Session` (0.3.0) → OmnibusCloud feed.
+7. WitSweep, Inventor, 3ds-Max, Blender (`addon-v2.0.0`), ParaView: push, release.
+8. Everywhere: `git checkout nuget.config` was done before the push; delete the two scratch package folders from `~/.nuget/packages`.
 
 ### Step 1 — hub: WitIdentity 3.x
 
