@@ -131,8 +131,8 @@ Every suite was run after the change; numbers are in the commit messages.
 | WitIdentity | `a3de4a1` | Server.DI 3.2.1, Server.WS 3.1.0, Client.Blazor / Client.WS 3.1.0 (server, UI **and the Examples in the solution**); WASM Authentication/DevServer 10.0.10; `WithMaxConcurrentRequests(1)`; `_Ecosystem/_WitRPC` deleted (it was gitignored) |
 | WitForms, WitAnalytics, WitLicense | `d572b39`, `02e4e18`, `ae20a2a` | floating `2.3.*` / `1.0.*` → explicit 3.2.1 / 3.1.0; the cap |
 | WitCloud.Portal | `c64eda2` | all three projects on 3.x (+ Client.DynamicProxy 3.1.1 in `Portal.Cloud`); WASM 10.0.10 and `Microsoft.Extensions.*` 10.0.10 floors; the cap |
-| WitCloud | `96bc306` → `77f0271`, `885fe42`, `81219b7`, `6cda86a` | pins 3.1.1 / 3.2.1; the cap on the gateway **and the per-node servers**; `GET /version`; **SDK 2.0.0**; the node's update-on-connect-failure (below); the SDK probe (below); the AOT baseline (35 reviewed, one new upstream key from the 3.x interceptor) |
-| WitCloud `release/2.x` | worktree `../WitCloud-2x`, `85751e0`, `b78fbf9`, `034ba94` | the **last 2.x line** off `b2956be`: the same node feature and SDK probe, SDK **1.3.1** (protocol 2). Builds; client + SDK suites green. Tag `client-v1.1.6-beta` on `034ba94` is the last 2.x node release |
+| WitCloud | `96bc306` → `77f0271`, `885fe42`, `81219b7`, `6cda86a`, `fe2f464`, `f20ec57` | pins 3.1.1 / 3.2.1; the cap on the gateway **and the per-node servers**; `GET /version`; **SDK 2.0.0**; the node's update-on-connect-failure (below); the SDK probe (below, hardened after the rehearsal); the AOT baseline (35 reviewed, one new upstream key from the 3.x interceptor) |
+| WitCloud `release/2.x` | worktree `../WitCloud-2x`, `85751e0`, `b78fbf9`, `034ba94`, `fb12792`, `4a89270` | the **last 2.x line** off `b2956be`: the same node feature and SDK probe, SDK **1.3.1** (protocol 2). Builds; client + SDK suites green. Tag `client-v1.1.6-beta` on `4a89270` is the last 2.x node release |
 | Simulation | `e113754` | `Bridge.Session` **0.3.0** on SDK 2.0.0; solver floors (Auth 1.1.0 → Serilog 4.4.0, Aspects 1.3.4) |
 | WitSweep | `a0ce720` | Bridge.Session `0.3.*`, Serilog 4.4.0 |
 | Inventor | `ddd22d9` | SDK 2.0.0, Bridge.Session `0.3.*` |
@@ -181,23 +181,60 @@ pushing. `~/.nuget/packages` holds the scratch-built `outwit.cloud.sdk/2.0.0`
 and `outwit.simulation.bridge.session/0.3.0`: **delete both folders after the
 real publish**, or the local builds keep using the scratch bits.
 
-**Not done in Step 0 — the smoke on a real pair.** Two routes were tried and
-both are blocked on things only the operator has: `test.omnibuscloud.com`
-accepts publickey only and none of the keys on this machine is authorized
-(`id_ed25519` is encrypted with another passphrase; `omnibuscloud_macbook`
-and `id_ed25519_stats_deploy` are refused for root/ubuntu/dmitrat) — the
-right key or user is needed; and the `WitCloud.Test` fork that feeds the
-test server is 88 commits behind `main` with its own `feat(api): job
-visibility` conflicting in `IApiChannel` / `IWitCloudJobs` / the SDK, so
-syncing it is a merge to be done deliberately, not a pull. What stands in
-for the pair meanwhile: the WitCloud **Integration** category runs the real
-3.x `WitServer` + WebSocket + encryption in-process (151 pass; the same 61
+**Not done in Step 0 — the smoke on a real Identity pair.** The gateway edge
+was rehearsed against a real 3.x image (next section). The `WitCloud.Test`
+fork that feeds the test server is 88 commits behind `main` with its own
+`feat(api): job visibility` conflicting in `IApiChannel` / `IWitCloudJobs` /
+the SDK, so syncing it is a merge to be done deliberately, not a pull — the
+rehearsal image came from `main` with the controller set trimmed instead.
+The WitCloud **Integration** category runs the real 3.x `WitServer` +
+WebSocket + encryption in-process (151 pass; the same 61
 `ClientRatingService` test-host failures as on 2.x), which is the identical
 `AddWitRpcServerWithServices` path WitIdentity, Forms, Analytics, License and
 the Portal host use. The Blazor UI ↔ server edge and the S2S lookup have no
 headless test and remain the first thing to click through after Step 1.
 Also pre-existing: the 3ds-Max `SmokeValidateCurrentSceneThrough3dsMaxBatch*`
 tests fail identically on the unchanged tree (local 3ds Max, exit -130).
+
+#### Rehearsal against a real 3.x gateway (2026-08-30)
+
+The test box (`test.omnibuscloud.com`, ssh `dmitrat` with `id_ed25519`) runs
+the `WitCloud.Test` fork image + Postgres against the production
+`auth.omnibuscloud.com`, and had **four nodes online** (node-01/02/03,
+VALENTINA-PC). Flipping it to 3.x locks those out with nothing to
+self-update to (no 3.x node in the appcast yet, no 1.1.6 on them), so the
+flip was **prepared, not done**: a 3.x image was built *on the box* from a
+scratch branch of `main` (`rehearsal/test-server` = `main` + the Render/
+ParaView families dropped from the controller set, like the fork) —
+`ghcr.io/dmitrat/witcloud-test:witrpc3`, 4.08 GB, `~/witcloud-rehearsal`.
+To flip: `cd /opt/outwitcloud/current && sed -i 's/^OUTWITCLOUD_VERSION=.*/OUTWITCLOUD_VERSION=witrpc3/' .env && docker compose up -d`;
+rollback is the same line with `latest`. (The uplink from the dev machine is
+~0.7 MB/s — never scp an image; the 6 MB git bundle + on-box build took
+minutes.)
+
+The same image ran **locally** in Docker with the test tenant's `.env` /
+`tenant.json` and a Caddy in front (`/api*` → 7501, rest → 7500, like the
+host Caddy), and the native SDK was pointed at it through pyoc:
+
+| Client | Gateway | Outcome |
+|---|---|---|
+| native **2.0.0** (protocol 3) | local **3.x** | connect, scopes, asset upload / query / download over WitRPC 3 — OK; job submit reached the server and was refused on authorization (fresh DB, no rights) — the RPC path is proven |
+| native **1.1.0** (released, protocol 2) | local 3.x | fails with `The length of the data to decrypt is not valid for the size of this key` — a 2.x client reads the protocol-3 refusal as a broken RSA reply. **This is what every plugin in the field says after Step 3** |
+| native **1.3.1** (2.x line + probe) | local 3.x | `the server (v1.6.103…) speaks WitRPC protocol 3, this SDK (v1.3.1) speaks protocol 2. Update OutWit.Cloud.SDK … to 2.0.0 or newer. (handshake error: …)` |
+| native 2.0.0 | **real 2.x** test gateway | `The server did not answer GET /version, so the WitRPC protocol it speaks is unknown; this SDK (v2.0.0) speaks protocol 3, and a server from before GET /version existed may speak an older one.` |
+
+The gateway side logs the refusal readably: `Unreadable initialization from
+client …: most likely a pre-protocol-3 client; refusing`. Two things the
+rehearsal corrected in the SDK (`fe2f464`, `f20ec57` on main; `fb12792`,
+`4a89270` on 2.x): the probe had only run when `ConnectAsync` returned
+false, but a 2.x client *throws* from the crypto layer — it now runs on the
+exception path too; and a pre-`/version` gateway answers `200 text/html`
+(the SPA fallback), which the probe now ignores.
+
+Not rehearsed: the node edge (a dev node on this machine would share the
+session store with the production node installed here — refresh-token
+rotation would log that one out; run a node from another machine with a
+browser login instead), the Portal edge, and the WitIdentity edges.
 
 #### Step 3 checklist, in order
 
