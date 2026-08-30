@@ -249,7 +249,7 @@ browser login instead), the Portal edge, and the WitIdentity edges.
 | WitCloud | `main`, `release/2.x` | `v1.7.0` → `ghcr.io/dmitrat/witcloud:1.7.0`; `native-v2.0.0` → GitHub release + GitHub Packages carrier (**not** nuget.org yet); `client-v1.1.6-beta` (on `release/2.x`) → GitHub release = the last 2.x node, which the portal feed advertises to the fleet within its poll interval |
 | Simulation, WitSweep, Inventor, 3ds-Max, Blender, ParaView | `main`, **no tags** | their CI stays red until `OutWit.Cloud.SDK 2.0.0` / the native carrier are on nuget.org (plugin phase) |
 
-Deliberately **not** done yet: `client-v1.2.0-beta` (the 3.x node — the portal
+Deliberately **not** done yet: `client-v2.0.0-beta` (the 3.x node — the portal
 feed would advertise it to a fleet whose gateway is still 2.x; one click on
 "Update now" then strands that node until the flip), and every nuget.org
 publish (`OutWit.Cloud.SDK 2.0.0`, the native carrier, `Bridge.Session
@@ -274,8 +274,8 @@ working throughout (OIDC over HTTP).
    `curl https://engine.omnibuscloud.com/version` → `"protocol":3`; the admin
    UI opens (Cloud.UI is in the image); the S2S user lookup works again.
    Rollback: `1.6.102`.
-3. **The 3.x node.** *Immediately after 2:* tag `client-v1.2.0-beta` on WitCloud
-   `main` (`git tag -a client-v1.2.0-beta -m "..." && git push origin client-v1.2.0-beta`);
+3. **The 3.x node.** *Immediately after 2:* tag `client-v2.0.0-beta` on WitCloud
+   `main` (`git tag -a client-v2.0.0-beta -m "..." && git push origin client-v2.0.0-beta`);
    client-release.yml publishes the GitHub release, the portal feed picks it
    up within its poll interval. Nodes on 1.1.6 that are refused check the feed
    and install it unattended; every other node is a manual install
