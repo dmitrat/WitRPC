@@ -26,10 +26,18 @@ namespace OutWit.Communication.Client.Blazor.Tests
 
             public string DecryptResultBase64 { get; set; } = "AAAA";
 
+            /// <summary>What the interop probe answers: true = the browser runs the current script.</summary>
+            public bool InteropCurrent { get; set; } = true;
+
+            /// <summary>Every module URL handed to <c>import</c>.</summary>
+            public List<string?> Imports { get; } = new();
+
             public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args)
             {
                 object result = identifier switch
                 {
+                    "eval" => InteropCurrent,
+                    "import" => RecordImport(args),
                     "cryptoInterop.generateKeys" => m_keyPairs.Dequeue(),
                     "cryptoInterop.decryptRSA" => RecordDecrypt(args),
                     _ => default(TValue)!
@@ -48,6 +56,12 @@ namespace OutWit.Communication.Client.Blazor.Tests
                 DecryptCalls.Add(args);
                 return DecryptResultBase64;
             }
+
+            private object RecordImport(object?[]? args)
+            {
+                Imports.Add(args?[0] as string);
+                return null!;
+            }
         }
 
         #endregion
@@ -65,6 +79,30 @@ namespace OutWit.Communication.Client.Blazor.Tests
         #endregion
 
         #region Init Tests
+
+        [Test]
+        public async Task InitReimportsTheInteropModuleWhenTheCachedScriptIsStaleTest()
+        {
+            var runtime = new RecordingJSRuntime(KeyPair("nA", "dA")) { InteropCurrent = false };
+            var encryptor = new EncryptorClientWeb(runtime);
+
+            var initialized = await encryptor.InitAsync();
+
+            Assert.That(initialized, Is.True);
+            Assert.That(runtime.Imports, Has.Count.EqualTo(1));
+            Assert.That(runtime.Imports[0], Does.Contain("_content/OutWit.Communication.Client.Blazor/js/cryptoInterop.js?v="));
+        }
+
+        [Test]
+        public async Task InitLeavesACurrentInteropScriptAloneTest()
+        {
+            var runtime = new RecordingJSRuntime(KeyPair("nA", "dA")) { InteropCurrent = true };
+            var encryptor = new EncryptorClientWeb(runtime);
+
+            await encryptor.InitAsync();
+
+            Assert.That(runtime.Imports, Is.Empty);
+        }
 
         [Test]
         public async Task InitParsesKeyPairAndExposesPublicAndPrivateKeysTest()

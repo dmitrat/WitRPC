@@ -340,14 +340,15 @@ The library ships `wwwroot/js/cryptoInterop.js` which is automatically available
 
 | Function | Parameters | Returns | Description |
 |----------|------------|---------|-------------|
-| `generateKeys` | `keySize` (int) | `void` | Generates RSA-OAEP key pair with SHA-256 |
-| `getPublicKey` | -- | `string` (JWK JSON) | Exports public key |
-| `getPrivateKey` | -- | `string` (JWK JSON) | Exports private key |
-| `decryptRSA` | `encryptedBase64` (string) | `string` (Base64) | RSA-OAEP decryption |
-| `encryptAes` | `base64Key`, `base64Iv`, `base64Data` | `string` (Base64) | AES-CBC encryption |
-| `decryptAes` | `base64Key`, `base64Iv`, `base64EncryptedData` | `string` (Base64) | AES-CBC decryption |
+| `generateKeys` | `keySize` (int) | `string` (JSON with both JWKs) | Generates an RSA-OAEP key pair with SHA-256 and returns it -- no shared global key |
+| `decryptRSA` | `privateKeyJwk`, `encryptedBase64` | `string` (Base64) | RSA-OAEP decryption with the key passed per call |
+| `encryptAesGcm` | `base64Key`, `base64Nonce`, `base64Aad`, `base64Data` | `string` (Base64, tag appended) | Protocol 3: AES-256-GCM |
+| `decryptAesGcm` | `base64Key`, `base64Nonce`, `base64Aad`, `base64Data` | `string` (Base64) | Protocol 3: AES-256-GCM |
+| `encryptAes` / `decryptAes` | `base64Key`, `base64Iv`, `base64Data` | `string` (Base64) | AES-CBC, kept for hosts that still pair this script with a 2.x client |
 
 > **Note**: The script uses `window.crypto.subtle` which requires a [secure context](https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts) (HTTPS or localhost). These functions are only called when `UseEncryption = true`.
+
+> **Stale browser caches.** The script tag points at a stable path, and a host that sends no `Cache-Control` for `_content/*` lets a returning browser keep the copy it cached under an older package -- the first encrypted frame then fails on a missing function. Since 3.1.1 `EncryptorClientWeb` checks for the protocol-3 functions before its first use and, when they are missing, imports the module again under a versioned URL (`cryptoInterop.js?v=<package version>`), so a stale tab heals itself on the next connect. Adding a version query to the script tag in `index.html` (`cryptoInterop.js?v=3.1.1`) avoids even that one detour.
 
 ## Configuration Reference
 

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Note**: Since 2.3.1, package versions diverge per package family. Each section below lists the package versions it produced (verified against csproj `<Version>` values).
 
+## [Client.Blazor 3.1.1] - 2026-08-30
+
+### Fixed
+
+- A browser that had cached `cryptoInterop.js` under a 2.x package kept using it after the host moved to 3.x, and the first protocol-3 frame died on the missing `encryptAesGcm` -- seen on the first production deployment, behind a host that sends no `Cache-Control` for static web assets (a private window worked). `EncryptorClientWeb` now probes for the protocol-3 functions before its first use and, when they are missing, imports the module again under a versioned URL, which the cache cannot answer from the stale copy. The README documents the interop surface as it is in 3.x and recommends a version query on the script tag.
+
 ## [Docs: OutWit.Communication 3.1.1, Client.Rest / Server.Rest 3.2.3] - 2026-08-29
 
 ### Changed

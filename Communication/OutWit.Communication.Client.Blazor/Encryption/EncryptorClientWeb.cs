@@ -22,6 +22,26 @@ namespace OutWit.Communication.Client.Blazor.Encryption
         private static readonly string RECEIVE_AAD =
             Convert.ToBase64String(new[] { (byte)WitProtocol.VERSION, AeadCipher.DIRECTION_SERVER_TO_CLIENT });
 
+        /// <summary>
+        /// The interop script is a classic <c>&lt;script&gt;</c> at a stable static-web-asset path
+        /// (<c>_content/OutWit.Communication.Client.Blazor/js/cryptoInterop.js</c>). A browser that
+        /// cached it under an older package keeps the old functions, and the first protocol-3 frame
+        /// then dies on a missing <c>encryptAesGcm</c> -- exactly what happened on the first 3.x
+        /// deployment behind a host that sends no Cache-Control for static web assets. This probe
+        /// tells a current script from a stale one.
+        /// </summary>
+        private const string INTEROP_PROBE =
+            "typeof window.cryptoInterop === 'object' && typeof window.cryptoInterop.encryptAesGcm === 'function'";
+
+        /// <summary>
+        /// The versioned module URL a stale browser is sent to: the query string makes it a URL the
+        /// cache has never seen, and the script assigns <c>window.cryptoInterop</c> whether it is
+        /// loaded as a classic script or as a module.
+        /// </summary>
+        private static readonly string INTEROP_MODULE_URL =
+            "./_content/OutWit.Communication.Client.Blazor/js/cryptoInterop.js?v=" +
+            (typeof(EncryptorClientWeb).Assembly.GetName().Version?.ToString(3) ?? "3");
+
         #endregion
 
         #region Fields
@@ -52,6 +72,8 @@ namespace OutWit.Communication.Client.Blazor.Encryption
             if (IsInitialized)
                 return true;
 
+            await EnsureInteropAsync();
+
             // generateKeys returns BOTH freshly generated JWKs in one call (no shared global key in
             // the browser) so concurrent encryptors don't clobber each other's key. See cryptoInterop.js.
             var keysJson = await Runtime.InvokeAsync<string>("cryptoInterop.generateKeys", 2048);
@@ -80,6 +102,30 @@ namespace OutWit.Communication.Client.Blazor.Encryption
             IsInitialized = true;
 
             return true;
+        }
+
+        /// <summary>
+        /// Makes sure the browser runs the interop script this package version expects: when the
+        /// probe finds the protocol-3 functions missing (a stale cached copy of the classic script),
+        /// the module is imported again under a versioned URL, which replaces
+        /// <c>window.cryptoInterop</c> with the current one.
+        /// </summary>
+        private async Task EnsureInteropAsync()
+        {
+            bool current;
+            try
+            {
+                current = await Runtime.InvokeAsync<bool>("eval", INTEROP_PROBE);
+            }
+            catch (Exception)
+            {
+                current = false;
+            }
+
+            if (current)
+                return;
+
+            await Runtime.InvokeAsync<IJSObjectReference>("import", INTEROP_MODULE_URL);
         }
 
         #endregion
