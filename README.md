@@ -5,7 +5,7 @@
 
 WitRPC is a modern API for client-server communication designed to simplify development and provide a robust, extensible framework. It offers a seamless way to handle real-time and event-driven interactions with minimal setup, acting as a powerful alternative to traditional frameworks like WCF and SignalR.
 
-> Current version (2026-08-29): **3.1.0 — every package**. Protocol 3 is a coordinated major: a 3.0 client needs a 3.0 server (the server refuses older clients with a readable version message). See [CHANGELOG.md](CHANGELOG.md) for what changed and the migration notes.
+> Current versions (2026-08-29): core and transports **3.1.x** (`OutWit.Communication`, `Server`, `Client`, `Client.DynamicProxy` and the `Tcp` pair at 3.1.1), REST **3.2.3**, DependencyInjection **3.2.1**. Protocol 3 is a coordinated major: a 3.0 client needs a 3.0 server (the server refuses older clients with a readable version message). See [CHANGELOG.md](CHANGELOG.md) for what changed and the migration notes.
 
 ## Features
 
@@ -15,7 +15,7 @@ WitRPC is a modern API for client-server communication designed to simplify deve
   - Named Pipes
   - TCP (with TLS support)
   - WebSocket
-  - REST
+  - REST — not a transport of the WitRPC protocol but a stateless HTTP + JSON **compatibility layer** with its own host (`WitServerRest`), for callers that are not WitRPC at all
 - **Composite Services**: Host multiple service interfaces on a single server, clients can request proxies for any registered interface.
 - **Security**:
   - Authenticated message-layer encryption — AES-256-GCM per direction with an RSA handshake; tampered, replayed or reordered frames are rejected. Defence in depth: run TLS on network transports, use it as the channel protection on local ones (MMF, pipes)
@@ -48,7 +48,7 @@ WitRPC is a modern API for client-server communication designed to simplify deve
 | `OutWit.Communication.Client.Tcp` | TCP transport | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Client.Tcp.svg)](https://www.nuget.org/packages/OutWit.Communication.Client.Tcp/) |
 | `OutWit.Communication.Client.WebSocket` | WebSocket transport | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Client.WebSocket.svg)](https://www.nuget.org/packages/OutWit.Communication.Client.WebSocket/) |
 | `OutWit.Communication.Client.MMF` | Memory-Mapped Files transport | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Client.MMF.svg)](https://www.nuget.org/packages/OutWit.Communication.Client.MMF/) |
-| `OutWit.Communication.Client.Rest` | REST transport | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Client.Rest.svg)](https://www.nuget.org/packages/OutWit.Communication.Client.Rest/) |
+| `OutWit.Communication.Client.Rest` | REST compatibility layer (plain HTTP + JSON, stateless) | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Client.Rest.svg)](https://www.nuget.org/packages/OutWit.Communication.Client.Rest/) |
 
 ### Server Transports
 | Package | Description | NuGet |
@@ -57,7 +57,7 @@ WitRPC is a modern API for client-server communication designed to simplify deve
 | `OutWit.Communication.Server.Tcp` | TCP transport | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Server.Tcp.svg)](https://www.nuget.org/packages/OutWit.Communication.Server.Tcp/) |
 | `OutWit.Communication.Server.WebSocket` | WebSocket transport | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Server.WebSocket.svg)](https://www.nuget.org/packages/OutWit.Communication.Server.WebSocket/) |
 | `OutWit.Communication.Server.MMF` | Memory-Mapped Files transport | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Server.MMF.svg)](https://www.nuget.org/packages/OutWit.Communication.Server.MMF/) |
-| `OutWit.Communication.Server.Rest` | REST transport | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Server.Rest.svg)](https://www.nuget.org/packages/OutWit.Communication.Server.Rest/) |
+| `OutWit.Communication.Server.Rest` | REST compatibility layer (plain HTTP + JSON, own host) | [![NuGet](https://img.shields.io/nuget/v/OutWit.Communication.Server.Rest.svg)](https://www.nuget.org/packages/OutWit.Communication.Server.Rest/) |
 
 ### Extensions
 | Package | Description | NuGet |

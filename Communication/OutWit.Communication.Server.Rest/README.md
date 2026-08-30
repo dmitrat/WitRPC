@@ -1,21 +1,20 @@
 # OutWit.Communication.Server.Rest
 
-REST transport server for WitRPC, exposing your services as HTTP REST endpoints to allow calls from web or external clients via standard HTTP.
+The REST host for WitRPC: exposes a WitRPC service as plain HTTP + JSON endpoints, so the other side of the wire can be anything that speaks HTTP.
 
 ### Overview
 
-**OutWit.Communication.Server.Rest** enables a WitRPC server to serve incoming requests over **HTTP** as a RESTful API. With this transport, the server sets up an HTTP listener on a specified URL (and port) and translates HTTP requests into calls to your service methods. This allows clients that cannot maintain persistent connections (or non-.NET clients) to interact with your service using standard HTTP calls. In effect, it makes your service accessible in a similar way to a typical Web API.
+**OutWit.Communication.Server.Rest** is WitRPC's **compatibility layer outward**. The persistent transports (named pipes, TCP, WebSocket, memory-mapped files) carry WitRPC's own protocol -- a handshake, message-layer encryption, a session with server-to-client events, a binary envelope -- and need WitRPC on both ends. REST deliberately does not: every call is one stateless HTTP request whose body is the arguments as plain JSON, and whose reply is the return value as plain JSON. Nothing WitRPC-specific travels on the wire, so the caller can be curl, a browser, a Python script, a JavaScript front-end, or the .NET `OutWit.Communication.Client.Rest` package -- interchangeably.
 
-This is particularly useful for:
+That is why the REST host is **its own server** (`WitServerRest`, built by `WitServerRestBuilder`) rather than a transport plugged into `WitServer`: a transport would wrap each request in the envelope and the handshake, and the readable contract -- the whole point -- would be gone. What is shared is everything above the wire: the same service interface, the same implementation, the same request processor and the same `IAccessTokenValidator` as the persistent server. One `ExampleService` can be hosted over WebSocket for WitRPC clients and over REST for everyone else, side by side.
 
--   **External Integration:** Exposing services to clients written in other languages or running in environments where only HTTP is feasible. Any HTTP-capable client (cURL, browser, etc.) could call your service's methods by making requests to the correct URLs.
-    
--   **Web Clients:** Enabling simple web front-ends to trigger server-side operations. For example, you might have a JavaScript app making AJAX calls to these REST endpoints.
-    
--   **Quick API Deployment:** You can stand up a basic REST API for your service without writing boilerplate controllers or using a full web framework: WitRPC will handle the routing of HTTP requests to the service methods.
-    
+Use it for:
 
-Keep in mind that the REST transport is stateless. The server handles each HTTP request independently. It doesn't maintain session state or persistent connections with clients (unlike WebSocket or TCP). This means server-to-client events are not pushed to REST clients in real-time; those clients would need to poll or use some long-polling mechanism to receive event-like updates. If real-time feedback is crucial, consider using WebSockets or another push-capable transport.
+-   **External integration** -- clients in other languages, or environments where only HTTP is feasible, call your methods by URL.
+-   **Web front-ends** -- a JavaScript app calls the endpoints directly with `fetch`.
+-   **A REST API without a web framework** -- no controllers, no routing tables: the service interface is the API, and the request and response shapes are documented below.
+
+What REST gives up, by design: it is stateless, so **server-to-client events are not delivered** (poll, or use a persistent transport where callbacks matter); and there is no WitRPC message-layer encryption -- TLS (`https://`) is the transport protection, and token authorization still applies.
 
 ### Installation
 
@@ -78,7 +77,7 @@ services.AddWitRpcRestServerWithServices("api", ctx => ctx.WithUrl("..."), compo
 });
 ```
 
-In this configuration, the server listens for HTTP requests at the base URL `http://localhost:5000/api/example/`. This transport is WitRPC's **compatibility layer**: the caller on the other side does not need to be WitRPC at all -- curl, a browser, a Python script. The contract (since 3.2.0) is plain JSON both ways:
+The server listens at the base URL; every method of the contract is one endpoint under it, and the caller does not need to be WitRPC at all. The contract (since 3.2.0) is plain JSON both ways:
 
 ### The wire contract
 
@@ -119,7 +118,7 @@ Content-Type: application/json
 
 On the client side, use **OutWit.Communication.Client.Rest** from .NET -- it sends exactly the JSON above (a positional array, or a query string when its mode allows) -- or call the endpoints from any HTTP-capable stack.
 
-**Security and HTTPS:** In production, run the REST endpoint over HTTPS (TLS) — that is the transport protection for REST. WitRPC's message-layer encryption does not apply to the REST transport (each call is a bare HTTP request); use `https://` in `WithRest(...)`, bind a certificate for the host/port (HttpListener on Windows typically needs a `netsh http add sslcert` binding), and keep token auth on so only authorized clients call your endpoints.
+**Security and HTTPS:** In production, run the REST endpoint over HTTPS (TLS) — that is the transport protection for REST. WitRPC's message-layer encryption does not apply to the REST transport (each call is a bare HTTP request); use an `https://` URL in `WithUrl(...)`, bind a certificate for the host/port (HttpListener on Windows typically needs a `netsh http add sslcert` binding), and keep token auth on so only authorized clients call your endpoints.
 
 ### Further Documentation
 

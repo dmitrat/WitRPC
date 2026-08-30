@@ -174,7 +174,7 @@ services.AddWitRpcClient<IMyService>("my-service", ctx =>
 
 #### REST Clients (since 3.2.0)
 
-A REST client is stateless (nothing to connect, no hosted service). Register it by name and inject the service interface as a proxy over it:
+A REST client is the .NET side of the compatibility layer: stateless, nothing to connect, no hosted service. Register it by name and inject the service interface as a proxy over it:
 
 ```csharp
 using OutWit.Communication.Client.DependencyInjection;

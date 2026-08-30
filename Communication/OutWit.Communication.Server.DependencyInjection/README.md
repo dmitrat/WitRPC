@@ -264,7 +264,7 @@ services.AddWitRpcServerWithServices("api-server",
 
 #### REST Servers (since 3.2.0)
 
-The REST transport has its own host (`WitServerRest`, stateless HTTP). It registers the same way -- by name, built on first use, optionally started with the host -- through `AddWitRpcRestServer`:
+REST -- the compatibility layer outward, with its own host (`WitServerRest`, stateless HTTP + JSON) -- registers the same way -- by name, built on first use, optionally started with the host -- through `AddWitRpcRestServer`:
 
 ```csharp
 using OutWit.Communication.Server.DependencyInjection;

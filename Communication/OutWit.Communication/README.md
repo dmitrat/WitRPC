@@ -12,7 +12,7 @@ The core communication library of the WitRPC framework, providing base RPC funct
 
 -   **Dynamic Proxy & Full-Duplex Communication:** Automatically generates client-side proxies that mirror server interfaces, enabling natural method calls and event subscriptions for real-time callbacks. You can invoke methods and handle events from the server just by using a local interface; WitRPC transparently handles the network communication in both directions.
     
--   **Multiple Transport Options:** Transport-agnostic design supporting various communication transports (e.g. Memory-Mapped Files, Named Pipes, TCP, WebSocket, REST). You can choose the best transport for your scenario without changing your service code.
+-   **Multiple Transport Options:** Transport-agnostic design supporting various communication transports (Memory-Mapped Files, Named Pipes, TCP, WebSocket) -- plus REST as a stateless HTTP + JSON compatibility layer with its own host, for callers that are not WitRPC at all. You can choose the best transport for your scenario without changing your service code.
     
 -   **Secure & Authorized:** Built-in message-layer encryption — authenticated **AES-256-GCM** with separate keys per direction, established through an RSA handshake — plus token-based client authentication. Tampered, replayed or reordered frames are detected and rejected, not silently decrypted. Treat it as **defence in depth**: on network transports, TLS (`wss://`, `https://`, TCP+TLS) remains the primary protection and WitRPC encryption is an additional layer beneath it; on local transports (memory-mapped files, named pipes) it is the natural way to protect the channel from other local processes.
     

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Note**: Since 2.3.1, package versions diverge per package family. Each section below lists the package versions it produced (verified against csproj `<Version>` values).
 
+## [Docs: OutWit.Communication 3.1.1, Client.Rest / Server.Rest 3.2.3] - 2026-08-29
+
+### Changed
+
+- README-only releases. The REST READMEs now open with what REST is for and why it is a separate host: the compatibility layer outward -- plain HTTP + JSON with nothing WitRPC-specific on the wire, so one end of the call can be anything that speaks HTTP -- sharing the service, the processor and the token validator with the persistent server but not its protocol. The last `WithRest(...)` mention (in the HTTPS note) is gone. The core package ships the corrected transport paragraph that 3.1.0's package README still showed with `.WithRest(...)`.
+
 ## [Open extension points: Server / Client / Client.DynamicProxy 3.1.1, Server.Rest / Client.Rest 3.2.2, Server.DependencyInjection / Client.DependencyInjection 3.2.1] - 2026-08-29
 
 ### Added

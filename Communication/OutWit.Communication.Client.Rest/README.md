@@ -1,24 +1,19 @@
 ﻿
 # OutWit.Communication.Client.Rest
 
-REST transport client for WitRPC, allowing communication with a WitRPC server over HTTP (RESTful) calls – ideal for integrating with web services or non-.NET clients.
+The .NET side of WitRPC's REST compatibility layer: call a `WitServerRest` host -- or any HTTP endpoint that answers in the same plain-JSON shape -- through a service interface, one stateless HTTP request per call.
 
 ### Overview
 
-**OutWit.Communication.Client.Rest** enables a WitRPC client to use **HTTP/REST** as the underlying transport. Instead of a persistent socket or pipe, the client makes HTTP requests to call service methods on the server. The REST transport is particularly useful for integrating with environments where a full-time connection may not be possible or when you want to expose/consume the service via standard web protocols. For example, if a WitRPC server is configured with REST, you could call it from a JavaScript frontend or a scripting language by making HTTP requests, or conversely use this client to call an existing HTTP-based service.
+WitRPC's persistent transports need WitRPC on both ends of the wire. The REST layer exists so that one end can be something else. On the server side, `OutWit.Communication.Server.Rest` exposes a service as plain HTTP + JSON that any client can call; on the client side, **this package** lets a .NET application call such an endpoint through the usual proxy over a service interface. Each call becomes one HTTP request -- `POST {base}/{Method}` with the arguments as a JSON array, or a `GET` with query parameters when the mode allows -- and the reply is read back as plain JSON. There is no envelope, no handshake and no session, which is also what lets this client consume an HTTP API that is not WitRPC at all, as long as it answers in that shape.
 
 **Key scenarios:**
 
--   **Web Integration:** Easily call services from web or mobile apps by exposing the WitRPC service over HTTP. A .NET client can also use the REST transport to consume a service in a firewall-friendly way (HTTP port).
-    
--   **Interoperability:** Allow non-.NET or non-WitRPC clients to interact with your service. Since the communication is via standard HTTP with JSON payloads, any technology stack can consume it (they just need to follow the expected request format).
-    
--   **Stateless Calls:** Each call is a separate HTTP request/response, which is suitable for request-reply patterns that don’t require a persistent connection.
-    
+-   **Firewall-friendly consumption:** call a WitRPC service through plain HTTP(S) where a persistent socket is not an option.
+-   **Interoperability both ways:** the same endpoint serves this client and hand-written HTTP callers alike, and this client can front a non-WitRPC HTTP service that follows the contract.
+-   **Stateless request/reply:** nothing to connect or keep alive; every call stands on its own.
 
-Keep in mind that the REST transport operates in a stateless, request-response manner. It does not maintain a continuous connection, so **server-to-client callbacks (events)** will not be delivered in real-time through the same channel. (A client could poll for events or updates, but that logic is up to the client implementation.) If your application needs real-time notifications from the server, consider WebSocket or another persistent transport.
-
-This client works with **OutWit.Communication.Server.Rest** on the server. The server will host HTTP endpoints that the client calls.
+Because the layer is stateless, **server-to-client events are not delivered** through it: subscribing to a proxy's events yields nothing. Where callbacks matter, use WebSocket or another persistent transport. The full wire contract, with request and response examples, is in the **OutWit.Communication.Server.Rest** README.
 
 ### Installation
 
