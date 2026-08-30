@@ -156,6 +156,58 @@ namespace OutWit.Communication.Tests.Processors
         }
 
         [Test]
+        public void ClassRegisteredServiceStampsAnInterfaceEventWithTheInterfaceContractTest()
+        {
+            // The production defect: a service registered as its class raised every
+            // event under the class's contract id, and the node-side proxy built on the
+            // interface dropped all of them.
+            var service = new FirstEventServiceImpl();
+            var processor = new RequestProcessor<FirstEventServiceImpl>(service);
+            processor.ResetSerializer(new MessageSerializerJson());
+            var callbacks = new List<WitRequest>();
+            processor.Callback += request => { if (request != null) callbacks.Add(request); };
+
+            service.Raise("hello");
+
+            Assert.That(callbacks, Has.Count.EqualTo(1));
+            Assert.That(callbacks[0].MethodName, Is.EqualTo("Changed"));
+            Assert.That(callbacks[0].ContractId, Is.EqualTo(ContractIds.GetContractId(typeof(IFirstEventService))));
+        }
+
+        [Test]
+        public void ClassRegisteredServiceKeepsTheClassContractForItsOwnEventTest()
+        {
+            var service = new FirstEventServiceImpl();
+            var processor = new RequestProcessor<FirstEventServiceImpl>(service);
+            processor.ResetSerializer(new MessageSerializerJson());
+            var callbacks = new List<WitRequest>();
+            processor.Callback += request => { if (request != null) callbacks.Add(request); };
+
+            service.RaiseOwn("mine");
+
+            Assert.That(callbacks, Has.Count.EqualTo(1));
+            Assert.That(callbacks[0].ContractId, Is.EqualTo(ContractIds.GetContractId(typeof(FirstEventServiceImpl))));
+        }
+
+        [Test]
+        public async Task ClassRegisteredServiceDispatchesAnInterfaceMethodIdTest()
+        {
+            // Only the interface's ids name the target: with the class-scoped table alone
+            // this would have gone through the name scan (or nowhere, for a request that
+            // carries no parameter types at all).
+            var service = new FirstService();
+            var processor = new RequestProcessor<FirstService>(service);
+            var serializer = new MessageSerializerJson();
+            processor.ResetSerializer(serializer);
+            var jobId = Guid.NewGuid();
+
+            var response = await processor.Process(CancelRequest<IFirstService>(jobId, serializer));
+
+            Assert.That(response.Status, Is.EqualTo(CommunicationStatus.Ok));
+            Assert.That(service.Cancelled, Is.EqualTo(jobId));
+        }
+
+        [Test]
         public void UnstampedCallbackReachesEveryProxyTest()
         {
             var client = new FakeClient();
@@ -252,6 +304,14 @@ namespace OutWit.Communication.Tests.Processors
             {
                 CallbackReceived(request);
             }
+        }
+
+        private sealed class FirstEventServiceImpl : IFirstEventService
+        {
+            public event ChangedEventHandler Changed = delegate { };
+            public event ChangedEventHandler OwnChanged = delegate { };
+            public void Raise(string value) => Changed(value);
+            public void RaiseOwn(string value) => OwnChanged(value);
         }
 
         private sealed class FirstService : IFirstService

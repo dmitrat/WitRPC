@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Note**: Since 2.3.1, package versions diverge per package family. Each section below lists the package versions it produced (verified against csproj `<Version>` values).
 
+## [OutWit.Communication 3.1.2] - 2026-08-30
+
+### Fixed
+
+- A service registered as its CLASS (`WithService<MyChannel>(instance)`, `AddService<MyChannel>()`) raised every event under the class's contract id, and a client proxy built on the interface the class implements dropped all of them -- seen in production the first hour after a gateway moved to protocol 3: node task batches and cancels never reached a single node while requests kept flowing. `RequestProcessor<TService>` now stamps an event a class inherits from one of its interfaces with that interface's contract id (an event the class alone declares keeps the class), and indexes the method ids of every implemented interface so a call through such a proxy takes the id path instead of the name scan. Three tests in `ContractRoutingTests`.
+
 ## [Client.Blazor 3.1.1] - 2026-08-30
 
 ### Fixed

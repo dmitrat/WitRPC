@@ -24,6 +24,7 @@ namespace OutWit.Communication.Processors
         #region Fields
 
         private readonly Dictionary<long, MethodInfo> m_methodsById = new();
+        private readonly Dictionary<string, long> m_eventContractIds = new();
 
         private readonly long m_contractId;
 
@@ -57,12 +58,57 @@ namespace OutWit.Communication.Processors
                     throw new InvalidOperationException(
                         $"Method id collision on {typeof(TService).Name}: '{method.Name}' clashes with '{m_methodsById[methodId].Name}'");
             }
+
+            // A service registered as its CLASS is still called through its contracts: a
+            // proxy built on an implemented interface stamps that interface's method ids,
+            // which the class-scoped table above cannot know. Index those ids too, so such
+            // a call takes the id path (declared parameter types, one lookup) instead of
+            // falling back to the name scan. An interface MethodInfo invokes virtually on
+            // the instance, so it is the right handle to keep.
+            if (typeof(TService).IsInterface)
+                return;
+
+            foreach (Type contract in typeof(TService).GetInterfaces())
+            {
+                foreach (MethodInfo method in contract.GetAllMethods())
+                {
+                    long methodId = ContractIds.GetMethodId(contract, method);
+                    if (methodId != ContractIds.NONE)
+                        m_methodsById.TryAdd(methodId, method);
+                }
+            }
         }
 
         private void InitEvents()
         {
             foreach (EventInfo info in typeof(TService).GetAllEvents())
+            {
                 info.AddEventHandler(Service,  info.CreateUniversalHandler(this, HandleEvent));
+                m_eventContractIds[info.Name] = GetEventContractId(info);
+            }
+        }
+
+        /// <summary>
+        /// The contract a callback for <paramref name="info"/> is stamped with. A proxy on
+        /// the client side is built on an interface and drops callbacks stamped for any other
+        /// contract, so an event a class inherits from one of its interfaces travels under
+        /// that interface's id -- registering the service as the class instead of the contract
+        /// used to silence every event it raised. An event the class alone declares keeps the
+        /// class as its contract.
+        /// </summary>
+        private long GetEventContractId(EventInfo info)
+        {
+            if (typeof(TService).IsInterface)
+                return m_contractId;
+
+            foreach (Type contract in typeof(TService).GetInterfaces())
+            {
+                EventInfo? declared = contract.GetEvent(info.Name);
+                if (declared != null && declared.EventHandlerType == info.EventHandlerType)
+                    return ContractIds.GetContractId(contract);
+            }
+
+            return m_contractId;
         }
 
         #endregion
@@ -205,8 +251,11 @@ namespace OutWit.Communication.Processors
 
             // The callback names its contract so a client holding several
             // proxies on one channel delivers it to the right one even when
-            // event names collide across services.
-            request.ContractId = sender.m_contractId;
+            // event names collide across services -- the contract that declares
+            // the event, not necessarily the type the service was registered as.
+            request.ContractId = sender.m_eventContractIds.TryGetValue(eventName, out long contractId)
+                ? contractId
+                : sender.m_contractId;
 
             sender.RaiseCallback(request);
         }
