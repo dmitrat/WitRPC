@@ -1,8 +1,10 @@
 # Ecosystem migration to WitRPC 3.x
 
-Status: **Step 0 executed on 2026-08-30 — every consumer is moved in a local,
-unpushed commit and rebuilt; nothing is published or deployed yet.** See
-"Step 0 — done" below for the exact state and the Step 3 checklist. WitRPC 3.0.0 and 3.1.0 are on nuget.org (Server / Client / Client.DynamicProxy / Tcp 3.1.1; REST packages 3.2.3 with the readable contract restored, `WitClientRestBuilder` and composite hosts; DependencyInjection packages 3.2.1 with `AddWitRpcRestServer` / `AddWitRpcRestClient` and every interface-typed option resolvable from the container -- consumers pin the latest of each: Server / Client 3.1.1, transports 3.1.0 (Tcp 3.1.1), DI 3.2.1);
+Status: **pushed and built on 2026-08-30 — every repository is on GitHub with
+its release tag and CI has produced the images and the GitHub releases;
+nothing is deployed and nothing is on nuget.org yet.** The deploy order the
+operator chose, with the exact commands, is in "Rollout, in the order chosen"
+below; "Step 0 — done" records how the code got there. WitRPC 3.0.0 and 3.1.0 are on nuget.org (Server / Client / Client.DynamicProxy / Tcp 3.1.1; REST packages 3.2.3 with the readable contract restored, `WitClientRestBuilder` and composite hosts; DependencyInjection packages 3.2.1 with `AddWitRpcRestServer` / `AddWitRpcRestClient` and every interface-typed option resolvable from the container -- consumers pin the latest of each: Server / Client 3.1.1, transports 3.1.0 (Tcp 3.1.1), DI 3.2.1);
 nothing that talks to production has been redeployed yet.
 
 The one fact that shapes everything: **protocol 3 is not wire-compatible with
@@ -236,16 +238,70 @@ session store with the production node installed here — refresh-token
 rotation would log that one out; run a node from another machine with a
 browser login instead), the Portal edge, and the WitIdentity edges.
 
-#### Step 3 checklist, in order
+#### Pushed and built (2026-08-30)
 
-1. WitCloud: push `main`; tag `v1.6.103` (or the docker.yml dispatch) → gateway image; deploy.
-2. WitCloud.Portal: push `main`; tag → image; deploy (its gateway edge is now 3.x; its Identity edges were already 3.x after Step 1).
-3. WitCloud: push `release/2.x`; tag `client-v1.1.6-beta` **on `034ba94`** → the last 2.x node in the appcast is what the fleet needs *before* the gateway flips. (This is the one step that may run **before** 1: it is protocol-neutral.)
-4. WitCloud `main`: tag `client-v1.2.0-beta` → the 3.x node in the appcast; nodes on 1.1.6 pick it up within minutes of being refused.
-5. WitCloud: `publish.yml` for `OutWit.Cloud.SDK` (2.0.0) → nuget.org; tag `native-v2.0.0` → native-sdk.yml → then `native-carrier-nuget.yml` 2.0.0 → nuget.org.
-6. Simulation: push; `publish.yml` for `OutWit.Simulation.Bridge.Session` (0.3.0) → OmnibusCloud feed.
-7. WitSweep, Inventor, 3ds-Max, Blender (`addon-v2.0.0`), ParaView: push, release.
-8. Everywhere: `git checkout nuget.config` was done before the push; delete the two scratch package folders from `~/.nuget/packages`.
+| Repository | Pushed | Tag → artifact |
+|---|---|---|
+| WitRPC | `v3` = `main` (docs) | — |
+| WitIdentity | `main` | `v1.5.0` → `ghcr.io/dmitrat/witidentity:1.5.0` + `latest` |
+| WitForms / WitAnalytics / WitLicense | `main` | `v1.3.0` / `v1.1.0` / `v1.3.0` → images |
+| WitCloud.Portal | `main` | `v1.1.0` → `ghcr.io/dmitrat/witcloud-portal:1.1.0` |
+| WitCloud | `main`, `release/2.x` | `v1.7.0` → `ghcr.io/dmitrat/witcloud:1.7.0`; `native-v2.0.0` → GitHub release + GitHub Packages carrier (**not** nuget.org yet); `client-v1.1.6-beta` (on `release/2.x`) → GitHub release = the last 2.x node, which the portal feed advertises to the fleet within its poll interval |
+| Simulation, WitSweep, Inventor, 3ds-Max, Blender, ParaView | `main`, **no tags** | their CI stays red until `OutWit.Cloud.SDK 2.0.0` / the native carrier are on nuget.org (plugin phase) |
+
+Deliberately **not** done yet: `client-v1.2.0-beta` (the 3.x node — the portal
+feed would advertise it to a fleet whose gateway is still 2.x; one click on
+"Update now" then strands that node until the flip), and every nuget.org
+publish (`OutWit.Cloud.SDK 2.0.0`, the native carrier, `Bridge.Session
+0.3.0`), which third parties would pick up against a 2.x production gateway.
+
+CI outcomes (2026-08-30): every CI / docker / client-release run is green (WitRPC, WitIdentity 1.5.0, Forms 1.3.0, Analytics 1.1.0, License 1.3.0, Portal 1.1.0, WitCloud 1.7.0, client-v1.1.6-beta). `native-sdk` publishes and passes the AOT gate, ABI gate, C loader, C++ host and pyoc offline gate on all three RIDs -- after one real fix: on macOS the .NET 10 Apple crypto PAL, reached for the first time by AES-GCM, force-loads the Swift 6 overlays that the Xcode 15 SDK of macos-14 lacks; the workflow now selects Xcode 16 (`fcf441a`, and `native-v2.0.0` was moved onto it). Its only failing step is the *pyoc live smoke against production*, which a protocol-3 library cannot pass while engine.omnibuscloud.com is 2.x -- so the `release` job of the native-v2.0.0 run stays skipped until step 2 below, after which `gh run rerun --failed` on that run publishes the GitHub release and the GitHub Packages carrier.
+
+#### Rollout, in the order chosen
+
+Nothing deploys itself: every step below is a manual `compose pull` on a
+host, and every image tag is pinned in that host's `.env`. Login keeps
+working throughout (OIDC over HTTP).
+
+1. **WitIdentity → `1.5.0`.** On the identity host: set `WITIDENTITY_VERSION=1.5.0`
+   in `.env`, `docker compose pull && docker compose up -d`. Live tests: sign in
+   to the Identity UI, open *My profile* (that page is WitRPC), change a
+   setting; the other UIs' profile pages and WitCloud's S2S lookup are
+   *expected* to fail from now until steps 2–3. Rollback: `1.4.1` the same way.
+2. **WitCloud gateway → `1.7.0`.** `OUTWITCLOUD_VERSION=1.7.0`, pull, up. Every
+   2.x node is refused from this moment (gateway log: *Unreadable
+   initialization … pre-protocol-3 client; refusing*). Live tests:
+   `curl https://engine.omnibuscloud.com/version` → `"protocol":3`; the admin
+   UI opens (Cloud.UI is in the image); the S2S user lookup works again.
+   Rollback: `1.6.102`.
+3. **The 3.x node.** *Immediately after 2:* tag `client-v1.2.0-beta` on WitCloud
+   `main` (`git tag -a client-v1.2.0-beta -m "..." && git push origin client-v1.2.0-beta`);
+   client-release.yml publishes the GitHub release, the portal feed picks it
+   up within its poll interval. Nodes on 1.1.6 that are refused check the feed
+   and install it unattended; every other node is a manual install
+   (download from the portal, run the installer).
+4. **Portal → `1.1.0`.** `PORTAL_VERSION=1.1.0`, pull, up. Live tests: sign in,
+   *Account* (Identity channel) and a project page (gateway channel).
+5. **Plugins, one at a time**, each with its live test against the 3.x gateway:
+   - dispatch WitCloud `publish.yml` for `OutWit.Cloud.SDK` with *push to
+     nuget.org* → 2.0.0; dispatch `native-carrier-nuget.yml` with version
+     `2.0.0` → the carrier on nuget.org (both are irreversible: nuget.org
+     never deletes);
+   - Simulation: dispatch `publish.yml` for `OutWit.Simulation.Bridge.Session`
+     → 0.3.0 on the OmnibusCloud feed; re-run the red CI of Simulation,
+     WitSweep, Inventor, 3ds-Max, ParaView (they only needed the packages);
+   - Blender `addon-v2.0.1` (an `addon-v2.0.0` already exists, built with
+     native 1.0.0), ParaView `plugin-v0.6.2`, 3ds-Max `plugin-v1.1.0-beta`,
+     Inventor and WitSweep releases per their own conventions.
+6. **WitForms → `1.3.0`, WitAnalytics → `1.1.0`, WitLicense → `1.3.0`** last,
+   each: version in `.env`, pull, up; live test = sign in + the profile page +
+   one channel-backed page.
+7. Afterwards, on the dev machine: `git checkout nuget.config` in 3ds-Max,
+   Inventor, Simulation, WitSweep (the scratch feed), and delete
+   `~/.nuget/packages/outwit.simulation.bridge.session/0.3.0` and
+   `outwit.cloud.sdk/2.0.0` so the published bits replace the scratch ones.
+   The test box keeps its prepared `witcloud-test:witrpc3` image; flip it the
+   same way whenever its four nodes can follow.
 
 ### Step 1 — hub: WitIdentity 3.x
 
