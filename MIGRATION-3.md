@@ -290,6 +290,37 @@ CI outcomes (2026-08-30): every CI / docker / client-release run is green (WitRP
    gateway on the first call, artifact sync imported the eight 2.0.0-beta
    builds within 30 s, `latest.json` serves 2.0.0-beta — nodes on 1.1.6 can
    now follow by themselves.
+5. **Nodes on 2.0.0-beta — the first real defect of the cutover (09:00Z).**
+   Two nodes reconnected over protocol 3 (`reconnected via machineId …`),
+   reported controllers and benchmarks, heartbeats flowed — and the first
+   distributed render (`RenderStill` of `cube_diorama.blend`, dispatched to
+   `2/2` compatible nodes) died with *Task batch timed out — no progress
+   from the node for 90 s*; the node's own log had no trace of the batch.
+   Cause, confirmed in WitRPC source and by a test: **3.x stamps every
+   callback with the contract id of the type the service was registered
+   as**, and the node-side proxy — built on `ICloudChannel` — drops a
+   callback stamped for any other id; the per-node server registered the
+   class (`WithService<CloudChannel>`), so no `NodeTaskBatchReceived` /
+   `NodeCancelReceived` ever reached a node while requests kept working
+   (the request path has a name-based fallback, the callback path has
+   none). It is the only channel in the ecosystem with events, so nothing
+   else deployed is affected. Fixes, all pushed:
+   - **WitCloud 1.7.1** (`eaf6146`): `WithService<ICloudChannel>(channel)`;
+     regression test `PerNodeCallbackContractTests` over the real per-node
+     channel (fails against the class registration, passes with the
+     contract) — image built by docker.yml, deploy = `witcloud-update.service`
+     again (7 GB, the ghcr throttle may need a re-run).
+   - **The WitRPC test host** (`aa4323e`): it never registered
+     `ClientRatingService`, so every `RegisterClient` through it failed and
+     61 Integration/E2E tests had been failing on that one message — which is
+     how this shipped untested. Unmasked, E2E goes 37 → 65 of 71; the six
+     left are the Simulator `Grid.ForEach` tests (separate).
+   - **OutWit.Communication 3.1.2** (`9e387f4`, on nuget.org): an event a
+     class inherits from one of its interfaces is stamped with the
+     interface's contract id, and the method ids of implemented interfaces
+     are indexed — class-registered services work for everyone. Consumers
+     pick it up with their next bumps; the interface registration in WitCloud
+     stands on its own.
 
 Ahead: the node fleet (manual installs of 2.0.0-beta), then the plugins —
 `publish.yml` OutWit.Cloud.SDK 2.0.0 → nuget.org, `native-carrier-nuget.yml`
