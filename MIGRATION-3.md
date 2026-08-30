@@ -308,8 +308,7 @@ CI outcomes (2026-08-30): every CI / docker / client-release run is green (WitRP
    - **WitCloud 1.7.1** (`eaf6146`): `WithService<ICloudChannel>(channel)`;
      regression test `PerNodeCallbackContractTests` over the real per-node
      channel (fails against the class registration, passes with the
-     contract) — image built by docker.yml, deploy = `witcloud-update.service`
-     again (7 GB, the ghcr throttle may need a re-run).
+     contract) — image built by docker.yml.
    - **The WitRPC test host** (`aa4323e`): it never registered
      `ClientRatingService`, so every `RegisterClient` through it failed and
      61 Integration/E2E tests had been failing on that one message — which is
@@ -321,8 +320,25 @@ CI outcomes (2026-08-30): every CI / docker / client-release run is green (WitRP
      are indexed — class-registered services work for everyone. Consumers
      pick it up with their next bumps; the interface registration in WitCloud
      stands on its own.
+6. **Gateway 1.7.1 — live (10:2xZ), and the real reason every pull "hit a
+   rate limit".** `witcloud-update.service` failed four times on ghcr
+   `TOOMANYREQUESTS retry-after: <ms>` for the 7 GB layer — from the engine
+   host and from the test box alike, with one download at a time, with
+   Docker's retries. The image size was ruled out first (1.7.1 = 1.7.0 =
+   1.6.102 = 7.25 GB compressed, one publish layer). The cause was on
+   GitHub's side of the account: the images are **private packages**, GitHub
+   Pro includes 10 GB/month of data transfer for those, and the account's
+   **Packages budget was $0 with "Stop usage: Yes"** — the badge read 100%.
+   One gateway pull is 7.25 GB, so the included transfer was gone by
+   mid-morning and GHCR started refusing blobs (as a 429 with a sub-second
+   retry-after, not the 403 one would expect). Raising the budget let the
+   very next run through; the daemon.json tuning (`max-concurrent-downloads
+   1`, `max-download-attempts 20`) tried in between changed nothing and was
+   reverted. Verified on 1.7.1: three nodes on 2.0.0-beta reconnected,
+   `RenderStill` dispatched to `3/3` nodes and **completed**, the render
+   result downloaded, no 2.x refusals in the log any more.
 
-Ahead: the node fleet (manual installs of 2.0.0-beta), then the plugins —
+Ahead: the plugins —
 `publish.yml` OutWit.Cloud.SDK 2.0.0 → nuget.org, `native-carrier-nuget.yml`
 2.0.0, Simulation `publish.yml` Bridge.Session 0.3.0, then the plugin
 releases one at a time — then WitForms / WitAnalytics / WitLicense, rebuilt
@@ -397,8 +413,14 @@ of the gap between them is the S2S lookup.
 ### Step 4 — after the dust settles
 
 Lift `MaxConcurrentRequests` per service after the thread-safety audit; declare
-idempotent methods where retries are wanted; fix WitCloud's test host
-(`ClientRatingService`); WebSocket restart hang in WitRPC.
+idempotent methods where retries are wanted; WebSocket restart hang in WitRPC.
+From the cutover itself: the six Simulator `Grid.ForEach` E2E tests that the
+unmasked test host now shows; the `WitEngine.Compile` startup race (a job in
+the first seconds after the gateway starts fails on a null provider); the
+gateway image's layering — one 7.25 GB publish layer means every update pulls
+7 GB per host, so the controller payloads belong in their own stable layers;
+the 427 versions of `witcloud` on ghcr (storage is metered too); and a
+Packages budget that matches what a deploy actually transfers.
 
 ## Out of scope
 
