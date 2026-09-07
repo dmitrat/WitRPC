@@ -475,6 +475,38 @@ else:
 - Consumer wave targets 3.1.0 directly — nobody in the workspace consumed 3.0.0,
   so the extra version costs no one a second bump.
 
+### 3.2.0 follow-up — connection context and targeted events (Server only)
+
+What a shared server needed before one `WitServer` could serve many clients that
+must not see each other's events (the WitCloud `/worker/v2` case: one endpoint
+for every node instead of one server per node). Planned in
+`WitCloud/@Docs/Roadmap/plan-witrpc-connection-context-and-targeted-callbacks.md`,
+implemented on `feature/connection-context-targeted-callbacks` from `main`:
+
+- **`ConnectionContext.Current`** — an `AsyncLocal` set inside `WitServer.ProcessMessage`
+  (visible to the validator, the processor and the service method and whatever
+  they await or start; gone when the request completes) and around
+  `ProcessAuthorization`. Carries the connection id, the server and the
+  principal; the principal lives on `ConnectionInfo`, established once at
+  authorization through the opt-in `IConnectionAuthenticator` — `IAccessTokenValidator`
+  is untouched, a validator that does not opt in leaves it null.
+- **`CallbackScope`** — the target of a raise, read in `WitServer.OnCallback`
+  (the raise chain `event → HandleEvent → Callback → OnCallback` is synchronous,
+  so the `AsyncLocal` is visible there without touching either processor or
+  `IRequestProcessor`). One connection or a set; a delivery report per server
+  and connection; `TargetedOnly` refuses an untargeted raise. Without a scope
+  the server broadcasts as before.
+- **`ConnectionOutbox`** — one ordered outbound queue and one writer per
+  connection for responses, handshake replies and callbacks alike; replaces the
+  `_ = SendCallbackAsync(...)` fan-out. Wire order is a stated guarantee now,
+  the AEAD counter advances in wire order by construction, a stuck transport
+  holds only its own queue, and the per-connection bound with the
+  `Log | CloseConnection | DropNewest` policy is the outbound half of the
+  2026-08-30 audit's P0.2 (the inbound bound stays for its Stage 1).
+- Defaults reproduce 3.1 exactly; the wire, the core, every client package and
+  the DI package are untouched. Tests: 46 new, on Pipes / WebSocket / TCP and on
+  a stub transport that can block a write.
+
 ### Published (2026-08-29)
 
 - **3.0.0** — all 23 packages, in dependency waves through the gated

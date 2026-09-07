@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <TieredPGO>true</TieredPGO>
+    <Description>Load harness for the 3.2 shared-server model: one WitServer serving N clients with targeted callbacks against N per-client servers; slow-neighbour isolation; connection storms. Not part of the CI gate; run it by hand and keep the numbers with the release notes.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OutWit.Communication.Client\OutWit.Communication.Client.csproj" />
+    <ProjectReference Include="..\OutWit.Communication.Client.DynamicProxy\OutWit.Communication.Client.DynamicProxy.csproj" />
+    <ProjectReference Include="..\OutWit.Communication.Client.Tcp\OutWit.Communication.Client.Tcp.csproj" />
+    <ProjectReference Include="..\OutWit.Communication.Client.WebSocket\OutWit.Communication.Client.WebSocket.csproj" />
+    <ProjectReference Include="..\OutWit.Communication.Server\OutWit.Communication.Server.csproj" />
+    <ProjectReference Include="..\OutWit.Communication.Server.Tcp\OutWit.Communication.Server.Tcp.csproj" />
+    <ProjectReference Include="..\OutWit.Communication.Server.WebSocket\OutWit.Communication.Server.WebSocket.csproj" />
+  </ItemGroup>
+
+</Project>

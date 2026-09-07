@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Channels;
 using OutWit.Communication.Interfaces;
@@ -8,9 +9,11 @@ namespace OutWit.Communication.Server.Connections
 {
     /// <summary>
     /// One client's connection on the server: its transport, its per-connection
-    /// encryptor, its handshake state, and the two things that keep the server
-    /// correct under load — a single inbound queue processed in order, and a send
-    /// lock so responses and callbacks never interleave on the one transport.
+    /// encryptor, its handshake state, the principal it authorized with, and the
+    /// two things that keep the server correct under load — a single inbound queue
+    /// processed in order, and a single outbound queue (<see cref="ConnectionOutbox"/>)
+    /// so responses and callbacks leave in order and never interleave on the one
+    /// transport.
     /// </summary>
     public class ConnectionInfo : IDisposable
     {
@@ -70,12 +73,20 @@ namespace OutWit.Communication.Server.Connections
                 return;
 
             State = ConnectionState.Connected;
+            Principal = null;
+            AuthorizedAtUtc = default;
         }
 
         /// <summary>
-        /// Stops accepting more inbound frames and lets the processing loop drain
-        /// and exit. Idempotent.
+        /// Gives the connection its outbound queue. Called once by the server right
+        /// after the connection is created; the queue needs the server's serializer
+        /// and options, which the connection does not know.
         /// </summary>
+        internal void AttachOutbox(ConnectionOutbox outbox)
+        {
+            Outbox = outbox;
+        }
+
         /// <summary>
         /// Returns the cached response for an invocation already executed on
         /// this connection, if it is still within the bounded window.
@@ -118,6 +129,10 @@ namespace OutWit.Communication.Server.Connections
             }
         }
 
+        /// <summary>
+        /// Stops accepting more inbound frames and lets the processing loop drain
+        /// and exit. Idempotent.
+        /// </summary>
         public void CompleteInbound()
         {
             Inbound.Writer.TryComplete();
@@ -135,6 +150,7 @@ namespace OutWit.Communication.Server.Connections
             m_disposed = true;
 
             Inbound.Writer.TryComplete();
+            Outbox?.Dispose();
             SendLock.Dispose();
             m_encryptor?.Dispose();
         }
@@ -175,9 +191,38 @@ namespace OutWit.Communication.Server.Connections
 
         public Guid Id => Transport.Id;
 
+        /// <summary>
+        /// The principal established at authorization when the server's token
+        /// validator implements <see cref="Authorization.IConnectionAuthenticator"/>;
+        /// null otherwise, and null again after a re-initialization.
+        /// </summary>
+        public ClaimsPrincipal? Principal { get; internal set; }
+
+        /// <summary>
+        /// When the connection authorized; default until it has.
+        /// </summary>
+        public DateTimeOffset AuthorizedAtUtc { get; internal set; }
+
+        /// <summary>
+        /// Callbacks waiting in the connection's outbound queue.
+        /// </summary>
+        public long PendingCallbacks => Outbox?.PendingCallbacks ?? 0;
+
+        /// <summary>
+        /// Payload bytes of the callbacks waiting in the connection's outbound queue.
+        /// </summary>
+        public long PendingCallbackBytes => Outbox?.PendingCallbackBytes ?? 0;
+
+        /// <summary>
+        /// Taken by the outbound writer around each transport write. The writer is
+        /// the only sender since 3.2; the lock stays for anyone who wrote to the
+        /// transport directly.
+        /// </summary>
         public SemaphoreSlim SendLock { get; }
 
         public Channel<byte[]> Inbound { get; }
+
+        internal ConnectionOutbox? Outbox { get; private set; }
 
         #endregion
     }

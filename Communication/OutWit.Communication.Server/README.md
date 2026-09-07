@@ -97,7 +97,7 @@ When clients connect and invoke methods:
     
 -   When a client calls a service method, the server receives the request, deserializes it to a `WitRequest` object, and invokes the corresponding method on your service object. The return value (or any exception) is captured and sent back as a response.
     
--   If your service raises an event (e.g., calls an event delegate to notify of some change), the server framework will automatically forward that event to all connected clients that have subscribed to it. This allows for real-time push notifications from server to clients.
+-   If your service raises an event (e.g., calls an event delegate to notify of some change), the server framework will automatically forward that event to all connected clients that have subscribed to it. This allows for real-time push notifications from server to clients. Since 3.2 a service can also address an event to one client or a set of clients (see below).
 
 To stop the server when your application is shutting down:
 
@@ -107,6 +107,46 @@ server.Dispose();
 ```
 
 This will stop listening for new connections, close all existing client connections, and release resources like ports or pipe handles.
+
+### Connection context and targeted events (3.2)
+
+A service method can find out which connection it is serving, and an event can be sent to one connection instead of everyone. Nothing changes on the wire and nothing changes for a service that does not use it: an event raised the ordinary way still reaches every connected client.
+
+**Who is calling.** `ConnectionContext.Current` is set for the duration of every request (an `AsyncLocal`, so it follows the method through its `await`s and into tasks it starts) and is `null` outside one:
+
+```csharp
+public Guid WhoAmI() => ConnectionContext.Current!.ConnectionId;
+```
+
+It carries the connection id, the server (`ServerId`, `ServerName`, `Transport`) and, when your token validator also implements `IConnectionAuthenticator`, the `ClaimsPrincipal` established when the connection authorized. Prefer `IConnectionContextAccessor` (register `ConnectionContextAccessor` as a singleton) when the service takes it by injection, and `ConnectionContext.BeginScope(...)` to simulate a connection in a unit test.
+
+**Events for one client.** Open a `CallbackScope` around the raise; the server that hosts the service reads the target when the callback reaches it:
+
+```csharp
+public void Notify(Guid connectionId, string message)
+{
+    using var scope = CallbackScope.Target(connectionId);   // or Target(ids), or TargetCaller()
+    Notified(message);                                      // the contract's ordinary event
+    // scope.Report says what happened now; await scope.Completion for the final word:
+    // Sent, UnknownConnection, NotAuthorized, QueueFull, SendFailed, SendTimedOut
+}
+```
+
+`TargetCaller()` is "reply to whoever is calling" without knowing the id. A service registered in several servers is raised in each; the report lists the outcome per server, and the one that owns the connection delivers.
+
+**Delivery options.** Every connection has one ordered outbound queue: responses, handshake replies and events leave in the order they were queued, and an event raised inside a method before it returns is written before that method's response. The queue can be bounded per connection:
+
+```csharp
+options.WithCallbackDelivery(delivery =>
+{
+    delivery.MaxPendingCallbacks = 256;                         // 0 = unbounded (default)
+    delivery.MaxPendingCallbackBytes = 64 * 1024 * 1024;        // 0 = unbounded (default)
+    delivery.OverflowPolicy = CallbackOverflowPolicy.CloseConnection;   // Log (default) | CloseConnection | DropNewest
+});
+options.WithTargetedCallbacksOnly();   // refuse an event raised outside a CallbackScope
+```
+
+Responses are never counted against the bound and never dropped. With the default `Log` policy an overflow and a send timeout are logged and the connection stays open, exactly as before 3.2; `CloseConnection` closes a client that cannot keep up (and one whose send times out), which is what keeps every other connection of the server unaffected; `DropNewest` is for events the service declares lossy. `WithTargetedCallbacksOnly()` is for a server whose clients must never see each other's events: a raise without a target is refused and logged.
 
 ### Further Documentation
 

@@ -11,6 +11,7 @@ using OutWit.Communication.Model;
 using OutWit.Communication.Processors;
 using OutWit.Communication.Serializers;
 using OutWit.Communication.Server.Authorization;
+using OutWit.Communication.Server.Callbacks;
 using OutWit.Communication.Server.Discovery;
 using OutWit.Communication.Server.Encryption;
 
@@ -43,7 +44,7 @@ namespace OutWit.Communication.Server
 
             return new WitServer(options.TransportFactory, options.EncryptorFactory, options.TokenValidator, options.ParametersSerializer, options.MessageSerializer,
                 options.RequestProcessor, options.DiscoveryServer, options.Logger, options.Timeout, options.Name, options.Description, options.MaxConcurrentRequests,
-                options.HandshakeTimeout);
+                options.HandshakeTimeout, options.CallbackDelivery);
         }
 
         #region Transport
@@ -304,6 +305,50 @@ namespace OutWit.Communication.Server
         public static WitServerBuilderOptions WithHandshakeTimeout(this WitServerBuilderOptions me, TimeSpan handshakeTimeout)
         {
             me.HandshakeTimeout = handshakeTimeout;
+            return me;
+        }
+
+        #endregion
+
+        #region Callbacks
+
+        /// <summary>
+        /// Configures how callbacks are delivered: whether an untargeted raise reaches every
+        /// authorized connection, how many callbacks may wait per connection, and what happens
+        /// beyond that. See <see cref="CallbackDeliveryOptions"/>; the defaults reproduce the
+        /// pre-3.2 behaviour.
+        /// </summary>
+        /// <param name="me">The options.</param>
+        /// <param name="configure">Sets the delivery options.</param>
+        /// <returns>The options, for chaining.</returns>
+        public static WitServerBuilderOptions WithCallbackDelivery(this WitServerBuilderOptions me, Action<CallbackDeliveryOptions> configure)
+        {
+            configure(me.CallbackDelivery);
+            return me;
+        }
+
+        /// <summary>
+        /// Uses the given callback delivery options.
+        /// </summary>
+        /// <param name="me">The options.</param>
+        /// <param name="callbackDelivery">The delivery options.</param>
+        /// <returns>The options, for chaining.</returns>
+        public static WitServerBuilderOptions WithCallbackDelivery(this WitServerBuilderOptions me, CallbackDeliveryOptions callbackDelivery)
+        {
+            me.CallbackDelivery = callbackDelivery;
+            return me;
+        }
+
+        /// <summary>
+        /// Makes the server refuse an event raised outside a <see cref="CallbackScope"/>: every
+        /// callback must name its target connection(s). For a server whose clients must never see
+        /// each other's events.
+        /// </summary>
+        /// <param name="me">The options.</param>
+        /// <returns>The options, for chaining.</returns>
+        public static WitServerBuilderOptions WithTargetedCallbacksOnly(this WitServerBuilderOptions me)
+        {
+            me.CallbackDelivery.Mode = CallbackDeliveryMode.TargetedOnly;
             return me;
         }
 

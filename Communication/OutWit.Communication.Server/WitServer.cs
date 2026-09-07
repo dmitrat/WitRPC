@@ -10,6 +10,8 @@ using OutWit.Communication.Messages;
 using OutWit.Communication.Model;
 using OutWit.Communication.Requests;
 using OutWit.Communication.Responses;
+using OutWit.Communication.Server.Authorization;
+using OutWit.Communication.Server.Callbacks;
 using OutWit.Communication.Server.Connections;
 using OutWit.Communication.Utils;
 
@@ -23,6 +25,8 @@ namespace OutWit.Communication.Server
 
         private readonly SemaphoreSlim m_processingLimit;
 
+        private readonly CallbackDeliveryOptions m_callbackDelivery;
+
         private bool m_isDisposed;
 
         #endregion
@@ -34,7 +38,22 @@ namespace OutWit.Communication.Server
             IRequestProcessor requestProcessor, IDiscoveryServer? discoveryServer,
             ILogger? logger, TimeSpan? timeout, string? name, string? description, int maxConcurrentRequests = int.MaxValue,
             TimeSpan? handshakeTimeout = null)
+            : this(transportFactory, encryptorFactory, tokenValidator, parametersSerializer, messageSerializer, requestProcessor,
+                discoveryServer, logger, timeout, name, description, maxConcurrentRequests, handshakeTimeout, null)
         {
+        }
+
+        /// <param name="callbackDelivery">How callbacks are delivered (targeting mode, per-connection
+        /// bounds, overflow policy); null for the defaults, which reproduce the pre-3.2 behaviour.</param>
+        public WitServer(ITransportServerFactory transportFactory, IEncryptorServerFactory encryptorFactory,
+            IAccessTokenValidator tokenValidator, IMessageSerializer parametersSerializer, IMessageSerializer messageSerializer,
+            IRequestProcessor requestProcessor, IDiscoveryServer? discoveryServer,
+            ILogger? logger, TimeSpan? timeout, string? name, string? description, int maxConcurrentRequests,
+            TimeSpan? handshakeTimeout, CallbackDeliveryOptions? callbackDelivery)
+        {
+            m_callbackDelivery = callbackDelivery ?? new CallbackDeliveryOptions();
+            m_callbackDelivery.Validate();
+
             TransportFactory = transportFactory;
             EncryptorFactory = encryptorFactory;
             ParametersSerializer = parametersSerializer;
@@ -208,9 +227,23 @@ namespace OutWit.Communication.Server
 
             try
             {
-                bool authorized = TokenValidator.IsAuthorizationTokenValid(request.Token);
+                // A validator that can name the principal does so once, here; the
+                // connection keeps it for ConnectionContext.Principal. Any other
+                // validator is used exactly as before.
+                bool authorized;
+                System.Security.Claims.ClaimsPrincipal? principal = null;
+
+                if (TokenValidator is IConnectionAuthenticator authenticator)
+                    authorized = authenticator.TryAuthenticate(request.Token, out principal);
+                else
+                    authorized = TokenValidator.IsAuthorizationTokenValid(request.Token);
+
                 if (authorized)
+                {
+                    connection.Principal = principal;
+                    connection.AuthorizedAtUtc = DateTimeOffset.UtcNow;
                     connection.State = ConnectionState.Authorized;
+                }
 
                 var response = new WitResponseAuthorization
                 {
@@ -233,8 +266,22 @@ namespace OutWit.Communication.Server
 
         #region Processing
 
+        /// <summary>
+        /// The snapshot a service sees as <see cref="ConnectionContext.Current"/> while it
+        /// handles a request of <paramref name="connection"/>.
+        /// </summary>
+        private ConnectionContext CreateContext(ConnectionInfo connection)
+        {
+            return new ConnectionContext(connection.Id, Id, Name, TransportFactory.Options.Transport,
+                connection.Principal, connection.AuthorizedAtUtc);
+        }
+
         private async Task<WitMessage> ProcessMessage(ConnectionInfo connection, WitMessage message)
         {
+            // Visible to the token validator, the processor and the service method
+            // (and whatever they await or start); gone when this method completes.
+            using var contextScope = ConnectionContext.BeginScope(CreateContext(connection));
+
             var request = message.Data.GetRequest(MessageSerializer);
 
             if (request != null && request.InvocationId != Guid.Empty &&
@@ -313,18 +360,36 @@ namespace OutWit.Communication.Server
 
         #region Send
 
+        /// <summary>
+        /// Queues a response or a handshake reply on the connection's outbound queue and
+        /// waits until the writer has put it on the wire (or failed to). Order on the wire
+        /// is the order of enqueueing; callbacks share the same queue.
+        /// </summary>
         private async Task SendMessageAsync(ConnectionInfo connection, WitMessage message)
+        {
+            var outbox = connection.Outbox;
+            if (outbox == null)
+            {
+                await WriteMessageAsync(connection, message).ConfigureAwait(false);
+                return;
+            }
+
+            await outbox.EnqueueResponse(message).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// The one place a frame is encrypted, serialized and written: called by the
+        /// connection's outbound writer, one frame at a time, so the AEAD counter advances
+        /// in wire order. A failure is the writer's to report; the exception propagates.
+        /// </summary>
+        private async Task WriteMessageAsync(ConnectionInfo connection, WitMessage message)
         {
             await connection.SendLock.WaitAsync().ConfigureAwait(false);
             try
             {
-                var encryptedMessage = await Encrypt(connection, message);
+                var encryptedMessage = await Encrypt(connection, message).ConfigureAwait(false);
                 var data = MessageSerializer.Serialize(encryptedMessage);
-                await connection.Transport.SendBytesAsync(data);
-            }
-            catch (Exception e)
-            {
-                Logger?.LogError(e, "Failed to send message to client {ClientId}", connection.Id);
+                await connection.Transport.SendBytesAsync(data).ConfigureAwait(false);
             }
             finally
             {
@@ -357,6 +422,12 @@ namespace OutWit.Communication.Server
             // disposes the connection. Stop taking inbound frames first.
             connection.CompleteInbound();
             connection.Transport.Dispose();
+        }
+
+        private void CloseConnection(ConnectionInfo connection, string reason)
+        {
+            Logger?.LogWarning("Closing the connection of client {ClientId}: {Reason}", connection.Id, reason);
+            CloseConnection(connection);
         }
 
         #endregion
@@ -438,7 +509,11 @@ namespace OutWit.Communication.Server
                         return false;
                     }
 
-                    await SendMessageAsync(connection, ProcessAuthorization(connection, decrypted));
+                    WitMessage authorizationReply;
+                    using (ConnectionContext.BeginScope(CreateContext(connection)))
+                        authorizationReply = ProcessAuthorization(connection, decrypted);
+
+                    await SendMessageAsync(connection, authorizationReply);
 
                     if (!connection.IsAuthorized)
                     {
@@ -457,7 +532,6 @@ namespace OutWit.Communication.Server
                         return false;
                     }
 
-                    var tag = connection.Id.ToString().Substring(0, 4);
                     var responseMessage = await ProcessMessage(connection, decrypted);
                     await SendMessageAsync(connection, responseMessage);
                     return true;
@@ -472,10 +546,29 @@ namespace OutWit.Communication.Server
 
         #region Callbacks
 
+        /// <summary>
+        /// Delivers an event the service raised. The raise reaches this method on the
+        /// raising thread, so the <see cref="CallbackScope"/> the service opened (if any)
+        /// is still current: its target decides which connections get the callback,
+        /// and it collects what happened to each. Without a scope the callback goes to
+        /// every authorized connection, unless the server is
+        /// <see cref="CallbackDeliveryMode.TargetedOnly"/>.
+        /// </summary>
         private void OnCallback(WitRequest? request)
         {
             if (request == null || m_isDisposed)
                 return;
+
+            var scope = CallbackScope.CurrentScope;
+            var target = scope?.Recipients ?? CallbackTarget.Broadcast;
+            scope?.RecordRaise();
+
+            if (target.IsBroadcast && m_callbackDelivery.Mode == CallbackDeliveryMode.TargetedOnly)
+            {
+                Logger?.LogError("Event {EventName} was raised without a target on a targeted-only server; not delivered", request.MethodName);
+                scope?.Record(Id, Guid.Empty, CallbackDeliveryStatus.Refused, null);
+                return;
+            }
 
             byte[] callback;
             try
@@ -488,19 +581,37 @@ namespace OutWit.Communication.Server
                 return;
             }
 
-            foreach (var connection in m_connections.Values)
+            if (target.IsBroadcast)
             {
-                // Only clients that finished the handshake receive events, and the
-                // send goes through the connection's send lock so it never
-                // interleaves with a response on the same transport.
-                if (!connection.IsAuthorized)
-                    continue;
+                foreach (var connection in m_connections.Values)
+                {
+                    // Only clients that finished the handshake receive events.
+                    if (connection.IsAuthorized)
+                        DispatchCallback(connection, callback, scope);
+                }
 
-                _ = SendCallbackAsync(connection, callback);
+                return;
+            }
+
+            foreach (var connectionId in target.ConnectionIds)
+            {
+                if (!m_connections.TryGetValue(connectionId, out var connection))
+                {
+                    scope?.Record(Id, connectionId, CallbackDeliveryStatus.UnknownConnection, null);
+                    continue;
+                }
+
+                if (!connection.IsAuthorized)
+                {
+                    scope?.Record(Id, connectionId, CallbackDeliveryStatus.NotAuthorized, null);
+                    continue;
+                }
+
+                DispatchCallback(connection, callback, scope);
             }
         }
 
-        private async Task SendCallbackAsync(ConnectionInfo connection, byte[] callback)
+        private void DispatchCallback(ConnectionInfo connection, byte[] callback, CallbackScope? scope)
         {
             var message = new WitMessage
             {
@@ -509,23 +620,19 @@ namespace OutWit.Communication.Server
                 Data = callback
             };
 
-            var send = SendMessageAsync(connection, message);
+            var outbox = connection.Outbox;
+            if (outbox == null)
+            {
+                scope?.Record(Id, connection.Id, CallbackDeliveryStatus.SendFailed, null);
+                return;
+            }
 
-            if (Timeout != null && Timeout != TimeSpan.Zero)
-            {
-                try
-                {
-                    await send.WaitAsync(Timeout.Value).ConfigureAwait(false);
-                }
-                catch (TimeoutException)
-                {
-                    Logger?.LogWarning("Callback to client {ClientId} timed out", connection.Id);
-                }
-            }
+            // The queue enforces the per-connection bounds and the overflow policy;
+            // the writer reports the send's outcome through the completion task.
+            if (outbox.TryEnqueueCallback(message, out var completion, out var refusal))
+                scope?.Record(Id, connection.Id, CallbackDeliveryStatus.Queued, completion);
             else
-            {
-                await send.ConfigureAwait(false);
-            }
+                scope?.Record(Id, connection.Id, refusal, null);
         }
 
         #endregion
@@ -552,6 +659,13 @@ namespace OutWit.Communication.Server
             // window in which a fast client's first frame is delivered to nobody.
             // The encryptor is built lazily on the processing loop for that reason.
             var connection = new ConnectionInfo(transport, EncryptorFactory);
+            connection.AttachOutbox(new ConnectionOutbox(
+                connection.Id,
+                message => WriteMessageAsync(connection, message),
+                m_callbackDelivery,
+                Timeout,
+                Logger,
+                reason => CloseConnection(connection, reason)));
 
             if (!m_connections.TryAdd(transport.Id, connection))
             {
@@ -666,6 +780,40 @@ namespace OutWit.Communication.Server
         public Guid Id { get; }
 
         public IServerOptions Options => TransportFactory.Options;
+
+        /// <summary>
+        /// How this server delivers callbacks (see <see cref="CallbackDeliveryOptions"/>).
+        /// </summary>
+        public CallbackDeliveryOptions CallbackDelivery => m_callbackDelivery;
+
+        /// <summary>
+        /// Callbacks waiting in one connection's outbound queue; 0 for an unknown connection.
+        /// For diagnostics and tests.
+        /// </summary>
+        /// <param name="connectionId">The connection.</param>
+        /// <returns>The number of queued callbacks.</returns>
+        public long GetPendingCallbacks(Guid connectionId)
+        {
+            return m_connections.TryGetValue(connectionId, out var connection) ? connection.PendingCallbacks : 0;
+        }
+
+        /// <summary>
+        /// Connections that finished the handshake, for diagnostics and tests.
+        /// </summary>
+        public int AuthorizedConnectionCount
+        {
+            get
+            {
+                var count = 0;
+                foreach (var connection in m_connections.Values)
+                {
+                    if (connection.IsAuthorized)
+                        count++;
+                }
+
+                return count;
+            }
+        }
 
         #endregion
     }

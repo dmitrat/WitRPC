@@ -412,6 +412,14 @@ of the gap between them is the S2S lookup.
 
 ### Step 4 — after the dust settles
 
+**Server 3.2.0 (connection context, targeted events, per-connection outbound
+queue) needs no consumer action.** It is additive on the server package only:
+nothing on the wire, nothing in the core, the client packages or the DI package
+(whose floor stays `Server >= 3.1.1`). A consumer takes it with an explicit
+`OutWit.Communication.Server` pin and behaves exactly as before until it opens
+a `CallbackScope`, reads `ConnectionContext.Current` or sets
+`WithCallbackDelivery(...)`.
+
 Lift `MaxConcurrentRequests` per service after the thread-safety audit; declare
 idempotent methods where retries are wanted; WebSocket restart hang in WitRPC.
 From the cutover itself: the six Simulator `Grid.ForEach` E2E tests that the
