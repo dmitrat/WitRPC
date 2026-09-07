@@ -34,6 +34,7 @@
     <Project Path="Communication/OutWit.Communication.Serializers.MessagePack/OutWit.Communication.Serializers.MessagePack.csproj" />
     <Project Path="Communication/OutWit.Communication.Serializers.ProtoBuf/OutWit.Communication.Serializers.ProtoBuf.csproj" />
     <Project Path="Communication/OutWit.Communication.Server/OutWit.Communication.Server.csproj" />
+    <Project Path="Communication/OutWit.Communication.LoadTests/OutWit.Communication.LoadTests.csproj" />
     <Project Path="Communication/OutWit.Communication.Tests/OutWit.Communication.Tests.csproj" />
     <Project Path="Communication/OutWit.Communication/OutWit.Communication.csproj" />
   </Folder>

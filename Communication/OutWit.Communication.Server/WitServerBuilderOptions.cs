@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using OutWit.Communication.Interfaces;
 using OutWit.Communication.Serializers;
 using OutWit.Communication.Server.Authorization;
+using OutWit.Communication.Server.Callbacks;
 using OutWit.Communication.Server.Encryption;
 
 namespace OutWit.Communication.Server
@@ -69,6 +70,14 @@ namespace OutWit.Communication.Server
         /// <see cref="TimeSpan.Zero"/> to disable.
         /// </summary>
         public TimeSpan? HandshakeTimeout { get; set; } = TimeSpan.FromSeconds(30);
+
+        /// <summary>
+        /// How callbacks are delivered: whether an untargeted raise reaches every
+        /// authorized connection, how many callbacks may wait per connection, and
+        /// what happens beyond that. The defaults reproduce the pre-3.2 behaviour.
+        /// See <see cref="WitServerBuilder.WithCallbackDelivery(WitServerBuilderOptions, Action{CallbackDeliveryOptions})"/>.
+        /// </summary>
+        public CallbackDeliveryOptions CallbackDelivery { get; set; } = new();
 
         #endregion
     }

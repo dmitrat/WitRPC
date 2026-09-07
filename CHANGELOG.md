@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Note**: Since 2.3.1, package versions diverge per package family. Each section below lists the package versions it produced (verified against csproj `<Version>` values).
 
+## [Server 3.2.0] - 2026-09-07
+
+### Added
+
+- **Connection context for a service.** `ConnectionContext.Current` (an `AsyncLocal` the server sets around every request and around the authorization handshake) tells a service method which connection it is serving: the connection id, the server (`ServerId`, `ServerName`, `Transport`) and the principal the connection authorized with. The principal comes from a token validator that also implements the new `IConnectionAuthenticator` (`TryAuthenticate(token, out ClaimsPrincipal?)`); any other validator is used exactly as before and the principal stays null. `IConnectionContextAccessor` / `ConnectionContextAccessor` for injection, `ConnectionContext.BeginScope(...)` for unit tests of services. `ConnectionInfo` gains `Principal`, `AuthorizedAtUtc`, `PendingCallbacks`, `PendingCallbackBytes`.
+- **Targeted events.** `CallbackScope.Target(connectionId)` / `Target(connectionIds)` / `TargetCaller()`: an event raised inside the scope goes to the named connection(s) only. The server reads the target when the callback reaches it (the raise chain is synchronous, so the `AsyncLocal` is visible there; it also flows into tasks started inside the scope). The scope reports what happened per server and connection (`Report` now, `Completion` once every accepted send finished: `Sent`, `UnknownConnection`, `NotAuthorized`, `QueueFull`, `SendFailed`, `SendTimedOut`, `Refused`). An event raised outside a scope still goes to every authorized connection.
+- **Callback delivery options** (`WithCallbackDelivery(...)`, `WithTargetedCallbacksOnly()`, `CallbackDeliveryOptions` on the builder options and on the new `WitServer` constructor overload): a per-connection bound on queued callbacks (`MaxPendingCallbacks`, `MaxPendingCallbackBytes`; 0 = unbounded) with an overflow policy — `Log` (default: queue anyway, warn, keep the connection), `CloseConnection` (refuse, close the connection; a callback send timeout closes it too), `DropNewest` (for lossy events) — and a `TargetedOnly` mode that refuses an untargeted raise. `WitServer.GetPendingCallbacks(connectionId)` and `AuthorizedConnectionCount` for diagnostics.
+
+### Changed
+
+- **One ordered outbound queue per connection.** Responses, handshake replies and callbacks of a connection are written by one writer task in the order they were enqueued (`ConnectionOutbox`), instead of a fire-and-forget send task per callback per connection waiting on the send lock. Wire order is now a stated guarantee: a callback raised inside a service method before it returns precedes that method's response; a connection whose transport is stuck holds only its own queue. With the default options every frame is still delivered, in the same order, with the same `Timeout` warning on a slow callback write — no behaviour change for an existing server. `ConnectionInfo.SendLock` stays and is taken by the writer around each write.
+- Nothing changes on the wire, in the core, in any client package or in the DI package (its floor stays `Server >= 3.1.1`; a consumer takes 3.2.0 with an explicit pin). 46 new tests: `ConnectionContextTests`, `TargetedCallbackTests` (Pipes, WebSocket, TCP), `ConnectionOutboxTests` (ordering, isolation, bounds, policies, timeouts, on a stub transport).
+
 ## [OutWit.Communication 3.1.2] - 2026-08-30
 
 ### Fixed
