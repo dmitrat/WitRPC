@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Note**: Since 2.3.1, package versions diverge per package family. Each section below lists the package versions it produced (verified against csproj `<Version>` values).
 
+## [3.2 wave: Server.WebSocket / Server.Tcp / Server.Pipes / Server.MMF / Server.Encryption.BouncyCastle / InterProcess.Agent 3.2.0, Server.DependencyInjection 3.2.2, Server.Rest 3.2.4] - 2026-09-08
+
+### Changed
+
+- Republished with no code change so that their dependency floor moves from `OutWit.Communication.Server >= 3.1.x` to `>= 3.2.0`: a consumer that updates any of them now gets the 3.2 server (connection context, targeted events, the per-connection outbound queue) without an explicit pin. `Server.DependencyInjection` 3.2.2 also floors `Server.Rest >= 3.2.4`. Nothing else changes; the 3.1.x versions stay valid for anyone who does not update.
+
 ## [Server 3.2.0] - 2026-09-07
 
 ### Added
